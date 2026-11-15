@@ -1,0 +1,6 @@
+pre-commit:
+  jobs:
+    - name: gitleaks
+      run: gitleaks git --pre-commit --staged --redact --no-banner
+    - name: check
+      run: pnpm check

@@ -1,0 +1,13 @@
+packages:
+  - apps/*
+  - packages/*
+
+# D58: skip versions published less than three days ago.
+minimumReleaseAge: 4320
+
+# D58: only these packages may run install scripts.
+allowBuilds:
+  esbuild: true
+  workerd: true
+  # Hooks are installed by the root `prepare` script instead.
+  lefthook: false

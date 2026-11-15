@@ -1,0 +1,63 @@
+# Visión del producto
+
+> Estado: borrador. Nombre: **workampo**. Sin dominio propio en esta etapa (`*.workampo.workers.dev`); `workampo.com` aparece en los ejemplos como dominio futuro.
+> Este documento es la entrada del slicer para crear PRDs. Todo PRD hereda lo que dice aquí sin repetirlo.
+
+## Visión
+
+Una base SaaS multitenant sobre Cloudflare sobre la que montar cualquier negocio: empresas (`companies`), personas (`users`) y membresías (`members`), con una web pública editable por cada empresa. La base no contiene lógica de negocio; el modelo no debe impedir que distintas empresas usen negocios distintos, pero no se implementa nada para ello hasta que haga falta.
+
+## Política de idioma
+
+| Ámbito | Idioma |
+|---|---|
+| Código, identificadores, esquema de base de datos, rutas de API, variables de entorno, scripts | **Inglés** |
+| Nombres de ficheros y carpetas, ramas, etiquetas de GitHub, dominios (`area:companies`), slugs de ramas | **Inglés** |
+| Commits (conventional commits), títulos de PR, nombres de tests, comentarios de código | **Inglés** |
+| Palabras clave de los ejemplos (`Given` / `When` / `Then`), nombres de pasos del ciclo (`Discover`, `Specify`…) | **Inglés** |
+| `AGENTS.md`, definiciones de agentes, procedimientos (`docs/procedures/`), runbooks, ADRs | **Inglés** (base técnica que leen los agentes) |
+| Descripción de procesos, PRDs, specs, discusión en issues y PRs | Español permitido |
+| Interfaz de usuario, emails, ayuda (`/docs`), changelog, páginas legales | **Multiidioma (i18n) desde el inicio: `en` por defecto y `es` (es-ES)** (D47) |
+
+- Los términos del sector se usan tal cual (PRD, spec, staging, release, rollback, hotfix, SLO…) y están definidos en `GLOSSARY.md`.
+- Las landings de empresa están en el idioma que elige cada empresa (su contenido lo escribe ella).
+
+## Requisitos no funcionales globales
+
+Todos los PRDs y tickets los heredan.
+
+- **Aislamiento entre empresas**: ningún dato de una empresa es accesible desde otra. Comprobado por la suite de aislamiento (D29).
+- **Seguridad**: checklist de D32; zonas críticas siempre con revisión de seguridad.
+- **Accesibilidad**: WCAG 2.2 AA (D31).
+- **Internacionalización**: ningún texto visible al usuario en el código; fechas, números y moneda con `Intl` (D47).
+- **SEO**: páginas públicas con Lighthouse ≥ 90 en las cuatro categorías (D31).
+- **Protección de datos**: RGPD (D27).
+- **Fiabilidad**: SLOs de D39.
+- **Coste**: cero en desarrollo y beta; producción con tráfico real probablemente en Workers Paid (5 $/mes).
+
+## Roadmap (Now / Next / Later)
+
+Sin fechas comprometidas; ordenado por valor y riesgo. Cada fila es un PRD, nombrado por su título. Al crear su issue (`[PRD] <título>`) se añade su enlace, p. ej. "Team (PRD #12)": el único identificador es el número de issue (D42).
+
+Columna "Dominios": specs vivas que toca el PRD (`access`, `companies`, `billing`, `public-site`); "(apoyo)" marca etiquetas que solo filtran el tablero (`platform`, `content`, `backoffice`), sin spec viva (D52).
+
+### Now
+| PRD | Problema que resuelve | Dominios |
+|---|---|---|
+| **Working foundation** | El ciclo no puede funcionar sin repo, CI, despliegue ni harness | `platform` (apoyo) |
+| **Access and first company** | Nadie puede entrar ni tener una empresa | `access`, `companies` |
+
+### Next
+| PRD | Problema que resuelve | Dominios |
+|---|---|---|
+| **Team** | Una empresa tiene un solo usuario | `companies`, `access` |
+| **Company public site** | Las empresas no tienen presencia pública | `public-site` |
+| **Plans and billing** | No hay ingresos ni diferencia entre planes | `billing` |
+
+### Later
+| PRD | Problema que resuelve | Dominios |
+|---|---|---|
+| **Staff backoffice** | El equipo no puede ver ni gestionar empresas, dar soporte desde dentro ("Enter as", D50) ni ver la salud del sistema | `access`, `companies`, `backoffice` (apoyo) |
+| **Marketing site, help and legal** | No hay escaparate, ayuda ni textos legales | `content` (apoyo) |
+| **Account deletion and data rights** | No se puede borrar ni exportar lo de una empresa | `companies` |
+| **Backups and recovery** | Solo hay 7 días de Time Travel. Obligatorio antes de abrir a clientes reales | `platform` (apoyo) |
