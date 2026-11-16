@@ -654,7 +654,7 @@ Forma de trofeo: el grueso son tests de integración contra el runtime real. TDD
 | Técnico suelto y pequeño | `chore` suelto | Ajustar Renovate, subir Node, añadir un secreto |
 
 - Todo lleva la etiqueta de apoyo `area:platform` (sin living spec); `docs/platform.md` describe entornos, pipelines, copias y alertas actuales (D52).
-- **PRD "Working foundation"** (el primero del roadmap), cinco chores; el detalle estará en su issue (hasta que exista el repo, borrador en `docs/prds/draft-working-foundation/prd.md`): (1) repo, monorepo y `pnpm check` · (2) GitHub como código · (3) despliegue a staging y producción con observabilidad mínima · (4) contexto para agentes · (5) automatización del proceso. Orden: 1 → 2 → 4 → 3 → 5.
+- **PRD "Working foundation"** (el primero del roadmap), cinco chores; el detalle está en su issue, PRD #4: (1) repo, monorepo y `pnpm check` · (2) GitHub como código · (3) despliegue a staging y producción con observabilidad mínima · (4) contexto para agentes · (5) automatización del proceso. Orden: 1 → 2 → 4 → 3 → 5.
 - **Excepciones de arranque** (solo en este PRD, mientras faltan las piezas):
   - Tickets 1 y 2: recorrido S sin issue previa; sus issues se crean al terminar el 2 y se rellenan con lo hecho.
   - Hasta que exista la GitHub App (fin del ticket 2), el agente solo trabaja en local: **los commits y push los hace la persona** y la creación del repo es 🧑.
@@ -1521,7 +1521,7 @@ Pasos 🧑 de la persona, en este orden; cada cuenta se crea con el email del pa
      - **Identidad de git por carpeta**: un `includeIf "gitdir/i:<carpeta del proyecto>/"` en el `.gitconfig` global carga un `.gitconfig` del proyecto con `user.name` y el email *noreply* de la cuenta del proyecto (`<id>+<usuario>@users.noreply.github.com`; el repo es público y no debe exponer emails, D43).
      - **Hooks**: el `.gitconfig` del proyecto anula cualquier `core.hooksPath` global, y `pnpm install` lo fija también en el propio repo, para que solo corran los hooks del repo (lefthook, D17).
      - **Credenciales**: clave SSH propia del proyecto con un alias de host en `~/.ssh/config` (`github-workampo`) y el remoto del repo usando ese alias; `gh` con la cuenta del proyecto en una configuración aparte (`GH_CONFIG_DIR`) y una función de shell que la usa solo dentro de la carpeta del proyecto. No se usa `gh auth switch` (la cuenta activa es global) ni `gh auth setup-git` (ayudante de credenciales global).
-     - **Hooks globales de Claude Code**: los que un proyecto no puede desactivar se saltan este repo mediante una opción del `.gitconfig` del proyecto. ⚠ Pendiente de comprobar con el primer commit del agente en el repo.
+     - **Hooks globales de Claude Code**: los que un proyecto no puede desactivar se saltan este repo mediante una opción del `.gitconfig` del proyecto. ✅ Comprobado el 16 nov 2026 con el primer commit del agente (PR #1).
      - **Salvaguardas**: `pnpm work` comprueba que `gh` y el autor de git son la cuenta del proyecto (definida en `project.yaml`, D45) y se niega si no; CI rechaza PRs con commits cuyo email no sea el *noreply* del proyecto.
      - **Agentes**: el `CLAUDE.md`/`AGENTS.md` del repo deja claro que las reglas globales de la máquina no aplican aquí (las issues son de GitHub y la trazabilidad es la de D42).
 4. **CodeRabbit**: instalar su app de GitHub en el repo (plan gratuito, D41). Ticket 2.

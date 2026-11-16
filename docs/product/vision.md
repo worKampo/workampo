@@ -37,27 +37,27 @@ Todos los PRDs y tickets los heredan.
 
 ## Roadmap (Now / Next / Later)
 
-Sin fechas comprometidas; ordenado por valor y riesgo. Cada fila es un PRD, nombrado por su título. Al crear su issue (`[PRD] <título>`) se añade su enlace, p. ej. "Team (PRD #12)": el único identificador es el número de issue (D42).
+Sin fechas comprometidas; ordenado por valor y riesgo. Cada fila es un PRD, nombrado por su título. Al crear su issue (`[PRD] <título>`) se añade su enlace, p. ej. "Team (PRD #11)": el único identificador es el número de issue (D42).
 
 Columna "Dominios": specs vivas que toca el PRD (`access`, `companies`, `billing`, `public-site`); "(apoyo)" marca etiquetas que solo filtran el tablero (`platform`, `content`, `backoffice`), sin spec viva (D52).
 
 ### Now
 | PRD | Problema que resuelve | Dominios |
 |---|---|---|
-| **Working foundation** | El ciclo no puede funcionar sin repo, CI, despliegue ni harness | `platform` (apoyo) |
-| **Access and first company** | Nadie puede entrar ni tener una empresa | `access`, `companies` |
+| **Working foundation** (PRD #4) | El ciclo no puede funcionar sin repo, CI, despliegue ni harness | `platform` (apoyo) |
+| **Access and first company** (PRD #10) | Nadie puede entrar ni tener una empresa | `access`, `companies` |
 
 ### Next
 | PRD | Problema que resuelve | Dominios |
 |---|---|---|
-| **Team** | Una empresa tiene un solo usuario | `companies`, `access` |
-| **Company public site** | Las empresas no tienen presencia pública | `public-site` |
-| **Plans and billing** | No hay ingresos ni diferencia entre planes | `billing` |
+| **Team** (PRD #11) | Una empresa tiene un solo usuario | `companies`, `access` |
+| **Company public site** (PRD #12) | Las empresas no tienen presencia pública | `public-site` |
+| **Plans and billing** (PRD #13) | No hay ingresos ni diferencia entre planes | `billing` |
 
 ### Later
 | PRD | Problema que resuelve | Dominios |
 |---|---|---|
-| **Staff backoffice** | El equipo no puede ver ni gestionar empresas, dar soporte desde dentro ("Enter as", D50) ni ver la salud del sistema | `access`, `companies`, `backoffice` (apoyo) |
-| **Marketing site, help and legal** | No hay escaparate, ayuda ni textos legales | `content` (apoyo) |
-| **Account deletion and data rights** | No se puede borrar ni exportar lo de una empresa | `companies` |
-| **Backups and recovery** | Solo hay 7 días de Time Travel. Obligatorio antes de abrir a clientes reales | `platform` (apoyo) |
+| **Staff backoffice** (PRD #14) | El equipo no puede ver ni gestionar empresas, dar soporte desde dentro ("Enter as", D50) ni ver la salud del sistema | `access`, `companies`, `backoffice` (apoyo) |
+| **Marketing site, help and legal** (PRD #15) | No hay escaparate, ayuda ni textos legales | `content` (apoyo) |
+| **Account deletion and data rights** (PRD #16) | No se puede borrar ni exportar lo de una empresa | `companies` |
+| **Backups and recovery** (PRD #17) | Solo hay 7 días de Time Travel. Obligatorio antes de abrir a clientes reales | `platform` (apoyo) |
