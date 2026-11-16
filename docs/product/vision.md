@@ -37,7 +37,7 @@ Todos los PRDs y tickets los heredan.
 
 ## Roadmap (Now / Next / Later)
 
-Sin fechas comprometidas; ordenado por valor y riesgo. Cada fila es un PRD, nombrado por su título. Al crear su issue (`[PRD] <título>`) se añade su enlace, p. ej. "Team (PRD #12)": el único identificador es el número de issue (D42).
+Sin fechas comprometidas; ordenado por valor y riesgo. Cada fila es un PRD, nombrado por su título. Al crear su issue (`[PRD] <título>`) se añade su enlace, p. ej. "Team (PRD #11)": el único identificador es el número de issue (D42).
 
 Columna "Dominios": specs vivas que toca el PRD (`access`, `companies`, `billing`, `public-site`); "(apoyo)" marca etiquetas que solo filtran el tablero (`platform`, `content`, `backoffice`), sin spec viva (D52).
 
