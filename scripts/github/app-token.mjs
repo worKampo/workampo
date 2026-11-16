@@ -6,20 +6,16 @@ import { readFileSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { join } from 'node:path'
 
-// Public identifier from the App's settings page; not a secret.
-const CLIENT_ID = ''
+const APP_ID = 5780402 // workampo-agents; public, not a secret
 const OWNER = 'worKampo'
 const REPO = 'workampo'
 const KEY_PATH = join(homedir(), '.workampo', 'github-app.pem')
-
-if (!CLIENT_ID)
-  throw new Error('Set CLIENT_ID in scripts/github/app-token.mjs after creating the App.')
 
 const base64url = (value) => Buffer.from(value).toString('base64url')
 const now = Math.floor(Date.now() / 1000)
 // iat is backdated to absorb clock drift; GitHub rejects exp more than 10 minutes ahead.
 const unsigned = `${base64url(JSON.stringify({ alg: 'RS256', typ: 'JWT' }))}.${base64url(
-  JSON.stringify({ iat: now - 60, exp: now + 540, iss: CLIENT_ID }),
+  JSON.stringify({ iat: now - 60, exp: now + 540, iss: APP_ID }),
 )}`
 const signature = createSign('RSA-SHA256')
   .update(unsigned)
