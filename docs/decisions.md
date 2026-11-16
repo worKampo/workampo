@@ -654,7 +654,7 @@ Forma de trofeo: el grueso son tests de integración contra el runtime real. TDD
 | Técnico suelto y pequeño | `chore` suelto | Ajustar Renovate, subir Node, añadir un secreto |
 
 - Todo lleva la etiqueta de apoyo `area:platform` (sin living spec); `docs/platform.md` describe entornos, pipelines, copias y alertas actuales (D52).
-- **PRD "Working foundation"** (el primero del roadmap), cinco chores; el detalle estará en su issue (hasta que exista el repo, borrador en `docs/prds/draft-working-foundation/prd.md`): (1) repo, monorepo y `pnpm check` · (2) GitHub como código · (3) despliegue a staging y producción con observabilidad mínima · (4) contexto para agentes · (5) automatización del proceso. Orden: 1 → 2 → 4 → 3 → 5.
+- **PRD "Working foundation"** (el primero del roadmap), cinco chores; el detalle está en su issue, PRD #4: (1) repo, monorepo y `pnpm check` · (2) GitHub como código · (3) despliegue a staging y producción con observabilidad mínima · (4) contexto para agentes · (5) automatización del proceso. Orden: 1 → 2 → 4 → 3 → 5.
 - **Excepciones de arranque** (solo en este PRD, mientras faltan las piezas):
   - Tickets 1 y 2: recorrido S sin issue previa; sus issues se crean al terminar el 2 y se rellenan con lo hecho.
   - Hasta que exista la GitHub App (fin del ticket 2), el agente solo trabaja en local: **los commits y push los hace la persona** y la creación del repo es 🧑.
