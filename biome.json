@@ -1,7 +1,9 @@
 {
   "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
   "vcs": { "enabled": true, "clientKind": "git", "useIgnoreFile": true },
-  "files": { "includes": ["**", "!docs", "!**/worker-configuration.d.ts"] },
+  "files": {
+    "includes": ["**", "!docs", "!**/worker-configuration.d.ts", "!.github/ISSUE_TEMPLATE"]
+  },
   "formatter": { "indentStyle": "space", "indentWidth": 2, "lineEnding": "lf", "lineWidth": 100 },
   "javascript": { "formatter": { "quoteStyle": "single", "semicolons": "asNeeded" } },
   "linter": {
