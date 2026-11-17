@@ -8,6 +8,7 @@
   },
   "scripts": {
     "check": "turbo run typecheck lint test && biome check . && depcruise apps packages && knip && pnpm check:repo",
+    "check:ci": "turbo run typecheck lint test --affected --cache-dir=.turbo/cache && biome check . && depcruise apps packages && knip && pnpm check:repo",
     "check:repo": "node scripts/project/check.mjs && node scripts/agents/check-paths.mjs && node --test \"scripts/**/*.test.mjs\"",
     "prepare": "git config core.hooksPath .git/hooks && lefthook install --force"
   },
