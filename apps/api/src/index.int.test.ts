@@ -1,5 +1,6 @@
-import { exports } from 'cloudflare:workers'
+import { env, exports } from 'cloudflare:workers'
 import { afterEach, expect, it, vi } from 'vitest'
+import app from './index'
 
 afterEach(() => {
   vi.restoreAllMocks()
@@ -43,4 +44,18 @@ it('logs nothing without X-Client-Version', async () => {
   await exports.default.fetch('https://app.test/health')
 
   expect(log).not.toHaveBeenCalled()
+})
+
+it('answers 404 on /__debug/error without ENABLE_DEBUG_ERROR', async () => {
+  const response = await exports.default.fetch('https://app.test/__debug/error')
+
+  expect(response.status).toBe(404)
+})
+
+it('throws on /__debug/error with ENABLE_DEBUG_ERROR', async () => {
+  vi.spyOn(console, 'error').mockImplementation(() => {})
+
+  const response = await app.request('/__debug/error', {}, { ...env, ENABLE_DEBUG_ERROR: 'true' })
+
+  expect(response.status).toBe(500)
 })
