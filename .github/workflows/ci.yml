@@ -36,3 +36,4 @@ jobs:
       - run: pnpm biome check .
       - run: pnpm depcruise apps packages
       - run: pnpm knip
+      - run: pnpm check:repo

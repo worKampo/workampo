@@ -1,0 +1,6 @@
+---
+description: Repo context for agents
+alwaysApply: true
+---
+
+Read and follow `AGENTS.md` at the repo root. It is the only source of agent context for this repo; this file adds nothing.
