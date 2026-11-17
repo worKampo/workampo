@@ -20,11 +20,11 @@ The legal texts are written or reviewed by a lawyer. This decision settles where
 - **Retention** defined for sessions, logs, backups and companies that have been closed.
 - **Company landings**: each company is the controller; the editor includes a footer with its legal links.
 - **Internal documentation** (`docs/compliance/`): record of processing activities and of international transfers per sub-processor (DPF or standard contractual clauses).
-- **Open**: EU data residency; if required, check what D1 offers before creating the production databases.
+- **Open**: EU data residency; if required, check what D1 offers before creating the production databases. **Decided later** in [ADR-0063](0063-eu-data-residency.md): D1 and R2 are created with EU jurisdiction from the start.
 
 ## Consequences
 
-- Data residency in the EU is still open; if it is required, D1 must be checked before the production databases are created.
+- Data residency in the EU is still open; if it is required, D1 must be checked before the production databases are created. Superseded on this point by [ADR-0063](0063-eu-data-residency.md).
 - Self-service access and portability is deferred.
 
 ## More information
