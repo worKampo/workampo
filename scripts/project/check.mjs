@@ -3,17 +3,7 @@ import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { parse } from 'yaml'
 import { z } from 'zod'
-
-// Shapes of real credentials; the profile only names secrets (ADR-0043, ADR-0064).
-const SECRET_SHAPES = [
-  /gh[pousr]_[A-Za-z0-9]{20,}/,
-  /github_pat_/,
-  /\b(sk|rk|pk)_(live|test)_/,
-  /-----BEGIN [A-Z ]*PRIVATE KEY-----/,
-  /\b[A-Za-z0-9+/_-]{40,}={0,2}\b/,
-]
-// The only email allowed is a GitHub noreply address: no personal data in a public repo.
-const EMAIL = /[\w.+-]+@[\w-]+(\.[\w-]+)+/g
+import { findNoEntra } from '../lib/no-entra.mjs'
 
 const url = z.url()
 const environment = z.object({
@@ -43,11 +33,7 @@ export const schema = z
   .strict()
 
 export function validate(text) {
-  const errors = []
-  for (const shape of SECRET_SHAPES)
-    if (shape.test(text)) errors.push(`looks like a secret: ${shape}`)
-  for (const [email] of text.matchAll(EMAIL))
-    if (!email.endsWith('@users.noreply.github.com')) errors.push(`email not allowed: ${email}`)
+  const errors = findNoEntra(text)
   const result = schema.safeParse(parse(text))
   if (!result.success)
     errors.push(...result.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`))
