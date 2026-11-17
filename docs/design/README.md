@@ -74,4 +74,4 @@ Mockups are HTML in the prototype (outside the repo); the approved screenshots g
 | [components.md](components.md) | Each component: anatomy, sizes, variants, states, a11y, shadcn base |
 | [patterns.md](patterns.md) | Shell, navigation, lists, forms, overlays, destructive actions, screen states, staff session, responsive, dark mode |
 | [content.md](content.md) | Voice and tone, labels, errors, empty states, formats, i18n |
-| [../adr/draft-design-system.md](../adr/draft-design-system.md) | Why this visual language (accepted ADR, not numbered yet) |
+| [../adr/0066-design-system.md](../adr/0066-design-system.md) | Why this visual language (ADR-0066) |
