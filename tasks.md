@@ -1,0 +1,21 @@
+# Tasks · Ticket #8 · Contexto para agentes
+
+PRD #4 · Ticket #8 · Size M · Branch: feature/8-agent-context
+
+| ID  | Task                                                                                                                                      | Depends on | Touches                                                                                                         | Size | Level    | Status |
+| --- | ----------------------------------------------------------------------------------------------------------------------------------------- | ---------- | --------------------------------------------------------------------------------------------------------------- | ---- | -------- | ------ |
+| T1  | ADRs from D1–D64 (MADR, English) with index; D46, D55, D61 and P-1 as notes                                                               | —          | docs/adr/                                                                                                       | L    | standard | todo   |
+| T2  | `project.yaml` and its Zod schema, validated in `pnpm check`                                                                              | —          | project.yaml, scripts/project/, package.json, pnpm-lock.yaml, knip.json                                         | S    | standard | todo   |
+| T3  | Process docs: cycle, branching, Definition of Ready and Done, postmortem template, person's guide; templates for `plan.md` and `tasks.md` | —          | docs/process/                                                                                                   | M    | standard | todo   |
+| T4  | Living spec mold, the four domains and `GLOSSARY.md`                                                                                      | —          | docs/domains/, GLOSSARY.md                                                                                      | M    | standard | todo   |
+| T5  | Procedures `progress.md` and `traceability.md`; `docs/learnings.md`                                                                       | —          | docs/procedures/, docs/learnings.md                                                                             | S    | standard | todo   |
+| T6  | Orchestrator, ten roles and `routing.md`, with their `.claude/agents/` adapters (tools per role, read-only)                               | T1         | docs/agents/, .claude/agents/                                                                                   | M    | max      | todo   |
+| T7  | `REVIEW.md` and `docs/process/code-conventions.md` (D53)                                                                                  | T1         | REVIEW.md, docs/process/code-conventions.md                                                                     | M    | standard | todo   |
+| T8  | `AGENTS.md`, `CLAUDE.md` (imports it) and adapters for Copilot, Cursor and Gemini; CI check that every path they name exists              | T1–T7      | AGENTS.md, CLAUDE.md, .github/copilot-instructions.md, .cursor/rules/, GEMINI.md, scripts/agents/, package.json | M    | max      | todo   |
+| T9  | Claude Code hooks: implementer cannot edit `e2e/acceptance/`; block writes matching the "No entra" list (D43)                             | T6         | .claude/settings.json, .claude/hooks/                                                                           | S    | max      | todo   |
+| T10 | Retire `decisions.md` and point every reference to the ADR index (`vision.md` already lives in `docs/product/`)                           | T1         | docs/decisions.md, docs/product/, docs/*.html, README.md, .coderabbit.yaml                                      | S    | standard | todo   |
+| T11 | 🧑 Check: a fresh agent session resumes the right work from `PROGRESS.md` and from a PR "Progress" comment                                | T8         | —                                                                                                               | S    | standard | todo   |
+
+Waves: 1 → T1 [P] T2 [P] T3 [P] T4 [P] T5 · 2 → T6 [P] T7 · 3 → T8 [P] T9 · 4 → T10 · 5 → T11
+
+PRs: T1 and T10 go first in their own PR (branch `feature/8-adrs`); the rest in a second PR from this branch.
