@@ -2,7 +2,7 @@
 
 How `apps/api` reaches staging and production. Decisions: [ADR-0013](../adr/0013-ci-cd-with-github-actions.md), [ADR-0033](../adr/0033-expand-contract-migrations.md). Environments and URLs: [platform.md](../platform.md). Undo a bad deploy: [rollback.md](rollback.md).
 
-Anything that depends on resources not created yet is marked "(pending: first deploy)".
+The first deploy ran on 2026-11-17 (PR #29, SHA 78bfcff): staging served the new SHA 1 minute after the merge, and production 40 seconds after the approval.
 
 ## How a deploy happens
 
@@ -58,7 +58,7 @@ npx wrangler deployments status --name app-stg
 npx wrangler deployments status --name app
 ```
 
-`sha` is the commit; `version` is the Worker version id that `wrangler rollback` takes. Both URLs answer only after the first deploy (pending: first deploy).
+`sha` is the commit; `version` is the Worker version id that `wrangler rollback` takes.
 
 ## Tokens and permissions
 
@@ -67,14 +67,14 @@ Tokens never enter the repo ([AGENTS.md](../../AGENTS.md#8-no-entra-public-repo)
 | Token | Where it lives | Permissions |
 | --- | --- | --- |
 | Cloudflare deploy token, one per environment | GitHub Environment secret `CLOUDFLARE_API_TOKEN` in `stg` and in `prod` | Account: `Workers Scripts: Edit`, `D1: Edit`, `Account Settings: Read` |
-| Sentry auth token, one per environment | GitHub Environment secret `SENTRY_AUTH_TOKEN` | `project:releases` only |
+| Sentry organization token (`deploy-workampo`), the same in both environments | GitHub Environment secret `SENTRY_AUTH_TOKEN` | Organization token (scope `org:ci`: releases and source maps). It embeds the address `sentry.io`, so `sentry-cli` uses it instead of `de.sentry.io` and prints a warning; the upload still reaches the EU organization |
 | Cloudflare provisioning token | Nowhere: created, used in one terminal and revoked within a day ([ADR-0064](../adr/0064-local-secrets.md)) | `D1: Edit`, `Workers KV Storage: Edit` |
 
 GitHub Environment variables (not secrets): `CLOUDFLARE_ACCOUNT_ID`, `SENTRY_ORG`, `SENTRY_PROJECT`.
 
 Environment variable `SENTRY_DSN` (not a secret: it only lets a client send events). The deploy script passes it with `--var` on every deploy; `wrangler secret put` is not used because it creates an untagged version and `/health` would lose the SHA.
 
-Cloudflare cannot scope a token to one Worker or database, and both environments share one account. The separation between stg and prod is who holds the secret and the person's approval on `prod`, not a Cloudflare boundary. `Account Settings: Read` is kept until the first stg deploy shows whether it is needed; update this table with what that deploy shows (pending: first deploy).
+Cloudflare cannot scope a token to one Worker or database, and both environments share one account. The separation between stg and prod is who holds the secret and the person's approval on `prod`, not a Cloudflare boundary. The first deploy worked with exactly these permissions; whether `Account Settings: Read` can be dropped is untested.
 
 The agents' App cannot approve deployments or edit workflows ([ADR-0041](../adr/0041-agent-boundaries.md)).
 

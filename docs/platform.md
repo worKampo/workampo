@@ -13,7 +13,7 @@ Where worKampo runs and how it is watched. Profile with accounts and secrets: [p
 | KV `LANDINGS`      | local only                     | `landings-stg`                         | `landings-prod`                    |
 | GitHub Environment | none                           | `stg` (automatic)                      | `prod` (the person approves)       |
 
-- The stg and prod databases and namespaces are created with `--jurisdiction eu` by `scripts/cloudflare/provision.mjs`. Their IDs go in `apps/api/wrangler.jsonc` (not secrets); the file holds zeros until the script runs (pending: first deploy).
+- The stg and prod databases and namespaces are created with `--jurisdiction eu` by `scripts/cloudflare/provision.mjs`. Their IDs go in `apps/api/wrangler.jsonc` (not secrets). Provisioned on 2026-11-17.
 - Both environments share one Cloudflare account. The top-level config is local only, so a deploy without `--env` cannot reach a real Worker ([ADR-0013](adr/0013-ci-cd-with-github-actions.md)).
 - `GET /__debug/error` throws, to prove Sentry. It exists only when `ENABLE_DEBUG_ERROR` is `"true"` (stg); in prod it is 404.
 
