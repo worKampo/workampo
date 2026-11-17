@@ -35,3 +35,5 @@ Several of these options are chosen when the resource or the account is created 
 - D1 jurisdiction and the Sentry region cannot be changed after creation.
 - Workers and Workflows cannot be limited to the EU on the free plan; this is covered by the rules above.
 - Pending check: confirm with WorkOS whether an EU region exists, before "Access and first company". PostHog EU cloud to verify at sign-up.
+
+- **2026-11-17**: verified against the current Cloudflare docs: KV supports an EU jurisdiction for durable storage (the cache can be anywhere). `landings-*` are created with `--jurisdiction eu`. The rule "never personal data in KV" stays.

@@ -43,3 +43,5 @@ The system needs defined service levels, monitoring, an incident process and a s
 ## Consequences
 
 See Decision.
+
+- **2026-11-17**: monitor chosen: UptimeRobot Free (commercial use allowed, 5-minute checks, email alerts). It receives only the public `/health` URLs and the alert email. It is added to the sub-processor list.

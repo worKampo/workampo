@@ -22,6 +22,7 @@ documents:
   glossary: GLOSSARY.md
 
 cloudflare:
+  accountId: d162a227436461d3e6f71c30b0e0f290
   subdomain: workampo.workers.dev
 
 environments:
@@ -49,9 +50,21 @@ services:
   - name: Renovate
     purpose: Dependency update PRs (ADR-0058)
     admin: https://developer.mend.io
+  - name: Sentry
+    purpose: Error tracking, EU region
+    admin: https://de.sentry.io
+  - name: UptimeRobot
+    purpose: Uptime of /health
+    admin: https://dashboard.uptimerobot.com
 
 secrets:
   - name: GitHub App private key (workampo-agents)
     lives: "%USERPROFILE%\\.workampo\\github-app.pem, copy in the password manager (ADR-0064)"
   - name: One-day admin tokens (GitHub rulesets, Cloudflare provisioning)
     lives: Nowhere; created, used in one terminal and revoked (ADR-0064)
+  - name: Cloudflare deploy tokens (CLOUDFLARE_API_TOKEN)
+    lives: GitHub Environment secrets `stg` and `prod`, one token each (docs/runbooks/deploy.md)
+  - name: Sentry auth token (SENTRY_AUTH_TOKEN)
+    lives: GitHub Environment secrets `stg` and `prod`
+  - name: Sentry DSN (SENTRY_DSN)
+    lives: Not a secret (it only lets a client send events); GitHub Environment variable, passed by the deploy script with --var

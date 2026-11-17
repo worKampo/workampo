@@ -34,3 +34,5 @@ The backoffice needs stronger isolation than the company app (security). The Clo
 ## Consequences
 
 ⚠ Verify whether requests to Static Assets count towards the daily quota (the pricing page listed them as free and unlimited; the limits page does not clarify).
+
+- **2026-11-17**: the ⚠ on Static Assets is resolved by the current Cloudflare docs: asset requests are free and do not count against the daily quota; requests matched by `run_worker_first` do.

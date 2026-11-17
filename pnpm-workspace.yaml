@@ -11,3 +11,5 @@ allowBuilds:
   workerd: true
   # Hooks are installed by the root `prepare` script instead.
   lefthook: false
+  # The binary comes from its platform package; its postinstall is not needed.
+  "@sentry/cli": false
