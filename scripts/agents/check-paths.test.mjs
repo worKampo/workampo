@@ -15,3 +15,9 @@ test('accepts existing paths and ignores non-paths', () => {
     '[a](AGENTS.md#1-start-here) `scripts/github/app-token.mjs` `worKampo/business` `~/.workampo/` `@workampo/api` `**/e2e/acceptance/**` [w](https://example.com)'
   assert.deepEqual(missingPaths(text, root, root), [])
 })
+
+test('reports git-ignored paths, which CI does not have', () => {
+  assert.deepEqual(missingPaths('`.claude/settings.local.json`', root, root), [
+    '.claude/settings.local.json',
+  ])
+})

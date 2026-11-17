@@ -1,4 +1,5 @@
 // Fails when AGENTS.md or an agent adapter names a path that does not exist (ADR-0015).
+import { execFileSync } from 'node:child_process'
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { dirname, join, relative } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -7,18 +8,29 @@ const ROOT = fileURLToPath(new URL('../..', import.meta.url))
 const REPO_DIRS = /^(apps|packages|scripts|docs|\.github|\.claude|\.cursor)\//
 const FILE_EXT = /\.(md|mdc|mjs|ts|tsx|json|jsonc|yaml|yml|cjs)$/
 
+// A git-ignored file exists only on this machine, so CI would not find it.
+function inRepo(path) {
+  if (!existsSync(path)) return false
+  try {
+    execFileSync('git', ['check-ignore', '-q', path], { cwd: ROOT, stdio: 'ignore' })
+    return false
+  } catch {
+    return true
+  }
+}
+
 export function missingPaths(text, fileDir, root = ROOT) {
   const missing = []
   for (const [, target] of text.matchAll(/\]\(([^)\s]+)\)/g)) {
     const path = target.split('#')[0]
     if (!path || /^[a-z]+:/.test(path)) continue
-    if (!existsSync(join(fileDir, path))) missing.push(path)
+    if (!inRepo(join(fileDir, path))) missing.push(path)
   }
   for (const [, code] of text.matchAll(/`([^`\s]+)`/g)) {
     // Globs, placeholders, home paths and package names are not repo paths.
     if (/[*<>$~@]/.test(code) || !code.includes('/')) continue
     if (!REPO_DIRS.test(code) && !FILE_EXT.test(code)) continue
-    if (!existsSync(join(root, code))) missing.push(code)
+    if (!inRepo(join(root, code))) missing.push(code)
   }
   return missing
 }
