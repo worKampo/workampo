@@ -1,6 +1,72 @@
 {
   "$schema": "../../node_modules/wrangler/config-schema.json",
-  "name": "app",
+  // The top level is local only: a deploy without --env must never reach a real Worker (ADR-0013).
+  "name": "app-local",
   "main": "src/index.ts",
-  "compatibility_date": "2026-11-10"
+  "compatibility_date": "2026-11-10",
+  "compatibility_flags": ["nodejs_compat"],
+  // Source maps go only to Sentry (ADR-0043).
+  "upload_source_maps": false,
+  "version_metadata": { "binding": "CF_VERSION_METADATA" },
+  "vars": { "ENVIRONMENT": "local" },
+  "d1_databases": [
+    {
+      "binding": "DB_GLOBAL",
+      "database_name": "global-local",
+      "database_id": "local-global",
+      "migrations_dir": "../../packages/db/migrations/global"
+    },
+    {
+      "binding": "DB_SHARD_1",
+      "database_name": "shard-1-local",
+      "database_id": "local-shard-1",
+      "migrations_dir": "../../packages/db/migrations/shard"
+    }
+  ],
+  "kv_namespaces": [{ "binding": "LANDINGS", "id": "local-landings" }],
+  // Bindings and vars are not inherited: each environment repeats them.
+  // IDs come from scripts/cloudflare/provision.mjs; the zero UUIDs are replaced when it runs.
+  "env": {
+    "stg": {
+      "name": "app-stg",
+      "version_metadata": { "binding": "CF_VERSION_METADATA" },
+      "vars": { "ENVIRONMENT": "stg", "ENABLE_DEBUG_ERROR": "true" },
+      "d1_databases": [
+        {
+          "binding": "DB_GLOBAL",
+          "database_name": "global-stg",
+          "database_id": "00000000-0000-0000-0000-000000000000",
+          "migrations_dir": "../../packages/db/migrations/global"
+        },
+        {
+          "binding": "DB_SHARD_1",
+          "database_name": "shard-1-stg",
+          "database_id": "00000000-0000-0000-0000-000000000000",
+          "migrations_dir": "../../packages/db/migrations/shard"
+        }
+      ],
+      "kv_namespaces": [{ "binding": "LANDINGS", "id": "00000000000000000000000000000000" }]
+    },
+    "prod": {
+      // Without an explicit name Wrangler would call it app-prod; the production Worker is app.
+      "name": "app",
+      "version_metadata": { "binding": "CF_VERSION_METADATA" },
+      "vars": { "ENVIRONMENT": "prod" },
+      "d1_databases": [
+        {
+          "binding": "DB_GLOBAL",
+          "database_name": "global-prod",
+          "database_id": "00000000-0000-0000-0000-000000000000",
+          "migrations_dir": "../../packages/db/migrations/global"
+        },
+        {
+          "binding": "DB_SHARD_1",
+          "database_name": "shard-1-prod",
+          "database_id": "00000000-0000-0000-0000-000000000000",
+          "migrations_dir": "../../packages/db/migrations/shard"
+        }
+      ],
+      "kv_namespaces": [{ "binding": "LANDINGS", "id": "00000000000000000000000000000000" }]
+    }
+  }
 }
