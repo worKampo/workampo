@@ -42,9 +42,9 @@ Gherkin tags ([ADR-0052](../adr/0052-living-specs-only-and-flow-by-size.md), [AD
 
 | Mark | Where | Meaning |
 |---|---|---|
-| `@wip(#n)` | On the `Rule:` | New or changed rule while work is on the branch. Never reaches `master`: CI rejects it |
+| `@wip(#n)` | On the `Rule:` | New or changed rule while work is on the branch. Never reaches `master`; the reviewer checks it by hand until CI does (ticket 5, #9) |
 | `@issue(#n)` | On the `Rule:` | Last issue that changed the rule. One per rule, not per example. Replaces `@wip` when the PR is opened (`pnpm work pr`, arrives with ticket 5, #9; by hand until then) |
-| `@id:<domain>-<issue>-<n>` | On each example | Stable identifier, e.g. `@id:companies-15-1`. Assigned by `pnpm specs:ids` (arrives with ticket 5, #9) from the E1, E2… numbering of the issue. Each test cites it; CI fails on an example without a test or a test of a missing example |
+| `@id:<domain>-<issue>-<n>` | On each example | Stable identifier, e.g. `@id:companies-15-1`. Assigned by `pnpm specs:ids` (arrives with ticket 5, #9) from the E1, E2… numbering of the issue. Each test cites it. An example without a test, or a test of a missing example, is a review failure, checked by hand until CI does (ticket 5, #9) |
 
 What is under construction across the product is seen on the board, not in `master`.
 

@@ -1,6 +1,6 @@
 // PreToolUse: blocks writing anything from the "No entra" list (ADR-0043). Exit 2 + stderr blocks the call.
-import { readFileSync } from 'node:fs'
-import { findNoEntra } from '../../scripts/lib/no-entra.mjs'
+import { existsSync, readFileSync } from 'node:fs'
+import { findNoEntra, noEntraMatches } from '../../scripts/lib/no-entra.mjs'
 
 let input
 try {
@@ -20,7 +20,27 @@ const text = [
   .join('\n')
   .replaceAll('\0', '')
 
-const reasons = findNoEntra(text)
+// An edit can join two harmless halves into a secret, so also scan the file as it will be.
+// Only matches the edit adds count: a file that already had one must stay editable.
+function addedByEdits() {
+  const edits = input.edits ?? (input.old_string === undefined ? [] : [input])
+  if (!edits.length || !input.file_path || !existsSync(input.file_path)) return []
+  const before = readFileSync(input.file_path, 'utf8')
+  let after = before
+  for (const { old_string: from = '', new_string: to = '', replace_all: all } of edits)
+    after = all ? after.replaceAll(from, to) : after.replace(from, () => to)
+  const old = noEntraMatches(before)
+  return noEntraMatches(after).filter((m) => {
+    const i = old.indexOf(m)
+    if (i === -1) return true
+    old.splice(i, 1)
+    return false
+  })
+}
+
+const reasons = [
+  ...new Set([...findNoEntra(text), ...addedByEdits().map((m) => `formed by this edit: ${m}`)]),
+]
 if (reasons.length) {
   console.error(
     `Blocked by the "No entra" list of the public repo (AGENTS.md section 8):\n- ${reasons.join('\n- ')}`,

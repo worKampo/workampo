@@ -38,7 +38,7 @@ El tamaño (`size:S|M|L` en el issue, confirmado por la persona) decide cuánto 
 
 | Size | Camino | Revisión automática |
 |---|---|---|
-| S | El momento 1 es el propio issue; issue → rama → PR, tasks como checklist del issue; un bug empieza por su test de regresión | CI, CodeRabbit y paquete reducido del verifier |
+| S | El momento 1 es el propio issue; issue → rama → PR, tasks como checklist del issue; un bug empieza por su test de regresión | CI, CodeRabbit y paquete reducido del verifier; + security reviewer si toca una zona crítica o contenido escrito por empresas que se renderiza ([ADR-0032](../adr/0032-security-reviewer.md)) |
 | M | Sin Design ni `plan.md` (el plan cabe en `tasks.md`): ejemplos aprobados → living spec y escenarios → tasks → PR | + test designer (escenarios protegidos), spec reviewer, UI/UX si aplica |
 | L / zona crítica | Los once pasos, con `plan.md` | + sección Security y security reviewer, nivel `max` |
 

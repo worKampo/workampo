@@ -13,6 +13,15 @@ export const EMAIL = /[\w.+-]+@[\w-]+(?:\.[\w-]+)*\.[A-Za-z]{2,}\b/g
 export const ALLOWED_EMAIL =
   /@(users\.noreply\.github\.com|example\.(com|org)|[\w.-]+\.(test|example))$/i
 
+// Every offending match, so a caller can tell new hits from ones a file already had.
+export function noEntraMatches(text) {
+  const secrets = SECRET_SHAPES.flatMap((shape) =>
+    [...text.matchAll(new RegExp(shape.source, 'g'))].map((m) => m[0]),
+  )
+  const emails = [...text.matchAll(EMAIL)].map((m) => m[0]).filter((e) => !ALLOWED_EMAIL.test(e))
+  return [...secrets, ...emails]
+}
+
 export function findNoEntra(text) {
   const reasons = []
   for (const shape of SECRET_SHAPES)

@@ -14,7 +14,7 @@ Qué abre y qué hace la persona en cada etapa. Los tres momentos: [cycle](cycle
 | Backlog → Ready | Momento 1, en el issue del PRD o del ticket: aprueba el PRD, el slicing y los ejemplos; confirma el `size:` |
 | Define / Build | Nada, salvo una parada obligatoria ([cycle](cycle.md#mandatory-stops)) |
 | Review | Momento 2, en la PR: Conversation (comentarios de CodeRabbit) → Checks → Files changed → comprobación local con `pnpm work verify` (llega con el ticket 5, #9) → Approve → Squash and merge |
-| Staging | Lee el comentario "Staging verification" (llega con el ticket 3, #7) |
+| Staging | Lee el comentario "Staging verification" y prueba en staging los casos marcados "Only verifiable in staging" antes de aprobar producción (llega con el ticket 3, #7) |
 | Release | Momento 3: "Review deployments" en el run del workflow de deploy y aprueba `prod` (llega con el ticket 3, #7) |
 | Done | Se cierra solo tras una ventana de observación limpia (llega con el ticket 5, #9) |
 

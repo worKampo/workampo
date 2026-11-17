@@ -20,7 +20,7 @@ The approved examples from the issue, the UI section, the living-spec diff, `tas
 Findings in the [return format](orchestrator.md#return), each with type (failure, adjustment within scope, scope change; [loops](../process/cycle.md#loops)), example ID, `file:line`, expected and found. It checks:
 
 - The living-spec diff holds exactly the approved examples, under `@wip(#n)`, each with its `@id`.
-- Exactly one acceptance scenario per approved example, saying the same as the example. An example without a scenario or a test is a failure.
+- Exactly one acceptance scenario per approved example, saying the same as the example. An example without a scenario or a test is a failure. Until Playwright exists (ticket 5, #9) there are no acceptance scenarios: check only that each example has a test.
 - No test cites a missing example.
 - The diff does not contradict any example. A case the examples do not cover, with two reasonable outcomes, is stop 1: report it as an open question.
 - If the behaviour of a domain changed, its living spec changed.

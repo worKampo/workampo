@@ -23,3 +23,11 @@ test('rejects an email that is not a GitHub noreply', () => {
 test('requires the three environments', () => {
   assert.ok(validate(valid.replace(/^ {2}stg:[\s\S]*?(?=^ {2}prod:)/m, '')).length)
 })
+
+test('rejects a token hidden with YAML escapes', () => {
+  const escaped = [...`ghp_${'a'.repeat(36)}`]
+    .map((c) => `\\u${c.charCodeAt(0).toString(16).padStart(4, '0')}`)
+    .join('')
+  const errors = validate(valid.replace('agents: AGENTS.md', `agents: "${escaped}"`))
+  assert.ok(errors.some((e) => e.startsWith('looks like a secret')))
+})
