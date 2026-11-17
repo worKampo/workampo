@@ -4,9 +4,13 @@ Return a Worker to a previous version. Decisions: [ADR-0013](../adr/0013-ci-cd-w
 
 Target: the previous version serving in under 5 minutes from the decision.
 
+## From the Cloudflare dashboard (fastest)
+
+Workers & Pages → `app` (or `app-stg`) → **Deployments** → the previous version → **Rollback**. No token needed: the person signs in with the project's Cloudflare account. Check the version's **Tag** first: it is the commit SHA. A rollback from GitHub Actions does not exist yet (#32).
+
 ## Command
 
-From `apps/api`, with `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` in the environment:
+From `apps/api`, with `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` in the environment (a one-day token with `Workers Scripts: Edit`; `wrangler login` failed with a CSRF error in the rehearsal):
 
 ```sh
 npx wrangler deployments list --name app
