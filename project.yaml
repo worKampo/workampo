@@ -67,4 +67,4 @@ secrets:
   - name: Sentry auth token (SENTRY_AUTH_TOKEN)
     lives: GitHub Environment secrets `stg` and `prod`
   - name: Sentry DSN (SENTRY_DSN)
-    lives: Worker secret per environment (`wrangler secret put SENTRY_DSN --env <env>`)
+    lives: Not a secret (it only lets a client send events); GitHub Environment variable, passed by the deploy script with --var

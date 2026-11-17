@@ -72,7 +72,7 @@ Tokens never enter the repo ([AGENTS.md](../../AGENTS.md#8-no-entra-public-repo)
 
 GitHub Environment variables (not secrets): `CLOUDFLARE_ACCOUNT_ID`, `SENTRY_ORG`, `SENTRY_PROJECT`.
 
-Worker secret per environment: `SENTRY_DSN`, set from `apps/api` with `npx wrangler secret put SENTRY_DSN --env <env>` (pending: first deploy).
+Environment variable `SENTRY_DSN` (not a secret: it only lets a client send events). The deploy script passes it with `--var` on every deploy; `wrangler secret put` is not used because it creates an untagged version and `/health` would lose the SHA.
 
 Cloudflare cannot scope a token to one Worker or database, and both environments share one account. The separation between stg and prod is who holds the secret and the person's approval on `prod`, not a Cloudflare boundary. `Account Settings: Read` is kept until the first stg deploy shows whether it is needed; update this table with what that deploy shows (pending: first deploy).
 

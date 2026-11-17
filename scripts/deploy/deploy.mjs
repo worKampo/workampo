@@ -98,6 +98,9 @@ function deployWorker(worker, env, sha, message, io) {
     sha,
     '--message',
     message,
+    // Passed on every deploy: a `wrangler secret put` would create an untagged version and lose the SHA.
+    // The DSN only lets a client send events, so Sentry documents it as safe to expose.
+    ...(io.env.SENTRY_DSN ? ['--var', `SENTRY_DSN:${io.env.SENTRY_DSN}`] : []),
   ])
 }
 
