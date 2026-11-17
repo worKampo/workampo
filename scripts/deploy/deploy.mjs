@@ -3,7 +3,7 @@
 // Wrangler reads CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID; source maps need SENTRY_AUTH_TOKEN,
 // SENTRY_ORG and SENTRY_PROJECT. Tokens are only passed to child processes through the environment.
 import { execFileSync } from 'node:child_process'
-import { readdirSync, readFileSync, rmSync } from 'node:fs'
+import { appendFileSync, readdirSync, readFileSync, rmSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import { join } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
@@ -177,7 +177,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     console.error(error.message)
     process.exit(1)
   }
-  await deploy(args, {
+  const deployed = await deploy(args, {
     run,
     deployedSha,
     removeMaps,
@@ -185,4 +185,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     env: process.env,
     log: console.log,
   })
+  // The workflow skips the smoke and the comment when nothing was deployed.
+  if (process.env.GITHUB_OUTPUT)
+    appendFileSync(process.env.GITHUB_OUTPUT, `deployed=${deployed.length > 0}\n`)
 }
