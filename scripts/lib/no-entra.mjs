@@ -4,8 +4,8 @@ export const SECRET_SHAPES = [
   /github_pat_[A-Za-z0-9_]{20,}/,
   /\b(sk|rk|pk)_(live|test)_/,
   /-----BEGIN [A-Z ]*PRIVATE KEY-----/,
-  // Long mixed-case alphanumeric run: a generic key. Requiring a digit and both cases spares paths, identifiers and hex hashes.
-  /(?=[\w+-]*\d)(?=[\w+-]*[a-z])(?=[\w+-]*[A-Z])\b[\w+-]{40,}={0,2}/,
+  // Long mixed-case base64-like run: a generic key. Requiring a digit and both cases spares most paths, identifiers and hex hashes.
+  /(?=[\w+/-]*\d)(?=[\w+/-]*[a-z])(?=[\w+/-]*[A-Z])\b[\w+/-]{40,}={0,2}/,
 ]
 // The TLD must be letters so `react@18.3.1` is not an email.
 export const EMAIL = /[\w.+-]+@[\w-]+(?:\.[\w-]+)*\.[A-Za-z]{2,}\b/g

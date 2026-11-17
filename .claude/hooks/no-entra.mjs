@@ -2,7 +2,14 @@
 import { readFileSync } from 'node:fs'
 import { findNoEntra } from '../../scripts/lib/no-entra.mjs'
 
-const { tool_input: input = {} } = JSON.parse(readFileSync(0, 'utf8'))
+let input
+try {
+  input = JSON.parse(readFileSync(0, 'utf8')).tool_input ?? {}
+} catch {
+  // Fail closed: a guard that cannot read its input must not let the write through.
+  console.error('Blocked: the "No entra" hook could not parse its input.')
+  process.exit(2)
+}
 const path = (input.file_path ?? input.notebook_path ?? '').replaceAll('\\', '/')
 const text = [
   input.content,
@@ -12,8 +19,9 @@ const text = [
 ]
   .filter((t) => typeof t === 'string')
   .join('\n')
+  .replaceAll('\0', '')
 
-if (path.includes('/node_modules/') || text.includes('\0')) process.exit(0)
+if (/(^|\/)node_modules\//.test(path)) process.exit(0)
 const reasons = findNoEntra(text)
 if (reasons.length) {
   console.error(
