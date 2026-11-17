@@ -86,7 +86,7 @@ test('lists the D1 databases of one environment from wrangler.jsonc', () => {
 
 test('docs-only diff deploys nothing', async () => {
   const { io, calls } = fakeIo({ affected: [] })
-  assert.deepEqual(await deploy({ env: 'stg', all: false }, io), [])
+  assert.deepEqual(await deploy({ env: 'stg', all: false }, io), { workers: [], from: DEPLOYED })
   assert.equal(calls.filter((c) => c.command === 'wrangler').length, 0)
   const turbo = calls.find((c) => c.command === 'turbo')
   assert.ok(turbo.args.includes(`...[${DEPLOYED}...${SHA}]`))
@@ -98,14 +98,17 @@ test('unreachable /health and --all deploy everything without asking turbo', asy
     [{ affected: [] }, true],
   ]) {
     const { io, calls } = fakeIo(options)
-    assert.deepEqual(await deploy({ env: 'stg', all }, io), WORKERS)
+    assert.deepEqual(await deploy({ env: 'stg', all }, io), { workers: WORKERS, from: '' })
     assert.equal(calls.filter((c) => c.command === 'turbo').length, 0)
   }
 })
 
 test('a real deploy migrates, builds, strips maps and deploys, always with --env', async () => {
   const { io, calls } = fakeIo()
-  await deploy({ env: 'prod', all: false }, io)
+  assert.deepEqual(await deploy({ env: 'prod', all: false }, io), {
+    workers: WORKERS,
+    from: DEPLOYED,
+  })
 
   const wrangler = calls.filter((c) => c.command === 'wrangler').map((c) => c.args)
   assert.equal(wrangler.length, 3)
@@ -123,6 +126,7 @@ test('a real deploy migrates, builds, strips maps and deploys, always with --env
   const last = wrangler.at(-1)
   assert.equal(last[last.indexOf('--tag') + 1], SHA)
   assert.equal(last[last.indexOf('--message') + 1], '#12 a1b2c3d')
+  assert.equal(last[last.indexOf('--var') + 1], `GIT_SHA:${SHA}`)
   assert.ok(!last.includes('--dry-run'))
 
   const order = calls.map((c) => c.command)

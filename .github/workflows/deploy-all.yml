@@ -10,14 +10,14 @@ on:
         type: choice
         options: [stg, prod]
 
-concurrency:
-  group: deploy
-  cancel-in-progress: false
-
 permissions: {}
 
 jobs:
   deploy:
+    # Same group as the deploy workflow's job for this environment.
+    concurrency:
+      group: deploy-${{ inputs.environment }}
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     timeout-minutes: 20
     environment: ${{ inputs.environment }}

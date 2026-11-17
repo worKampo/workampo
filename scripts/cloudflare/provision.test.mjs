@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { createArgs, missingVars, provision, RESOURCES } from './provision.mjs'
+import { checkJurisdictions, createArgs, missingVars, provision, RESOURCES } from './provision.mjs'
 
-function fakeWrangler(existing = []) {
+function fakeWrangler(existing = [], jurisdiction = { jurisdiction: 'eu' }) {
   const created = new Set(existing)
   const calls = []
   const run = (args) => {
@@ -13,6 +13,7 @@ function fakeWrangler(existing = []) {
         RESOURCES.filter((r) => r.kind === 'd1' && created.has(r.name)).map((r) => ({
           name: r.name,
           uuid: `uuid-${r.name}`,
+          ...jurisdiction,
         })),
       )
     if (command === 'kv namespace list')
@@ -20,6 +21,7 @@ function fakeWrangler(existing = []) {
         RESOURCES.filter((r) => r.kind === 'kv' && created.has(r.name)).map((r) => ({
           title: r.name,
           id: `id-${r.name}`,
+          ...jurisdiction,
         })),
       )
     created.add(args.find((a) => /-(stg|prod)$/.test(a)))
@@ -67,4 +69,26 @@ test('a second run creates nothing', () => {
   const { run, calls } = fakeWrangler(RESOURCES.map((r) => r.name))
   provision(run)
   assert.equal(calls.filter((args) => args.includes('create')).length, 0)
+})
+
+test('refuses to reuse a resource outside the EU and names it', () => {
+  for (const jurisdiction of [{ jurisdiction: 'us' }, { jurisdiction: null }]) {
+    const { run, calls } = fakeWrangler(['global-stg'], jurisdiction)
+    assert.throws(() => provision(run, () => {}), /global-stg.*not "eu"/)
+    assert.equal(calls.filter((args) => args.includes('create')).length, 0)
+  }
+})
+
+test('warns once when the list has no jurisdiction field', () => {
+  const warnings = []
+  const { run } = fakeWrangler(['global-stg', 'landings-prod'], {})
+  provision(run, (message) => warnings.push(message))
+  assert.equal(warnings.length, 1)
+  assert.match(warnings[0], /global-stg, landings-prod/)
+})
+
+test('checkJurisdictions accepts eu without warning', () => {
+  const [resource] = RESOURCES
+  const existing = new Map([[`d1:${resource.name}`, { id: 'x', entry: { jurisdiction: 'eu' } }]])
+  checkJurisdictions([resource], existing, () => assert.fail('no warning expected'))
 })

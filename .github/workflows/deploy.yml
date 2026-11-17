@@ -5,15 +5,15 @@ on:
   push:
     branches: [master]
 
-# Two deploys must never migrate at once; a queued one waits instead of cancelling.
-concurrency:
-  group: deploy
-  cancel-in-progress: false
-
 permissions: {}
 
 jobs:
   stg:
+    # One group per environment: two deploys never migrate the same databases at once, a queued one
+    # waits instead of cancelling, and a prod job waiting for approval does not hold back staging.
+    concurrency:
+      group: deploy-stg
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     timeout-minutes: 20
     environment:
@@ -47,8 +47,11 @@ jobs:
       - if: steps.deploy.outputs.deployed == 'true'
         run: node scripts/smoke/smoke.mjs https://app-stg.workampo.workers.dev "$GITHUB_SHA"
       - if: steps.deploy.outputs.deployed == 'true'
-        run: node scripts/smoke/verification-comment.mjs stg https://app-stg.workampo.workers.dev "$GITHUB_SHA"
+        run: node scripts/smoke/verification-comment.mjs stg https://app-stg.workampo.workers.dev "$GITHUB_SHA" "$FROM_SHA"
+        # A failed comment must not block production.
+        continue-on-error: true
         env:
+          FROM_SHA: ${{ steps.deploy.outputs.from }}
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
 
@@ -56,6 +59,9 @@ jobs:
     needs: stg
     # Nothing new in staging means nothing to approve; a lagging prod catches up on the next deploy.
     if: needs.stg.outputs.deployed == 'true'
+    concurrency:
+      group: deploy-prod
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     timeout-minutes: 20
     environment:
@@ -88,7 +94,9 @@ jobs:
       - if: steps.deploy.outputs.deployed == 'true'
         run: node scripts/smoke/smoke.mjs https://app.workampo.workers.dev "$GITHUB_SHA"
       - if: steps.deploy.outputs.deployed == 'true'
-        run: node scripts/smoke/verification-comment.mjs prod https://app.workampo.workers.dev "$GITHUB_SHA"
+        run: node scripts/smoke/verification-comment.mjs prod https://app.workampo.workers.dev "$GITHUB_SHA" "$FROM_SHA"
+        continue-on-error: true
         env:
+          FROM_SHA: ${{ steps.deploy.outputs.from }}
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}

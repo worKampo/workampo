@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
 import { errorTracking } from './_shared/error-tracking/error-tracking'
-import type { AppEnv } from './_shared/http/app-env'
+import { type AppEnv, deployedSha } from './_shared/http/app-env'
 import { appVersionHeader } from './_shared/http/app-version-header'
 import { clientVersionLog } from './_shared/http/client-version-log'
 
@@ -13,7 +13,7 @@ app.use(appVersionHeader)
 app.get('/health', (c) =>
   c.json({
     status: 'ok',
-    sha: c.env.CF_VERSION_METADATA.tag || 'local',
+    sha: deployedSha(c.env) ?? 'local',
     version: c.env.CF_VERSION_METADATA.id,
   }),
 )

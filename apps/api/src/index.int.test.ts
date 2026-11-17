@@ -17,13 +17,23 @@ it('answers /health with status, sha and version', async () => {
   })
 })
 
+it('answers /health with GIT_SHA when the version has no tag', async () => {
+  const response = await app.request(
+    '/health',
+    {},
+    { ...env, CF_VERSION_METADATA: { ...env.CF_VERSION_METADATA, tag: '' }, GIT_SHA: 'abc1234' },
+  )
+
+  expect(await response.json()).toMatchObject({ sha: 'abc1234' })
+})
+
 it('does not set X-App-Version without APP_VERSION', async () => {
   const response = await exports.default.fetch('https://app.test/health')
 
   expect(response.headers.has('X-App-Version')).toBe(false)
 })
 
-it('logs only the client version, method and path', async () => {
+it('logs only the client version and the method', async () => {
   const log = vi.spyOn(console, 'log').mockImplementation(() => {})
 
   await exports.default.fetch('https://app.test/health?token=secret', {
@@ -34,8 +44,29 @@ it('logs only the client version, method and path', async () => {
   expect(JSON.parse(log.mock.calls[0]?.[0] as string)).toEqual({
     clientVersion: 'abc123',
     method: 'GET',
-    path: '/health',
   })
+})
+
+it('logs nothing when X-Client-Version is not a build hash or version', async () => {
+  const log = vi.spyOn(console, 'log').mockImplementation(() => {})
+
+  for (const clientVersion of ['a b', 'v1"}', 'x'.repeat(65)]) {
+    await exports.default.fetch('https://app.test/health', {
+      headers: { 'X-Client-Version': clientVersion },
+    })
+  }
+
+  expect(log).not.toHaveBeenCalled()
+})
+
+it('logs a 64-character client version', async () => {
+  const log = vi.spyOn(console, 'log').mockImplementation(() => {})
+
+  await exports.default.fetch('https://app.test/health', {
+    headers: { 'X-Client-Version': 'a'.repeat(64) },
+  })
+
+  expect(log).toHaveBeenCalledTimes(1)
 })
 
 it('logs nothing without X-Client-Version', async () => {

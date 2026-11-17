@@ -34,24 +34,49 @@ export function createArgs({ kind, name }) {
     : ['kv', 'namespace', 'create', name, '--jurisdiction', 'eu']
 }
 
-function listIds(run) {
-  const ids = new Map()
-  for (const db of JSON.parse(run(['d1', 'list', '--json']))) ids.set(`d1:${db.name}`, db.uuid)
-  for (const ns of JSON.parse(run(['kv', 'namespace', 'list']))) ids.set(`kv:${ns.title}`, ns.id)
-  return ids
+// Both lists print the raw API objects; `jurisdiction` is only there if the API returns it.
+function listExisting(run) {
+  const existing = new Map()
+  for (const db of JSON.parse(run(['d1', 'list', '--json'])))
+    existing.set(`d1:${db.name}`, { id: db.uuid, entry: db })
+  for (const ns of JSON.parse(run(['kv', 'namespace', 'list'])))
+    existing.set(`kv:${ns.title}`, { id: ns.id, entry: ns })
+  return existing
 }
 
 const keyOf = ({ kind, name }) => `${kind}:${name}`
 
-export function provision(run) {
-  let ids = listIds(run)
-  const missing = RESOURCES.filter((r) => !ids.has(keyOf(r)))
+// A reused resource outside the EU would silently break data residency; it cannot be moved, only recreated.
+export function checkJurisdictions(resources, existing, warn) {
+  const unverified = []
+  for (const resource of resources) {
+    const { entry } = existing.get(keyOf(resource))
+    if (!('jurisdiction' in entry)) unverified.push(resource.name)
+    else if (entry.jurisdiction !== 'eu')
+      throw new Error(
+        `${resource.name} exists in jurisdiction "${entry.jurisdiction ?? 'default'}", not "eu": delete and recreate it`,
+      )
+  }
+  if (unverified.length)
+    warn(
+      `Could not verify the jurisdiction of ${unverified.join(', ')}: the list has no jurisdiction field.`,
+    )
+}
+
+export function provision(run, warn = console.warn) {
+  let existing = listExisting(run)
+  checkJurisdictions(
+    RESOURCES.filter((r) => existing.has(keyOf(r))),
+    existing,
+    warn,
+  )
+  const missing = RESOURCES.filter((r) => !existing.has(keyOf(r)))
   for (const resource of missing) run(createArgs(resource))
-  if (missing.length) ids = listIds(run)
+  if (missing.length) existing = listExisting(run)
 
   const result = {}
   for (const resource of RESOURCES) {
-    const id = ids.get(keyOf(resource))
+    const id = existing.get(keyOf(resource))?.id
     if (!id) throw new Error(`${resource.name} not found after creating it`)
     result[resource.env] ??= {}
     result[resource.env][resource.binding] = id

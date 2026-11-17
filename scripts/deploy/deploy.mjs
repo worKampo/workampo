@@ -52,16 +52,17 @@ async function selectWorkers(env, sha, io) {
   const deployed = await io.deployedSha(env)
   if (!deployed || !isKnownCommit(deployed, io)) {
     io.log(`No deployed SHA known in ${env}: deploying every Worker.`)
-    return WORKERS
+    return { workers: WORKERS, from: '' }
   }
   io.log(`${env} serves ${deployed}; target is ${sha}.`)
   const listing = JSON.parse(
     io.run('turbo', ['ls', '--filter', `...[${deployed}...${sha}]`, '--output', 'json']),
   )
-  return affectedWorkers(
+  const workers = affectedWorkers(
     listing.packages.items.map((item) => item.name),
     WORKERS,
   )
+  return { workers, from: deployed }
 }
 
 function isKnownCommit(sha, io) {
@@ -98,6 +99,8 @@ function deployWorker(worker, env, sha, message, io) {
     sha,
     '--message',
     message,
+    '--var',
+    `GIT_SHA:${sha}`,
     // Passed on every deploy: a `wrangler secret put` would create an untagged version and lose the SHA.
     // The DSN only lets a client send events, so Sentry documents it as safe to expose.
     ...(io.env.SENTRY_DSN ? ['--var', `SENTRY_DSN:${io.env.SENTRY_DSN}`] : []),
@@ -116,19 +119,20 @@ function uploadSourceMaps(cwd, sha, io) {
   io.run('sentry-cli', ['sourcemaps', 'upload', '--release', sha, 'dist'], { cwd, env })
 }
 
+// `from` is the SHA the environment served before the deploy, or '' when unknown.
 export async function deploy({ env, all }, io) {
   const sha = io.run('git', ['rev-parse', 'HEAD']).trim()
-  const workers = all ? WORKERS : await selectWorkers(env, sha, io)
+  const { workers, from } = all ? { workers: WORKERS, from: '' } : await selectWorkers(env, sha, io)
   if (!workers.length) {
     io.log(`No Worker is affected since the deployed SHA: nothing to deploy to ${env}.`)
-    return []
+    return { workers, from }
   }
   const message = deployMessage(sha, io.run('git', ['log', '-1', '--format=%s']).trim())
   for (const worker of workers) {
     io.log(`Deploying ${worker.package} to ${env} (${message}).`)
     deployWorker(worker, env, sha, message, io)
   }
-  return workers
+  return { workers, from }
 }
 
 const require = createRequire(import.meta.url)
@@ -180,7 +184,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     console.error(error.message)
     process.exit(1)
   }
-  const deployed = await deploy(args, {
+  const { workers, from } = await deploy(args, {
     run,
     deployedSha,
     removeMaps,
@@ -190,5 +194,5 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   })
   // The workflow skips the smoke and the comment when nothing was deployed.
   if (process.env.GITHUB_OUTPUT)
-    appendFileSync(process.env.GITHUB_OUTPUT, `deployed=${deployed.length > 0}\n`)
+    appendFileSync(process.env.GITHUB_OUTPUT, `deployed=${workers.length > 0}\nfrom=${from}\n`)
 }

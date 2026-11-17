@@ -1,12 +1,40 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { checkHealth } from './smoke.mjs'
-import { buildComment, parsePrNumber, parseRefs } from './verification-comment.mjs'
+import {
+  buildComment,
+  messagesLogArgs,
+  parsePrNumber,
+  parseRefs,
+  postComments,
+} from './verification-comment.mjs'
 
 test('parseRefs reads one, several or no Refs trailer', () => {
   assert.deepEqual(parseRefs('feat: x (#12)\n\nbody\n\nRefs: #7\n'), [7])
   assert.deepEqual(parseRefs('feat: x\n\nRefs: #7\nRefs: #9'), [7, 9])
   assert.deepEqual(parseRefs('chore: bump deps\n\nno ticket here, see #5'), [])
+})
+
+test('parseRefs deduplicates the trailers of several commits', () => {
+  const log = 'feat: a\n\nRefs: #7\n\nfix: b\n\nRefs: #9\n\nfix: c\n\nRefs: #7\n'
+  assert.deepEqual(parseRefs(log), [7, 9])
+})
+
+test('messagesLogArgs reads the whole deployed range when the previous SHA is known', () => {
+  assert.deepEqual(messagesLogArgs('bbb', 'aaa'), ['log', 'aaa..bbb', '--format=%B'])
+  assert.deepEqual(messagesLogArgs('bbb', ''), ['log', '-1', '--format=%B', 'bbb'])
+  assert.deepEqual(messagesLogArgs('bbb', undefined), ['log', '-1', '--format=%B', 'bbb'])
+})
+
+test('postComments keeps going after a failed issue and returns the failures', (t) => {
+  t.mock.method(console, 'error', () => {})
+  const posted = []
+  const failed = postComments([3, 5, 8], (issue) => {
+    if (issue === 5) throw new Error('boom')
+    posted.push(issue)
+  })
+  assert.deepEqual(posted, [3, 8])
+  assert.deepEqual(failed, [5])
 })
 
 test('parsePrNumber reads the squash suffix of the subject', () => {
