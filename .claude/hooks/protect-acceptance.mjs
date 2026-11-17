@@ -9,10 +9,10 @@ try {
   console.error('Blocked: the acceptance hook could not parse its input.')
   process.exit(2)
 }
-// Resolve `..` segments and lowercase: Windows paths are case-insensitive, so E2E/Acceptance is the same folder.
+// Resolve `..` and lowercase; Windows also ignores trailing dots and spaces in a segment ("e2e./acceptance ").
 const raw = input.file_path ?? input.notebook_path ?? ''
 const path = raw ? resolve(raw).replaceAll('\\', '/').toLowerCase() : ''
-if (/(^|\/)e2e\/acceptance(\/|$)/.test(path)) {
+if (/(^|\/)e2e[. ]*\/acceptance[. ]*(\/|$)/.test(path)) {
   console.error(
     `Blocked: ${raw} is a protected acceptance scenario; the implementer cannot change it (ADR-0030).`,
   )

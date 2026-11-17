@@ -10,7 +10,6 @@ try {
   console.error('Blocked: the "No entra" hook could not parse its input.')
   process.exit(2)
 }
-const path = (input.file_path ?? input.notebook_path ?? '').replaceAll('\\', '/')
 const text = [
   input.content,
   input.new_string,
@@ -21,7 +20,6 @@ const text = [
   .join('\n')
   .replaceAll('\0', '')
 
-if (/(^|\/)node_modules\//.test(path)) process.exit(0)
 const reasons = findNoEntra(text)
 if (reasons.length) {
   console.error(
