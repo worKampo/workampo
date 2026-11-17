@@ -4,9 +4,13 @@ Return a Worker to a previous version. Decisions: [ADR-0013](../adr/0013-ci-cd-w
 
 Target: the previous version serving in under 5 minutes from the decision.
 
+## From the Cloudflare dashboard (fastest)
+
+Workers & Pages → `app` (or `app-stg`) → **Deployments** → the previous version → **Rollback**. No token needed: the person signs in with the project's Cloudflare account. Check the version's **Tag** first: it is the commit SHA. A rollback from GitHub Actions does not exist yet (#32).
+
 ## Command
 
-From `apps/api`, with `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` in the environment:
+From `apps/api`, with `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` in the environment (a one-day token with `Workers Scripts: Edit`; `wrangler login` failed with a CSRF error in the rehearsal):
 
 ```sh
 npx wrangler deployments list --name app
@@ -28,14 +32,13 @@ curl -s https://app.workampo.workers.dev/health   # stg: https://app-stg.workamp
 npx wrangler deployments status --name app
 ```
 
-`/health` must answer `status: "ok"` with the `sha` and `version` of the target. Then check Sentry for new errors in that release.
+`/health` must answer `status: "ok"` with the `sha` and `version` of the target. The switch takes a few seconds to reach every location: check again after about 30 seconds before concluding it failed. Then check Sentry for new errors in that release.
 
 `master` still holds the bad commit, and the next push deploys it again: revert it or fix forward before merging anything else. For SEV1 and SEV2 open an incident issue ([ADR-0039](../adr/0039-operations-and-incidents.md)).
 
 ## Rehearsals
 
-The first rehearsal is task T9 of the ticket (pending: first deploy).
-
 | Date | Environment | From SHA | To SHA | Duration |
 | --- | --- | --- | --- | --- |
+| 2026-11-17 | stg | 6639739 (version 69c1dce4) | 78bfcff (version 45cddac5) | Under 1 minute, including about 20 seconds until `/health` showed the target |
 |  |  |  |  |  |
