@@ -7,7 +7,7 @@
     "node": ">=24 <25"
   },
   "scripts": {
-    "check": "turbo run typecheck lint test && biome check . && depcruise apps packages && knip",
+    "check": "turbo run typecheck lint test && biome check . && depcruise apps packages && knip && node scripts/project/check.mjs && node --test \"scripts/**/*.test.mjs\"",
     "prepare": "git config core.hooksPath .git/hooks && lefthook install --force"
   },
   "devDependencies": {
@@ -16,6 +16,8 @@
     "knip": "6.45.1",
     "lefthook": "2.2.2",
     "turbo": "2.11.11",
-    "typescript": "6.0.3"
+    "typescript": "6.0.3",
+    "yaml": "2.9.1",
+    "zod": "4.6.7"
   }
 }

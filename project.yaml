@@ -1,0 +1,57 @@
+# Project profile (ADR-0045). Never secrets: only their name and where they live.
+# Validated by `pnpm check` (scripts/project/check.mjs). Ticket 3 (#7) fills in the deployed environments.
+name: workampo
+brand: worKampo
+
+github:
+  organization: worKampo
+  repository: worKampo/workampo
+  board: https://github.com/orgs/worKampo/projects/1
+  # The account `gh` and git must use in this repo (bootstrap, docs/process/bootstrap.md).
+  account: workampo-dev
+  commitEmail: 355970050+workampo-dev@users.noreply.github.com
+  agentsApp:
+    name: workampo-agents
+    appId: 5780402
+
+documents:
+  agents: AGENTS.md
+  vision: docs/product/vision.md
+  decisions: docs/adr/README.md
+  review: REVIEW.md
+  glossary: GLOSSARY.md
+
+cloudflare:
+  subdomain: workampo.workers.dev
+
+environments:
+  local:
+    url: http://localhost:8787
+  stg:
+    url: https://app-stg.workampo.workers.dev
+    worker: app-stg
+    githubEnvironment: stg
+  prod:
+    url: https://app.workampo.workers.dev
+    worker: app
+    githubEnvironment: prod
+
+services:
+  - name: GitHub
+    purpose: Code, issues, PRs, CI, board
+    admin: https://github.com/worKampo
+  - name: Cloudflare
+    purpose: Workers, D1, KV
+    admin: https://dash.cloudflare.com
+  - name: CodeRabbit
+    purpose: AI review of every PR (ADR-0041)
+    admin: https://app.coderabbit.ai
+  - name: Renovate
+    purpose: Dependency update PRs (ADR-0058)
+    admin: https://developer.mend.io
+
+secrets:
+  - name: GitHub App private key (workampo-agents)
+    lives: "%USERPROFILE%\\.workampo\\github-app.pem, copy in the password manager (ADR-0064)"
+  - name: One-day admin tokens (GitHub rulesets, Cloudflare provisioning)
+    lives: Nowhere; created, used in one terminal and revoked (ADR-0064)
