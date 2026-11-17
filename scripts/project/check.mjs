@@ -25,7 +25,7 @@ export const schema = z
       agentsApp: z.object({ name: z.string(), appId: z.number().int() }),
     }),
     documents: z.record(z.string(), z.string()),
-    cloudflare: z.object({ subdomain: z.string() }),
+    cloudflare: z.object({ accountId: z.string().regex(/^[0-9a-f]{32}$/), subdomain: z.string() }),
     environments: z.object({ local: environment, stg: environment, prod: environment }).strict(),
     services: z.array(z.object({ name: z.string(), purpose: z.string(), admin: url })),
     secrets: z.array(z.object({ name: z.string(), lives: z.string() })),

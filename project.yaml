@@ -22,6 +22,7 @@ documents:
   glossary: GLOSSARY.md
 
 cloudflare:
+  accountId: d162a227436461d3e6f71c30b0e0f290
   subdomain: workampo.workers.dev
 
 environments:
