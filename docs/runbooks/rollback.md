@@ -28,14 +28,13 @@ curl -s https://app.workampo.workers.dev/health   # stg: https://app-stg.workamp
 npx wrangler deployments status --name app
 ```
 
-`/health` must answer `status: "ok"` with the `sha` and `version` of the target. Then check Sentry for new errors in that release.
+`/health` must answer `status: "ok"` with the `sha` and `version` of the target. The switch takes a few seconds to reach every location: check again after about 30 seconds before concluding it failed. Then check Sentry for new errors in that release.
 
 `master` still holds the bad commit, and the next push deploys it again: revert it or fix forward before merging anything else. For SEV1 and SEV2 open an incident issue ([ADR-0039](../adr/0039-operations-and-incidents.md)).
 
 ## Rehearsals
 
-The first rehearsal is task T9 of the ticket (pending: first deploy).
-
 | Date | Environment | From SHA | To SHA | Duration |
 | --- | --- | --- | --- | --- |
+| 2026-11-17 | stg | 6639739 (version 69c1dce4) | 78bfcff (version 45cddac5) | Under 1 minute, including about 20 seconds until `/health` showed the target |
 |  |  |  |  |  |
