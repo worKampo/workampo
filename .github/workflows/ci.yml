@@ -32,7 +32,5 @@ jobs:
           key: turbo-${{ runner.os }}-${{ github.sha }}
           restore-keys: turbo-${{ runner.os }}-
       - run: pnpm install --frozen-lockfile
-      - run: pnpm turbo run typecheck lint test --affected --cache-dir=.turbo/cache
-      - run: pnpm biome check .
-      - run: pnpm depcruise apps packages
-      - run: pnpm knip
+      # Steps live in package.json: the agents' App cannot edit workflows, so new checks go there.
+      - run: pnpm check:ci
