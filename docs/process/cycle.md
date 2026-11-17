@@ -74,7 +74,7 @@ El agente para y pregunta solo en estos cinco casos; todo lo demás lo decide y 
 | Cambio de alcance | Issue nuevo | Issue nuevo |
 | Fallo de entorno | Se corrige la configuración sin tocar código y se anota en el runbook | Igual |
 
-Ventana de observación en Release: un verifier programado revisa Sentry, métricas de Worker y SLOs. Limpia, el ticket pasa a Close sin intervención; si no, se avisa a la persona ([ADR-0039](../adr/0039-operations-and-incidents.md)). Duración: Sin decidir (la fija el runbook de deploy).
+Ventana de observación en Release: un verifier programado revisa Sentry, métricas de Worker y SLOs. Limpia, el ticket pasa a Close sin intervención; si no, se avisa a la persona ([ADR-0039](../adr/0039-operations-and-incidents.md)). Duración: 24 horas desde el despliegue a producción ([runbook de deploy](../runbooks/deploy.md#release-observation-window)).
 
 ## State and log
 

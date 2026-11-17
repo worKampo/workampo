@@ -96,4 +96,4 @@ Then:
 
 ## Release observation window
 
-After the prod deploy a verifier reviews new Sentry errors, Worker metrics and the SLOs; a clean window lets the ticket close ([ADR-0020](../adr/0020-ticket-lifecycle.md)). ADR-0020 sends the length of the window to this runbook: **it is not decided yet.** Contract migrations also wait one window ([ADR-0033](../adr/0033-expand-contract-migrations.md)).
+After the prod deploy a verifier reviews new Sentry errors, Worker metrics and the SLOs; a clean window lets the ticket close ([ADR-0020](../adr/0020-ticket-lifecycle.md)). ADR-0020 sends the length of the window to this runbook: **24 hours** from the prod deploy (decided by the person on 2026-11-17; revisit in the monthly review once there is real traffic). Until ticket 5 automates the check, the orchestrator reviews Sentry, `/health` and the monitor when the 24 hours are up and posts the result on the issue. Contract migrations also wait one window ([ADR-0033](../adr/0033-expand-contract-migrations.md)).

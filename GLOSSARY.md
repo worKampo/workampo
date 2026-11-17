@@ -162,7 +162,7 @@ Three-step migration pattern (expand, migrate, contract) so that a rollback neve
 
 ### observation window
 
-Period after release that must stay clean before the ticket is closed. Its length: not decided. GitHub: ticket moves to Done when it closes. [ADR-0034](docs/adr/0034-prds-slicing-and-ticket-format.md).
+Period after release that must stay clean before the ticket is closed. It lasts 24 hours (docs/runbooks/deploy.md). GitHub: ticket moves to Done when it closes. [ADR-0034](docs/adr/0034-prds-slicing-and-ticket-format.md).
 
 ## Operations
 
