@@ -11,7 +11,7 @@ A task, a wave and a ticket each need one objective definition of done that runs
 
 ## Decision
 
-- `pnpm check` (typecheck + lint + tests) is the only definition of done for a task or wave: local, pre-commit and CI. For a ticket, it is the Definition of Done ([ADR-0034](0034-prds-slicing-and-ticket-format.md)).
+- `pnpm check` (typecheck + lint + tests) is the only definition of done for a task or wave: local, pre-commit and CI. The definition of done of a ticket is the Definition of Done ([ADR-0034](0034-prds-slicing-and-ticket-format.md)).
 - Tests run inside workerd with local D1/KV: `@cloudflare/vitest-plugin` (formerly `vitest-pool-workers`), Vitest ≥ 4.1. Migrations in tests with `applyD1Migrations()`.
 - Lint and format with **Biome**; architecture rules with **dependency-cruiser** (e.g. a route does not import D1 directly; `packages/*` does not import from `apps/*`).
 - Git hooks with **lefthook**: `pnpm check` and gitleaks in pre-commit. The tests of the first wave go in as expected failures (`it.fails`) and acceptance scenarios do not run in pre-commit ([ADR-0020](0020-ticket-lifecycle.md), [ADR-0030](0030-test-designer.md)).
