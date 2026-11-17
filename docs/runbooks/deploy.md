@@ -21,7 +21,7 @@ On every push to `master`, [`.github/workflows/deploy.yml`](../../.github/workfl
 
 ### By hand
 
-Needs `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` in the environment, plus `SENTRY_AUTH_TOKEN`, `SENTRY_ORG` and `SENTRY_PROJECT` if the source maps must reach Sentry. Never write them to a file; never paste them in chat, issues or commits.
+Needs `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` in the environment, plus `SENTRY_AUTH_TOKEN`, `SENTRY_ORG` and `SENTRY_PROJECT` if the source maps must reach Sentry, and `SENTRY_DSN` so the Worker reports errors (without it Sentry stays off). Never write them to a file; never paste them in chat, issues or commits.
 
 ```sh
 node scripts/deploy/deploy.mjs stg          # only the Workers affected since the deployed SHA
@@ -42,9 +42,9 @@ Without `SENTRY_AUTH_TOKEN` the deploy still works and logs that the source maps
    2. `wrangler deploy --dry-run --outdir dist --upload-source-maps` builds the bundle and writes the `.map` files.
    3. With `SENTRY_AUTH_TOKEN`: `sentry-cli sourcemaps inject` and `sourcemaps upload --release <sha>` to `https://de.sentry.io` (EU region). The release is the full SHA.
    4. Deletes every `.map` from `dist`.
-   5. `wrangler deploy dist/index.js --no-bundle --env <env> --tag <sha> --message "<message>"`: it deploys the bundle Sentry knows, not a rebuild.
+   5. `wrangler deploy dist/index.js --no-bundle --env <env> --tag <sha> --var GIT_SHA:<sha> --message "<message>"`: it deploys the bundle Sentry knows, not a rebuild.
 
-The SHA in `/health` comes from the deploy tag (`CF_VERSION_METADATA.tag`). If the tag turns out empty after the first stg deploy, the fallback is `--var GIT_SHA:<sha>` with the same `/health` contract (pending: first deploy).
+The SHA in `/health` comes from the deploy tag (`CF_VERSION_METADATA.tag`); if the tag is empty, `/health` and the Sentry release use the `GIT_SHA` var that every deploy also sets, so the contract holds either way.
 
 ## Read what is deployed
 
