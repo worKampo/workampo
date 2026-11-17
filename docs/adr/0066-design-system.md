@@ -1,6 +1,6 @@
-# Design system: neutral chrome, ink accent, IBM Plex Sans
+# ADR-0066: Design system: neutral chrome, ink accent, IBM Plex Sans
 
-- Status: accepted (2026-11-12). It gets a number, and drops the `draft-` prefix, when `docs/adr/` is set up by the "Working foundation" PRD, ticket 4.
+- Status: accepted (2026-11-12).
 - Date: 2026-11-11
 - Confirmed with it: skeletons after ~300 ms, format validation on blur, Undo toast for reversible actions, amber usage bar at 80 %, IBM Plex Sans self-hosted (nothing from third parties on `/login`, D32).
 
@@ -80,4 +80,4 @@ The values live in `docs/design/tokens.css`; components, patterns and copy rules
 
 - [`docs/design/`](../design/README.md): tokens, components, patterns, content.
 - Design canvas "SaaS Base · Pantallas" (private): <https://claude.ai/artifact/5b46Drc9rY8rk95LY5XBAi>
-- D31 (UI/UX designer, accessibility, SEO), D47 (internationalisation), D50 ("Enter as"), D32 (no third-party scripts on `/login`) in [`docs/decisions.md`](../decisions.md).
+- [ADR-0031](0031-ui-ux-designer.md) (UI/UX designer, accessibility, SEO), [ADR-0047](0047-i18n-from-the-start.md) (internationalisation), [ADR-0050](0050-enter-as-staff-impersonation.md) ("Enter as"), [ADR-0032](0032-security-reviewer.md) (no third-party scripts on `/login`).
