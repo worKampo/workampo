@@ -224,7 +224,7 @@ html { scroll-behavior: smooth; }
       <h1>Base SaaS multitenant sobre Cloudflare</h1>
       <p class="lede">Empresas, personas y membresías sobre las que montar cualquier negocio. Este documento resume las 64 decisiones tomadas al revisar la especificación v6.0: qué se construye, cómo encaja y cómo se trabaja con agentes de IA.</p>
       <div class="meta">
-        <span>Fuente: docs/decisions.md · docs/product/vision.md</span>
+        <span>Fuente: docs/adr/ · docs/product/vision.md</span>
         <span>Nombre: workampo · URLs *.workampo.workers.dev · workampo.com, dominio futuro</span>
         <span>§ = sección del spec original</span>
         <span>Diagramas de todo el diseño: <a href="https://claude.ai/artifact/KxFCKLKPKVn1rUXSfyiYsH">whiteboard "Arquitectura y proceso"</a></span>
@@ -596,7 +596,7 @@ flowchart LR
       <h3>En el repo</h3>
       <ul>
         <li><code>docs/design/</code> (en inglés): <code>README.md</code>, <code>tokens.css</code> (tokens en claro y oscuro, con las variables de shadcn), <code>components.md</code>, <code>patterns.md</code> y <code>content.md</code> (tono y textos). Es el requisito previo del rol UI/UX designer y la referencia de Verify (D31).</li>
-        <li><code>docs/adr/draft-design-system.md</code>: ADR (MADR) aceptado el 12 nov 2026, con skeleton a los 300 ms, validación al salir del campo, toast con Undo, aviso ámbar al 80 % e IBM Plex servida desde nuestro dominio. Recibe número cuando "Working foundation" cree <code>docs/adr/</code>.</li>
+        <li><code>docs/adr/0066-design-system.md</code>: ADR (MADR) aceptado el 12 nov 2026, con skeleton a los 300 ms, validación al salir del campo, toast con Undo, aviso ámbar al 80 % e IBM Plex servida desde nuestro dominio. Recibe número cuando "Working foundation" cree <code>docs/adr/</code>.</li>
       </ul>
       <p class="caption">El lienzo es privado: hay que compartirlo desde su menú Share para que otras personas lo vean.</p>
     </section>
@@ -1083,7 +1083,7 @@ flowchart LR
     <section id="registro">
       <div class="eyebrow">Registro</div>
       <h2>Las 60 decisiones</h2>
-      <p>Resumen de cada decisión. El texto completo está en <code>docs/decisions.md</code>.</p>
+      <p>Resumen de cada decisión. El texto completo está en <code>docs/adr/</code> (D53 = ADR-0053).</p>
       <div class="reg-tools">
         <label for="reg-filter" class="reg-count" style="flex:none">Filtrar</label>
         <input id="reg-filter" type="search" placeholder="Busca por tema, D-número o §">
