@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { branchTicket, parseAddedLines, parseLog } from './context.mjs'
+import { branchTicket, parseAddedLines, parseLog, parseNameStatus } from './context.mjs'
 import { context, failure, issueJson, logOf, RENOVATE } from './test-support.mjs'
 
 test('reads the ticket from the branch', () => {
@@ -10,31 +10,92 @@ test('reads the ticket from the branch', () => {
   assert.equal(branchTicket('feature/15-Invite'), null)
 })
 
-test('parses commits with their files', () => {
-  const commits = parseLog(logOf([{ sha: 'a1', time: 5, files: ['x.ts', 'docs/y.md'] }]))
+test('parses commits with their files and Reopen trailers', () => {
+  const commits = parseLog(
+    logOf([{ sha: 'a1', reopens: ['7', '8'], files: ['x.ts', 'docs/y.md'] }]),
+  )
   assert.deepEqual(commits[0].files, ['x.ts', 'docs/y.md'])
-  assert.equal(commits[0].time, 5)
+  assert.deepEqual(commits[0].reopens, ['7', '8'])
+  assert.deepEqual(parseLog(logOf([{ sha: 'a2' }]))[0].reopens, [])
 })
 
-test('keeps only added lines with their file and line', () => {
+test('reads name-status -z with renames, deletions and odd names', () => {
+  const text = 'M\0a.ts\0R087\0old/x.ts\0new/x.ts\0D\0gone.ts\0A\0dir/"q"\ttab.ts\0'
+  assert.deepEqual(parseNameStatus(text), [
+    { status: 'M', paths: ['a.ts'] },
+    { status: 'R', paths: ['old/x.ts', 'new/x.ts'] },
+    { status: 'D', paths: ['gone.ts'] },
+    { status: 'A', paths: ['dir/"q"\ttab.ts'] },
+  ])
+})
+
+test('keeps only added lines with their line, across hunks', () => {
   const diff = [
     'diff --git a/a.ts b/a.ts',
     '--- a/a.ts',
     '+++ b/a.ts',
-    '@@ -1,0 +4,2 @@',
+    '@@ -0,0 +4,2 @@',
     '+one',
     '++two',
+    '@@ -9 +11 @@',
     '-gone',
-    'diff --git a/b.ts b/b.ts',
-    '--- a/b.ts',
-    '+++ /dev/null',
-    '@@ -1 +0,0 @@',
-    '-deleted',
+    '\\ No newline at end of file',
+    '+three',
   ].join('\n')
-  assert.deepEqual(parseAddedLines(diff), [
+  assert.deepEqual(parseAddedLines(diff, 'a.ts'), [
     { file: 'a.ts', line: 4, text: 'one' },
     { file: 'a.ts', line: 5, text: '+two' },
+    { file: 'a.ts', line: 11, text: 'three' },
   ])
+})
+
+test('added lines that look like file headers stay content of the real file', () => {
+  const diff = [
+    'diff --git a/a.ts b/a.ts',
+    '--- a/a.ts',
+    '+++ b/a.ts',
+    '@@ -1,2 +1,4 @@',
+    '--- a/README.md',
+    '+++ b/README.md',
+    '-- x',
+    '++++ b/x',
+    '+++ /dev/null',
+    '+plain',
+  ].join('\n')
+  assert.deepEqual(
+    parseAddedLines(diff, 'a.ts').map(({ file, text }) => [file, text]),
+    [
+      ['a.ts', '++ b/README.md'],
+      ['a.ts', '+++ b/x'],
+      ['a.ts', '++ /dev/null'],
+      ['a.ts', 'plain'],
+    ],
+  )
+  assert.throws(() => parseAddedLines('@@ -1 +1,2 @@\n+only one', 'a.ts'), /truncated/)
+})
+
+test('binary files add no lines', () => {
+  const diff =
+    'diff --git a/i.png b/i.png\nindex 1..2 100644\nBinary files a/i.png and b/i.png differ\n'
+  assert.deepEqual(parseAddedLines(diff, 'i.png'), [])
+})
+
+test('added lines come from one diff per file named by the -z listing', () => {
+  const calls = []
+  const ctx = context({
+    calls,
+    routes: [
+      [/^git diff --name-status -z/, 'M\0a.ts\0R090\0old.ts\0new.ts\0D\0gone.ts\0'],
+      [/^git diff -U0 .* -- :\(literal\)a\.ts$/, '@@ -1 +1 @@\n-x\n+++ b/README.md\n'],
+      [/^git diff -U0 .* -- :\(literal\)old\.ts :\(literal\)new\.ts$/, '@@ -0,0 +3 @@\n+y\n'],
+    ],
+  })
+  assert.deepEqual(ctx.addedLines(), [
+    { file: 'a.ts', line: 1, text: '++ b/README.md' },
+    { file: 'new.ts', line: 3, text: 'y' },
+  ])
+  assert.deepEqual(ctx.changedFiles(), ['a.ts', 'old.ts', 'new.ts', 'gone.ts'])
+  assert.equal(calls.filter((call) => call.includes('gone.ts') && call.includes('-U0')).length, 0)
 })
 
 test('Renovate needs its branch, every commit by its bot and the bot as PR author', () => {

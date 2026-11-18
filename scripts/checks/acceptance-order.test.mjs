@@ -4,34 +4,42 @@ import { acceptanceErrors, check, isReopenCandidate } from './acceptance-order.m
 import { context, failure, issueJson, logOf } from './test-support.mjs'
 
 const SCENARIO = 'apps/web/e2e/acceptance/invite.spec.ts'
-const at = (iso) => Date.parse(iso) / 1000
+const commit = (sha, files, reopens = []) => ({ sha, files, reopens })
+const none = () => false
 
 test('passes when scenarios come first, after docs and .work/ only', () => {
   const commits = [
-    { sha: 'd1', time: 1, files: ['docs/domains/companies.md', '.work/tasks.md'] },
-    { sha: 'a1', time: 2, files: [SCENARIO] },
-    { sha: 'c1', time: 3, files: ['apps/web/src/x.tsx'] },
+    commit('d1', ['docs/domains/companies.md', '.work/tasks.md']),
+    commit('a1', [SCENARIO]),
+    commit('c1', ['apps/web/src/x.tsx']),
   ]
-  assert.deepEqual(acceptanceErrors(commits, []), [])
+  assert.deepEqual(acceptanceErrors(commits, none), [])
 })
 
-test('fails when a scenario changes after code', () => {
-  const commits = [
-    { sha: 'c1aaaaaaa', time: 1, files: ['apps/web/src/x.tsx'] },
-    { sha: 'a1aaaaaaa', time: 2, files: [SCENARIO] },
-  ]
-  assert.match(acceptanceErrors(commits, [])[0], /a1aaaaa touches e2e\/acceptance\/ after c1aaaaa/)
+test('fails when a scenario changes after code, saying how to reopen', () => {
+  const commits = [commit('c1aaaaaaa', ['apps/web/src/x.tsx']), commit('a1aaaaaaa', [SCENARIO])]
+  const [error] = acceptanceErrors(commits, none)
+  assert.match(error, /a1aaaaa touches e2e\/acceptance\/ after c1aaaaa/)
+  assert.match(error, /Reopen: <comment-id>/)
 })
 
-test('a reopen before the commit starts a new segment', () => {
-  const commits = [
-    { sha: 'a1', time: 1, files: [SCENARIO] },
-    { sha: 'c1', time: 2, files: ['apps/web/src/x.tsx'] },
-    { sha: 'a2', time: 4, files: [SCENARIO] },
-    { sha: 'c2', time: 5, files: ['apps/web/src/y.tsx'] },
+test('a mixed commit before any code passes and counts as code', () => {
+  const commits = [commit('m1', [SCENARIO, 'apps/web/src/x.tsx']), commit('a2', [SCENARIO])]
+  assert.equal(acceptanceErrors(commits, none).length, 1)
+})
+
+test('a late scenario commit needs a trusted Reopen id, each id usable once', () => {
+  const trusted = (id) => id === '42'
+  const late = (reopens) => [
+    commit('a1', [SCENARIO]),
+    commit('c1', ['apps/web/src/x.tsx']),
+    commit('a2', [SCENARIO], reopens),
   ]
-  assert.deepEqual(acceptanceErrors(commits, [3]), [])
-  assert.equal(acceptanceErrors(commits, [4.5]).length, 1)
+  assert.deepEqual(acceptanceErrors(late(['42']), trusted), [])
+  assert.equal(acceptanceErrors(late(['7']), trusted).length, 1)
+  assert.equal(acceptanceErrors(late([]), trusted).length, 1)
+  const reused = [...late(['42']), commit('a3', [SCENARIO], ['42'])]
+  assert.match(acceptanceErrors(reused, trusted)[0], /^a3 /)
 })
 
 test('only a plain user comment starting with /reopen-acceptance is a candidate', () => {
@@ -45,11 +53,11 @@ test('only a plain user comment starting with /reopen-acceptance is a candidate'
   )
 })
 
-function ctxWith(comments, permissions) {
+function ctxWith(comments, permissions, reopens = ['100']) {
   const commits = [
-    { sha: 'a1', time: at('2026-11-18T10:00:00Z'), files: [SCENARIO] },
-    { sha: 'c1', time: at('2026-11-18T11:00:00Z'), files: ['apps/web/src/x.tsx'] },
-    { sha: 'a2', time: at('2026-11-18T13:00:00Z'), files: [SCENARIO] },
+    commit('a1', [SCENARIO]),
+    commit('c1', ['apps/web/src/x.tsx']),
+    commit('a2', [SCENARIO], reopens),
   ]
   return context({
     routes: [
@@ -68,25 +76,25 @@ function ctxWith(comments, permissions) {
 }
 
 const reopen = (login, extra = {}) => ({
+  id: 100,
   body: '/reopen-acceptance',
   user: { login, type: 'User' },
   performed_via_github_app: null,
-  created_at: '2026-11-18T12:00:00Z',
   ...extra,
 })
 
-test('an admin reopen between the commits passes through gh', () => {
+test('a Reopen trailer naming an admin reopen comment passes through gh', () => {
   assert.deepEqual(check(ctxWith([reopen('owner')], { owner: 'admin\n' })).errors, [])
 })
 
-test('a reopen by a non-admin, an app or a bot does not count', () => {
+test('a reopen by a non-admin, an app or a bot, or an unknown id does not count', () => {
   const cases = [
     ctxWith([reopen('writer')], { writer: 'write\n' }),
     ctxWith([reopen('stranger')], { stranger: failure(1, 'HTTP 404') }),
     ctxWith([reopen('owner', { performed_via_github_app: { id: 1 } })], { owner: 'admin\n' }),
-    ctxWith([reopen('renovate[bot]', { user: { login: 'bot', type: 'Bot' } })], {
-      bot: 'admin\n',
-    }),
+    ctxWith([reopen('bot', { user: { login: 'bot', type: 'Bot' } })], { bot: 'admin\n' }),
+    ctxWith([reopen('owner', { body: 'looks fine' })], { owner: 'admin\n' }),
+    ctxWith([reopen('owner')], { owner: 'admin\n' }, ['101']),
   ]
   for (const ctx of cases) assert.equal(check(ctx).errors.length, 1)
 })

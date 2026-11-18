@@ -11,7 +11,7 @@ function ctxWith({ labels, files, critical = CRITICAL }) {
     routes: [
       [/^git log/, logOf([{ sha: 'h1' }])],
       [/^gh api .*issues\/9 /, issueJson('open', labels)],
-      [/^git diff --name-only/, files.join('\n')],
+      [/^git diff --name-status -z/, files.map((file) => `M\0${file}\0`).join('')],
       [/^git show head:docs\/procedures\/critical-paths.md/, critical ?? failure(128)],
     ],
   })

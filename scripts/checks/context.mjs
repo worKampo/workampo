@@ -23,22 +23,52 @@ export function parseLog(text) {
     .filter((record) => record.trim())
     .map((record) => {
       const [header, ...files] = record.split('\n')
-      const [sha, time, email, name] = header.split('\x1f')
-      return { sha, time: Number(time), email, name, files: files.filter(Boolean) }
+      const [sha, email, name, reopens = ''] = header.split('\x1f')
+      const ids = reopens.split(',').map((id) => id.trim())
+      return { sha, email, name, reopens: ids.filter(Boolean), files: files.filter(Boolean) }
     })
 }
 
-export function parseAddedLines(diff) {
-  const added = []
-  let file = null
-  let line = 0
-  const lines = diff.split('\n')
-  for (const [i, text] of lines.entries()) {
-    if (text.startsWith('+++ ') && lines[i - 1]?.startsWith('--- '))
-      file = text === '+++ /dev/null' ? null : text.slice('+++ b/'.length)
-    else if (text.startsWith('@@')) line = Number(text.match(/\+(\d+)/)[1])
-    else if (text.startsWith('+') && file) added.push({ file, line: line++, text: text.slice(1) })
+// `git diff --name-status -z`: deletions keep the old path, renames and copies give both.
+export function parseNameStatus(text) {
+  const tokens = text.split('\0')
+  const entries = []
+  for (let i = 0; i < tokens.length && tokens[i]; ) {
+    const status = tokens[i][0]
+    const paths = 'RC'.includes(status) ? tokens.slice(i + 1, i + 3) : [tokens[i + 1]]
+    entries.push({ status, paths })
+    i += 1 + paths.length
   }
+  return entries
+}
+
+// Headers only count outside hunks; inside one, the counts of `@@ -a,b +c,d @@` say how many
+// lines are content, so an added line that looks like `+++ b/x` cannot switch the file.
+export function parseAddedLines(diff, file) {
+  const added = []
+  let line = 0
+  let oldLeft = 0
+  let newLeft = 0
+  for (const text of diff.split('\n')) {
+    if (oldLeft > 0 || newLeft > 0) {
+      if (text.startsWith('+')) {
+        added.push({ file, line: line++, text: text.slice(1) })
+        newLeft--
+      } else if (text.startsWith('-')) oldLeft--
+      else if (text.startsWith(' ')) {
+        line++
+        oldLeft--
+        newLeft--
+      } else if (!text.startsWith('\\')) throw new Error(`${file}: malformed hunk line: ${text}`)
+      continue
+    }
+    const hunk = text.match(/^@@ -\d+(?:,(\d+))? \+(\d+)(?:,(\d+))? @@/)
+    if (!hunk) continue
+    oldLeft = Number(hunk[1] ?? 1)
+    line = Number(hunk[2])
+    newLeft = Number(hunk[3] ?? 1)
+  }
+  if (oldLeft > 0 || newLeft > 0) throw new Error(`${file}: truncated hunk`)
   return added
 }
 
@@ -84,21 +114,37 @@ export function createContext({ env, run = defaultRun, commitEmail }) {
             'log',
             '--reverse',
             '--topo-order',
-            '--format=%x1e%H%x1f%ct%x1f%ae%x1f%an',
+            '--format=%x1e%H%x1f%ae%x1f%an%x1f%(trailers:key=Reopen,valueonly,unfold,separator=%x2c)',
             '--name-only',
             `${base}..${head}`,
           ]),
         ),
       ),
-    changedFiles: () =>
-      once('changed', () =>
-        git(['diff', '--name-only', `${base}...${head}`])
-          .split('\n')
-          .filter(Boolean),
+    nameStatus: () =>
+      once('nameStatus', () =>
+        parseNameStatus(git(['diff', '--name-status', '-z', `${base}...${head}`])),
       ),
+    changedFiles: () => [...new Set(ctx.nameStatus().flatMap((entry) => entry.paths))],
+    // One diff per file, named from the -z listing, so the patch text never decides the file.
     addedLines: () =>
       once('added', () =>
-        parseAddedLines(git(['diff', '-U0', '--no-color', '--no-ext-diff', `${base}...${head}`])),
+        ctx
+          .nameStatus()
+          .filter((entry) => entry.status !== 'D')
+          .flatMap(({ paths }) =>
+            parseAddedLines(
+              git([
+                'diff',
+                '-U0',
+                '--no-color',
+                '--no-ext-diff',
+                `${base}...${head}`,
+                '--',
+                ...paths.map((path) => `:(literal)${path}`),
+              ]),
+              paths.at(-1),
+            ),
+          ),
       ),
     tree: () =>
       once('tree', () => git(['ls-tree', '-r', '--name-only', head]).split('\n').filter(Boolean)),

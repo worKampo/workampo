@@ -27,8 +27,8 @@ export function fakeRun(routes, calls = []) {
 export function logOf(commits) {
   return commits
     .map(
-      ({ sha, time = 1000, email = EMAIL, name = 'workampo-dev', files = [] }) =>
-        `\x1e${sha}\x1f${time}\x1f${email}\x1f${name}\n\n${files.join('\n')}\n`,
+      ({ sha, email = EMAIL, name = 'workampo-dev', reopens = [], files = [] }) =>
+        `\x1e${sha}\x1f${email}\x1f${name}\x1f${reopens.join(',')}\n\n${files.join('\n')}\n`,
     )
     .join('')
 }
