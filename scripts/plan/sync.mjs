@@ -2,6 +2,7 @@
 import { execFileSync } from 'node:child_process'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
+import { parseArgs } from 'node:util'
 import { parseTasks } from './tasks.mjs'
 
 const START = '<!-- tasks:start -->'
@@ -23,14 +24,29 @@ export function applyBlock(body, block) {
   return `${text.trimEnd()}\n\n## Tasks\n\n${block}\n`
 }
 
+const USAGE = 'usage: plan:sync <issue> [file=.work/tasks.md] [--dry-run]'
+
+// Strict: a misspelled flag such as --dryrun must stop the run, not edit the issue for real.
+export function parseSyncArgs(argv) {
+  const { values, positionals } = parseArgs({
+    args: argv,
+    options: { 'dry-run': { type: 'boolean', default: false } },
+    allowPositionals: true,
+  })
+  const [issue, file = '.work/tasks.md', ...extra] = positionals
+  if (!/^\d+$/.test(issue ?? '') || extra.length) throw new Error(USAGE)
+  return { issue, file, dryRun: values['dry-run'] }
+}
+
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  const args = process.argv.slice(2)
-  const dryRun = args.includes('--dry-run')
-  const [issue, file = '.work/tasks.md'] = args.filter((a) => !a.startsWith('--'))
-  if (!/^\d+$/.test(issue ?? '')) {
-    console.error('usage: plan:sync <issue> [file=.work/tasks.md] [--dry-run]')
+  let parsed
+  try {
+    parsed = parseSyncArgs(process.argv.slice(2))
+  } catch (error) {
+    console.error(error.message === USAGE ? USAGE : `${error.message}\n${USAGE}`)
     process.exit(2)
   }
+  const { issue, file, dryRun } = parsed
   const block = renderBlock(parseTasks(readFileSync(file, 'utf8')).tasks)
   const current = execFileSync('gh', ['issue', 'view', issue, '--json', 'body', '--jq', '.body'], {
     encoding: 'utf8',

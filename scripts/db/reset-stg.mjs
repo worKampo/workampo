@@ -21,7 +21,8 @@ function wipe(db, io) {
       capture: true,
     }),
   ).map((row) => row.name)
-  if (tables.every((name) => name === 'd1_migrations')) io.log(`${db}: no tables, nothing to wipe.`)
+  // A lone d1_migrations still goes: its records would make apply skip the tables it lost.
+  if (!tables.length) io.log(`${db}: no tables, nothing to wipe.`)
   else {
     io.log(`${db}: dropping ${tables.join(', ')}.`)
     io.wrangler(['d1', 'execute', db, ...target(ENV), '--command', wipeSql(tables)])
@@ -30,13 +31,32 @@ function wipe(db, io) {
   io.wrangler(['d1', 'migrations', 'apply', db, ...target(ENV)])
 }
 
+function prodDatabases(config) {
+  try {
+    return d1Config(config, 'prod')
+  } catch {
+    return []
+  }
+}
+
 export function resetStg(argv, io) {
   if (argv.length) throw new Error('reset-stg takes no arguments: its only environment is stg')
   assertInActions(io.env, 'reset-stg')
   assertEnvVars(io.env, ENV)
-  const configured = d1Config(io.readConfig(), ENV).map((db) => db.database_name)
+  const config = io.readConfig()
+  const stg = d1Config(config, ENV)
+  const configured = stg.map((db) => db.database_name)
   for (const db of Object.values(STG_DATABASES))
     if (!configured.includes(db)) throw new Error(`${db} is not in env.stg of wrangler.jsonc`)
+  // Staging ids are bare UUIDs, so the only guard is that none is a production or top-level id.
+  const otherIds = new Set(
+    [...d1Config(config, 'local'), ...prodDatabases(config)].map((db) => db.database_id),
+  )
+  for (const db of stg)
+    if (db.database_id && otherIds.has(db.database_id))
+      throw new Error(
+        `${db.database_name} in env.stg has the database_id of a non-staging database`,
+      )
 
   for (const [kind, db] of Object.entries(STG_DATABASES)) {
     wipe(db, io)

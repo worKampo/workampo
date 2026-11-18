@@ -4,7 +4,7 @@ import { acceptanceErrors, check, isReopenCandidate } from './acceptance-order.m
 import { context, failure, issueJson, logOf } from './test-support.mjs'
 
 const SCENARIO = 'apps/web/e2e/acceptance/invite.spec.ts'
-const commit = (sha, files, reopens = []) => ({ sha, files, reopens })
+const commit = (sha, files, reopens = [], isMerge = false) => ({ sha, files, reopens, isMerge })
 const none = () => false
 
 test('passes when scenarios come first, after docs and .work/ only', () => {
@@ -43,6 +43,23 @@ test('a late scenario commit needs a trusted Reopen id, each id usable once', ()
   assert.equal(acceptanceErrors(late([]), trusted).length, 1)
   const reused = [...late(['42']), commit('a3', [SCENARIO], ['42'])]
   assert.match(acceptanceErrors(reused, trusted)[0], /^a3 /)
+})
+
+test('a mixed commit after code fails even with a trusted Reopen; a merge needs only the Reopen', () => {
+  const trusted = (id) => id === '42'
+  const after = (late) => [commit('a1', [SCENARIO]), commit('c1', ['apps/web/src/x.tsx']), late]
+  const mixed = acceptanceErrors(
+    after(commit('m2', [SCENARIO, 'apps/web/src/y.tsx'], ['42'])),
+    trusted,
+  )
+  assert.equal(mixed.length, 1)
+  assert.match(mixed[0], /^m2 mixes e2e\/acceptance\/ with other paths/)
+  const merge = (reopens) => commit('g1', [SCENARIO, 'apps/web/src/y.tsx'], reopens, true)
+  assert.deepEqual(acceptanceErrors(after(merge(['42'])), trusted), [])
+  assert.match(
+    acceptanceErrors(after(merge([])), trusted)[0],
+    /^g1 touches e2e\/acceptance\/ after c1/,
+  )
 })
 
 test('only a plain user comment starting with /reopen-acceptance is a candidate', () => {

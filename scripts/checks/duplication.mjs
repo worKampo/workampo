@@ -16,16 +16,29 @@ export function duplicationWarnings(report) {
   )
 }
 
+const firstLine = (text) =>
+  String(text ?? '')
+    .split('\n')
+    .find((line) => line.trim())
+    ?.trim()
+
+// Warnings only: neither a jscpd crash nor its temporary directory may fail the PR.
 export function check(ctx) {
-  const output = mkdtempSync(join(tmpdir(), 'jscpd-'))
+  let output
+  const warnings = []
   try {
+    output = mkdtempSync(join(tmpdir(), 'jscpd-'))
     ctx.run(process.execPath, [CLI, '--config', '.jscpd.json', '--output', output], { cwd: ROOT })
     const report = JSON.parse(readFileSync(join(output, 'jscpd-report.json'), 'utf8'))
-    return { errors: [], warnings: duplicationWarnings(report) }
+    warnings.push(...duplicationWarnings(report))
   } catch (error) {
-    // Warnings only: a jscpd crash must not fail the PR either.
-    return { errors: [], warnings: [`jscpd could not run: ${error.message.split('\n')[0]}`] }
-  } finally {
-    rmSync(output, { recursive: true, force: true })
+    // The launcher names the cause on stderr; the message's first line is only the command.
+    warnings.push(`jscpd could not run: ${firstLine(error.stderr) ?? firstLine(error.message)}`)
   }
+  try {
+    if (output) rmSync(output, { recursive: true, force: true })
+  } catch (error) {
+    warnings.push(`could not remove ${output}: ${firstLine(error.message)}`)
+  }
+  return { errors: [], warnings }
 }

@@ -26,10 +26,10 @@ pnpm db:seed --persist-to <dir>   # Playwright keeps its own local state
 
 ## Staging: `reset-stg` workflow
 
-Actions → `reset-stg` → Run workflow. No inputs: staging is its only target, and there is no way to point it at production.
+Actions → `reset-stg` → Run workflow. No inputs: staging is its only target, and the workflow offers no way to choose production. The databases it wipes are those of `env.stg` in `apps/api/wrangler.jsonc`, so before the first drop the script refuses if any of their `database_id`s is also a top-level or `env.prod` one.
 
 1. Runs in the `stg` Environment and the `deploy-stg` concurrency group, so it never overlaps a deploy.
 2. For each staging database: drops every table (including `d1_migrations`), re-applies the migrations (schema and reference data), then applies the seed files.
-3. With no tables it drops nothing but still applies the migrations, so rerunning the workflow after a failure between the drop and the migrations rebuilds the schema.
+3. With no tables it drops nothing but still applies the migrations (a lone `d1_migrations` is dropped too: its records would skip the tables it lost), so rerunning the workflow after a failure between the drop and the migrations rebuilds the schema.
 
 It deletes everything in staging, the person's own-use data included. `scripts/db/reset-stg.mjs` refuses to run outside GitHub Actions or with any argument.

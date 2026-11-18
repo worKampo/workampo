@@ -169,7 +169,11 @@ function fakeIo(responses, { env = {}, files = {} } = {}) {
     warn: (text) => warnings.push(text),
     now: () => new Date('2026-11-18T10:42:00Z'),
     exists: (path) => Object.keys(files).some((name) => slashes(path).endsWith(name)),
-    readFile: (path) => files[Object.keys(files).find((name) => slashes(path).endsWith(name))],
+    readFile: (path) => {
+      const name = Object.keys(files).find((file) => slashes(path).endsWith(file))
+      if (name === undefined) throw Object.assign(new Error(`ENOENT: ${path}`), { code: 'ENOENT' })
+      return files[name]
+    },
     writeFile: (path, text) => {
       writes[slashes(path)] = text
     },
@@ -835,6 +839,24 @@ test('pr again after it opened the PR does not commit, open or comment twice', (
   assert.deepEqual(writeCalls(partial).filter((c) => c.startsWith('gh pr comment')).length, 2)
 })
 
+test('pr again after the removal commit reads the summary in .work/ from history', () => {
+  const io = prIo(
+    {
+      'git cat-file -e HEAD:': new Error('missing'),
+      'git log -1 --format=%H': 'abc123\n',
+      'git show abc123^:.work/PROGRESS.md': PROGRESS,
+      'git show abc123^:.work/plan.md': PLAN,
+      'git show abc123^:.work/tasks.md': TASKS,
+      'git show abc123^:.work/summary.md': 'Adds invitations.',
+    },
+    { files: { 'docs/domains/companies.md': 'Rule: invite @issue(#15)' } },
+  )
+  pr({ numbers: [], bodyFile: './.work/summary.md' }, CONFIG, io)
+  assert.match(io.inputs[0], /## Summary\n\nAdds invitations\.\n$/)
+  const missing = prIo({}, { files: { 'docs/domains/companies.md': SPEC } })
+  assert.throws(() => pr({ numbers: [], bodyFile: 'nowhere.md' }, CONFIG, missing))
+})
+
 test('pr --dry-run writes nothing', () => {
   const io = prIo({}, { env: { GH_TOKEN: TOKEN } })
   pr({ numbers: [], dryRun: true }, CONFIG, io)
@@ -901,6 +923,10 @@ test('write commands parse their options', () => {
   assert.throws(() => parseArgs(['pr', '--title']), /needs a value/)
   assert.throws(() => parseArgs(['close', '15', '--learning', '--dry-run']), /needs a value/)
   assert.throws(() => parseArgs(['pr', '--title', '--body-file', 's.md']), /needs a value/)
+  assert.throws(() => parseArgs(['close', '15', '--learning', '--dryrun']), /needs a value/)
+  assert.equal(parseArgs(['close', '15', '--learning=--dryrun']).learning, '--dryrun')
+  assert.equal(parseArgs(['close', '15', '--learning', '-1 retry']).learning, '-1 retry')
+  assert.throws(() => parseArgs(['close', '15', '--json=1']), /Unknown option "--json=1"/)
 })
 
 const VERIFY_BRANCH = 'feature/9-automation'
@@ -988,8 +1014,25 @@ test('verify: an existing worktree is switched, an unpushed branch is used as is
 
 test('verify: stops wrangler dev when it does not answer in time', async () => {
   const io = verifyIo({ serving: [false] })
-  await assert.rejects(verify({ numbers: [9] }, CONFIG, io), /did not answer within 60 s/)
-  assert.ok(joined(io).includes('kill 4242'))
+  const run = io.run
+  const stops = []
+  io.run = (command, args, options) => {
+    if (command !== 'kill') return run(command, args, options)
+    stops.push(args.join(' '))
+    return ''
+  }
+  await assert.rejects(
+    verify({ numbers: [9] }, CONFIG, io),
+    /did not answer after 60 tries 1 s apart and was stopped/,
+  )
+  assert.deepEqual(stops, ['4242'])
+
+  const stuck = verifyIo({ serving: [false] })
+  await assert.rejects(verify({ numbers: [9] }, CONFIG, stuck), (error) => {
+    assert.doesNotMatch(error.message, /was stopped/)
+    assert.match(error.message, /could not be stopped: stop process 4242 with kill 4242/)
+    return true
+  })
 })
 
 test('verify: refuses an existing worktree with local changes and leaves them', async () => {

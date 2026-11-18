@@ -91,7 +91,7 @@ Agents act on GitHub only as the GitHub App `workampo-agents` (`github.agentsApp
 
 - [`scripts/github/app-token.mjs`](../../scripts/github/app-token.mjs) prints a 1-hour installation token. Ask for a new one when it expires; never print, log or store it.
   - `gh`: `GH_TOKEN=$(node scripts/github/app-token.mjs) gh pr create …`
-  - Push with the token in an HTTP header passed through the environment, never in the URL nor in `-c` (the process list shows arguments): `T=$(node scripts/github/app-token.mjs); GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=http.https://github.com/.extraheader GIT_CONFIG_VALUE_0="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$T" | base64 -w0)" git push https://github.com/worKampo/workampo.git <branch>` (`pnpm work` does the same).
+  - Push with the token in an HTTP header passed through the environment, never in the URL nor in `-c` (the process list shows arguments): `T=$(node scripts/github/app-token.mjs) && [ -n "$T" ] && GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=http.https://github.com/.extraheader GIT_CONFIG_VALUE_0="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$T" | base64 | tr -d '\n')" git push https://github.com/worKampo/workampo.git <branch>` (`pnpm work` does the same).
 - Commit author: the project's *noreply* identity (`github.commitEmail` in `project.yaml`), loaded per folder ([bootstrap](../process/bootstrap.md)). Check `git config user.email` before the first commit.
 - Never read `~/.workampo/` (the App key).
 - Cannot: merge to `master`, approve PRs or Environments, deploy to production, force push, write `/reopen-acceptance`.

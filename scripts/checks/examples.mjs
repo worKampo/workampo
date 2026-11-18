@@ -2,22 +2,25 @@
 import { writeFileSync } from 'node:fs'
 
 export const name = 'Examples and tests'
-const ID = /@id:([a-z][a-z0-9-]*-\d+-\d+)/g
+// The whole token up to a delimiter: a valid prefix with a bad suffix is malformed, never indexed.
+const TOKEN = /@id:[^\s'"`),\]]*/g
+const VALID = /^@id:([a-z][a-z0-9-]*-\d+-\d+)$/
+const tokens = (hit) => [...hit.text.matchAll(TOKEN)].map(([raw]) => raw)
 
 function index(hits) {
   const ids = new Map()
   for (const hit of hits)
-    for (const [, id] of hit.text.matchAll(ID))
-      ids.set(id, [...(ids.get(id) ?? []), `${hit.file}:${hit.line}`])
+    for (const raw of tokens(hit)) {
+      const id = VALID.exec(raw)?.[1]
+      if (id) ids.set(id, [...(ids.get(id) ?? []), `${hit.file}:${hit.line}`])
+    }
   return ids
 }
 
-// A malformed id would match nothing above and slip past both checks.
 function malformed(hits) {
   return hits.flatMap((hit) =>
-    [...hit.text.matchAll(/@id:[\w<>-]*/g)]
-      .map(([raw]) => raw)
-      .filter((raw) => !/^@id:[a-z][a-z0-9-]*-\d+-\d+$/.test(raw))
+    tokens(hit)
+      .filter((raw) => !VALID.test(raw))
       .map((raw) => `${hit.file}:${hit.line}: malformed ${raw}`),
   )
 }

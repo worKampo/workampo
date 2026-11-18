@@ -62,12 +62,16 @@ export function parseArgs(argv) {
   const args = { command, numbers: [], json: false, dryRun: false }
   for (let i = 0; i < rest.length; i++) {
     const arg = rest[i]
-    if (VALUE_OPTIONS[arg]) {
-      const value = rest[++i]
-      // `--learning --dry-run` would otherwise eat the flag and close for real.
-      if (value === undefined || value in VALUE_OPTIONS || ['--json', '--dry-run'].includes(value))
-        throw new Error(`${arg} needs a value.`)
-      args[VALUE_OPTIONS[arg]] = value
+    const eq = arg.indexOf('=')
+    const option = arg.startsWith('--') && eq > 0 ? arg.slice(0, eq) : arg
+    if (VALUE_OPTIONS[option]) {
+      const inline = option === arg ? undefined : arg.slice(eq + 1)
+      const value = inline ?? rest[++i]
+      // `--learning --dryrun` would otherwise eat a misspelled flag and close for real; text
+      // that starts with `--` goes on purpose as `--learning=--text`.
+      if (value === undefined || (inline === undefined && value.startsWith('--')))
+        throw new Error(`${option} needs a value (write ${option}=<value> if it starts with --).`)
+      args[VALUE_OPTIONS[option]] = value
     } else if (arg === '--json') args.json = true
     else if (arg === '--dry-run') args.dryRun = true
     else if (arg.startsWith('-')) throw new Error(`Unknown option "${arg}".\n\n${HELP}`)
@@ -806,7 +810,23 @@ function readTemporaries(number, io) {
       ])?.trim()
   const ref = isInHead ? 'HEAD' : removal ? `${removal}^` : null
   const read = (file) => (ref ? tryRun(io, 'git', ['show', `${ref}:${file}`]) : null)
-  return { isInHead, progress: read(PROGRESS_FILE), plan: read(PLAN_FILE), tasks: read(TASKS_FILE) }
+  return {
+    isInHead,
+    read,
+    progress: read(PROGRESS_FILE),
+    plan: read(PLAN_FILE),
+    tasks: read(TASKS_FILE),
+  }
+}
+
+function readSummary(path, saved, io) {
+  try {
+    return io.readFile(path)
+  } catch (error) {
+    const fromHistory = saved.read(path.replace(/\\/g, '/').replace(/^\.\//, ''))
+    if (fromHistory === null) throw error
+    return fromHistory
+  }
 }
 
 function tagSpecs(number, args, io) {
@@ -839,10 +859,10 @@ export function pr(args, config, io) {
   const issue = viewIssue(number, 'number,title,url,labels,body', config, io)
   const parent = parentOf(issue, config, io)
   act('pnpm', ['check'], { isVisible: true })
-  // Before .work/ goes: the summary may live there.
-  const summary = args.bodyFile ? io.readFile(args.bodyFile) : null
-
   const saved = readTemporaries(number, io)
+  // Before .work/ goes: the summary may live there, or only in history on a retry after the removal.
+  const summary = args.bodyFile ? readSummary(args.bodyFile, saved, io) : null
+
   const specs = tagSpecs(number, args, io)
   if (saved.isInHead || specs.length) {
     if (saved.isInHead) act('git', ['rm', '-r', '-q', '--', '.work'])
@@ -944,8 +964,10 @@ export function verificationList(issueComments, prComments, authors) {
   return 'No "Work log" or "Progress" comment with a verification list yet.'
 }
 
+const SERVE_TRIES = 60
+
 async function waitUntilServing(url, io) {
-  for (let i = 0; i < 60; i++) {
+  for (let i = 0; i < SERVE_TRIES; i++) {
     if (await io.isServing(url)) return true
     await io.sleep(1000)
   }
@@ -969,7 +991,7 @@ export async function verify(args, config, io) {
   // Detached, so the branch can stay checked out in the main working tree.
   if (io.exists(dir)) {
     // `git switch` carries local edits along, and the app would run them instead of the PR.
-    if (io.run('git', ['-C', dir, 'status', '--porcelain']).trim())
+    if (io.run('git', ['-C', dir, 'status', '--porcelain', '--untracked-files=all']).trim())
       throw new Error(
         `${dir} has local changes: inspect them with git -C ${dir} status, then discard them or remove the worktree (git worktree remove --force ${dir}).`,
       )
@@ -1001,9 +1023,15 @@ export async function verify(args, config, io) {
     const log = join(apiDir, VERIFY_LOG)
     const pid = io.spawnDetached('node', dev, { cwd: apiDir, log })
     if (!(await waitUntilServing(health, io))) {
-      const [stop, ...stopArgs] = stopHint(io.platform, pid).split(' ')
-      tryRun(io, stop, stopArgs)
-      throw new Error(`wrangler dev did not answer within 60 s and was stopped: see ${log}`)
+      const hint = stopHint(io.platform, pid)
+      const [stop, ...stopArgs] = hint.split(' ')
+      const isStopped = tryRun(io, stop, stopArgs) !== null
+      const notServing = `wrangler dev did not answer after ${SERVE_TRIES} tries 1 s apart`
+      throw new Error(
+        isStopped
+          ? `${notServing} and was stopped: see ${log}`
+          : `${notServing} and could not be stopped: stop process ${pid} with ${hint}; see ${log}`,
+      )
     }
     io.log(`App running at ${VERIFY_URL} (log: ${log}).`)
     io.log(`Stop it with: ${stopHint(io.platform, pid)}`)

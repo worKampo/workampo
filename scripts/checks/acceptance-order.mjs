@@ -1,6 +1,8 @@
 // Commits touching e2e/acceptance/ come before code (ADR-0030). A later one needs a trailer
 // `Reopen: <comment-id>` naming the person's /reopen-acceptance comment on the issue, one commit
-// per comment. Commit dates are set by whoever commits, so they decide nothing here.
+// per comment. A commit mixing scenarios and code fails before and after a reopen; a merge is
+// exempt from that rule, since git lists every file both sides changed, but not from Reopen.
+// Commit dates are set by whoever commits, so they decide nothing here.
 export const name = 'Acceptance order'
 
 const HOW_TO_REOPEN =
@@ -24,11 +26,12 @@ export function acceptanceErrors(commits, isTrusted) {
   const used = new Set()
   let firstOther = null
   for (const commit of commits) {
-    if (!firstOther && commit.files.some(isAcceptance) && !commit.files.every(isAllowedBefore))
+    const touchesAcceptance = commit.files.some(isAcceptance)
+    if (touchesAcceptance && !commit.isMerge && !commit.files.every(isAllowedBefore))
       errors.push(
         `${commit.sha.slice(0, 7)} mixes e2e/acceptance/ with other paths: the scenarios go first, in commits of their own`,
       )
-    if (firstOther && commit.files.some(isAcceptance)) {
+    else if (firstOther && touchesAcceptance) {
       const id = commit.reopens.find((id) => !used.has(id) && isTrusted(id))
       if (id) used.add(id)
       else

@@ -14,7 +14,8 @@ const MIN_UPTIME = 99.9
 const UPTIMEROBOT_UP = 2
 const TIMEOUT_MS = 15_000
 
-export const marker = (sha) => `<!-- observation-window:${sha} -->`
+const MARKER_PREFIX = '<!-- observation-window:'
+export const marker = (sha) => `${MARKER_PREFIX}${sha} -->`
 
 export function successTime(statuses) {
   const times = statuses.filter((s) => s.state === 'success').map((s) => s.created_at)
@@ -52,23 +53,25 @@ export function observationAuthors(config) {
 
 const CLEAN_HEADING = '## Observation window clean'
 
-function verdictOf(comments, sha, authors) {
-  return comments.find(
+const isClean = (verdict) => verdict.body.startsWith(CLEAN_HEADING)
+
+// 'judge', 'close' (a clean verdict whose close failed: retried) or 'skip'. events: the issue's
+// timeline events. A reopen or a verdict needing the person after the clean one makes the
+// ticket hers, so it is not closed again; a reopen before the verdict does not.
+export function ticketAction(issue, comments, sha, authors, events = []) {
+  if (issue.state !== 'open') return 'skip'
+  const verdicts = comments.filter(
     (c) =>
-      (c.body ?? '').includes(marker(sha)) &&
+      (c.body ?? '').includes(MARKER_PREFIX) &&
       authors.some((a) => a.login === c.user?.login && a.type === c.user?.type),
   )
-}
-
-// 'judge', 'close' (a clean verdict whose close failed: retried) or 'skip'. A ticket the person
-// reopened after a clean close is hers, so it is never closed again.
-export function ticketAction(issue, comments, sha, authors) {
-  if (issue.state !== 'open') return 'skip'
-  const verdict = verdictOf(comments, sha, authors)
+  const verdict = verdicts.find((c) => c.body.includes(marker(sha)))
   if (!verdict) return 'judge'
-  return verdict.body.startsWith(CLEAN_HEADING) && issue.state_reason !== 'reopened'
-    ? 'close'
-    : 'skip'
+  if (!isClean(verdict)) return 'skip'
+  const isLater = (time) => time > verdict.created_at
+  if (verdicts.some((c) => isLater(c.created_at) && !isClean(c))) return 'skip'
+  if (events.some((e) => e.event === 'reopened' && isLater(e.created_at))) return 'skip'
+  return 'close'
 }
 
 const notChecked = (variable) => ({ ok: false, text: `not checked: ${variable} is not set` })
@@ -100,15 +103,17 @@ export function uptimeSignal(result, healthUrl) {
   return { ok, text: `monitor status ${monitor.status} (2 is up), window uptime ${uptime}%` }
 }
 
-export function healthSignal(result, deploy) {
+// descends(sha): the commit contains deploy.sha. A redeploy of an older SHA (a rollback) is a
+// later deploy, but not a newer release.
+export function healthSignal(result, deploy, descends) {
   if (result.error) return { ok: false, text: `could not be read: ${result.error}` }
   if (result.sha === deploy.sha) return { ok: true, text: `prod serves ${deploy.sha}` }
-  if (deploy.newerShas.includes(result.sha))
+  if (deploy.newerShas.includes(result.sha) && descends(result.sha))
     return {
       ok: true,
       text: `prod already serves the newer ${result.sha}; window judged on Sentry and UptimeRobot only`,
     }
-  return { ok: false, text: `prod serves ${result.sha}, not ${deploy.sha} nor a newer deploy` }
+  return { ok: false, text: `prod serves ${result.sha}, not ${deploy.sha} nor a newer release` }
 }
 
 export function judge(signals) {
@@ -225,9 +230,20 @@ function readDeploys(repository, now) {
     createdAt: d.created_at,
     deployedAt:
       Date.parse(d.created_at) + WINDOW_MS <= now.getTime()
-        ? successTime(ghJson([`repos/${repository}/deployments/${d.id}/statuses`]))
+        ? successTime(ghLines([`repos/${repository}/deployments/${d.id}/statuses?per_page=100`]))
         : null,
   }))
+}
+
+function descendsFrom(ancestor) {
+  return (sha) => {
+    try {
+      run('git', ['merge-base', '--is-ancestor', ancestor, sha])
+      return true
+    } catch {
+      return false
+    }
+  }
 }
 
 function issuesOf(deploy) {
@@ -253,6 +269,15 @@ async function main(argv, env) {
 
   const pending = pendingDeploys(readDeploys(repository, now), now)
   if (!pending.length) console.log('No prod deploy with a closed observation window.')
+  // git log stops at a shallow boundary without failing: a range would lose tickets silently.
+  if (pending.length && run('git', ['rev-parse', '--is-shallow-repository']).trim() === 'true')
+    throw new Error('The checkout is shallow: check out the full history (fetch-depth: 0).')
+  const actionFor = (number, sha) => {
+    const issue = ghJson([`repos/${repository}/issues/${number}`])
+    const comments = readComments(io, repository, number)
+    const events = ghLines([`repos/${repository}/issues/${number}/events?per_page=100`])
+    return { issue, action: ticketAction(issue, comments, sha, authors, events) }
+  }
   const close = (issue) => {
     run('gh', [
       'issue',
@@ -286,14 +311,14 @@ async function main(argv, env) {
       continue
     }
     const toJudge = []
-    for (const number of numbers) {
-      const issue = ghJson([`repos/${repository}/issues/${number}`])
-      const action = ticketAction(issue, readComments(io, repository, number), deploy.sha, authors)
-      if (action === 'judge') toJudge.push(issue)
-      if (action !== 'close') continue
-      console.log(`#${number} (${deploy.sha}): judged clean but still open, closing again`)
-      if (!isDryRun) attempt(number, () => close(issue))
-    }
+    for (const number of numbers)
+      attempt(number, () => {
+        const { issue, action } = actionFor(number, deploy.sha)
+        if (action === 'judge') toJudge.push(issue)
+        if (action !== 'close') return
+        console.log(`#${number} (${deploy.sha}): judged clean but still open, closing again`)
+        if (!isDryRun) close(issue)
+      })
     if (!toJudge.length) {
       console.log(`${deploy.sha}: no open, unjudged ticket.`)
       continue
@@ -302,7 +327,7 @@ async function main(argv, env) {
     const signals = {
       sentry: sentrySignal(await readSentry(env, deploy), deploy.sha),
       uptime: uptimeSignal(await readUptime(env, deploy), healthUrl),
-      health: healthSignal(await readHealth(healthUrl), deploy),
+      health: healthSignal(await readHealth(healthUrl), deploy, descendsFrom(deploy.sha)),
     }
     const body = buildComment(deploy, signals)
     const isClean = judge(signals)
@@ -315,6 +340,11 @@ async function main(argv, env) {
         continue
       }
       attempt(number, () => {
+        // Another run or the person may have acted while the signals were read.
+        if (actionFor(number, deploy.sha).action !== 'judge') {
+          console.log(`#${number} (${deploy.sha}): changed meanwhile, left as it is`)
+          return
+        }
         run('gh', ['issue', 'comment', String(number), '--repo', repository, '--body-file', '-'], {
           input: body,
         })

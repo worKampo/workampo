@@ -23,9 +23,17 @@ export function parseLog(text) {
     .filter((record) => record.trim())
     .map((record) => {
       const [header, ...files] = record.split('\n')
-      const [sha, email, name, reopens = ''] = header.split('\x1f')
+      const [sha, email, name, reopens = '', parents = ''] = header.split('\x1f')
       const ids = reopens.split(',').map((id) => id.trim())
-      return { sha, email, name, reopens: ids.filter(Boolean), files: files.filter(Boolean) }
+      const isMerge = parents.trim().split(/\s+/).length > 1
+      return {
+        sha,
+        email,
+        name,
+        reopens: ids.filter(Boolean),
+        isMerge,
+        files: files.filter(Boolean),
+      }
     })
 }
 
@@ -107,8 +115,8 @@ export function createContext({ env, run = defaultRun, commitEmail }) {
       .split(',')
       .map((l) => l.trim())
       .filter(Boolean),
-    // A merge lists only what differs from every parent: what its resolution introduced, not
-    // what the merged branch brought.
+    // A merge lists what differs from every parent: what its resolution introduced, and a file
+    // both sides changed even when git combined it cleanly; never what only one side brought.
     commits: () =>
       once('commits', () =>
         parseLog(
@@ -117,7 +125,7 @@ export function createContext({ env, run = defaultRun, commitEmail }) {
             '--reverse',
             '--topo-order',
             '--diff-merges=combined',
-            '--format=%x1e%H%x1f%ae%x1f%an%x1f%(trailers:key=Reopen,valueonly,unfold,separator=%x2c)',
+            '--format=%x1e%H%x1f%ae%x1f%an%x1f%(trailers:key=Reopen,valueonly,unfold,separator=%x2c)%x1f%P',
             '--name-only',
             `${base}..${head}`,
           ]),

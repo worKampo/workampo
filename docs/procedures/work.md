@@ -12,7 +12,7 @@ Issue numbers are written `15` or `#15`; docs use the form without `#`. Commands
 | `pnpm work resume [n]` | Switch to the ticket's branch and print the reading order of [progress](progress.md); refuses with uncommitted changes |
 | `pnpm work start <n>` | Refuses without a `size:` label. Creates the branch with `gh issue develop` (`feature/<n>-<slug>`, or `bugfix/` for `type:bug`), commits `.work/PROGRESS.md`, pushes, moves the card to Build (S) or Define (M, L) |
 | `pnpm work pr [--title "<t>"] [--body-file <f>]` | On a ticket branch: runs `pnpm check`, turns `@wip(#n)` into `@issue(#n)`, removes `.work/` in one commit, pushes, opens the PR (`PRD #`, `Ticket #`, `type:` `area:` `size:` labels), posts the "Plan" and "Progress" comments, moves the card to Review |
-| `pnpm work close <n> [--learning "<text>"]` | Closes the issue as completed with a comment (and the proposed learning), moves the card to Done |
+| `pnpm work close <n> [--learning "<text>"]` | Closes the issue as completed with a comment (and the proposed learning), moves the card to Done. An unknown option fails; a learning that starts with `--` goes as `--learning=<text>` |
 | `pnpm work verify <n>` | Local check of moment 2 ([verify](#verify)) |
 
 ## Identity

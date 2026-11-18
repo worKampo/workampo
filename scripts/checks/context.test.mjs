@@ -28,6 +28,8 @@ test('parses commits with their files and Reopen trailers', () => {
   assert.deepEqual(commits[0].files, ['x.ts', 'docs/y.md'])
   assert.deepEqual(commits[0].reopens, ['7', '8'])
   assert.deepEqual(parseLog(logOf([{ sha: 'a2' }]))[0].reopens, [])
+  assert.equal(commits[0].isMerge, false)
+  assert.equal(parseLog(logOf([{ sha: 'a3', parents: 'p1 p2' }]))[0].isMerge, true)
 })
 
 test('reads name-status -z with renames, deletions and odd names', () => {
@@ -153,6 +155,8 @@ test('a merge lists the files its resolution changed, not those the merged branc
         'user.name=t',
         '-c',
         'user.email=t@example.com',
+        '-c',
+        'commit.gpgSign=false',
         ...args,
       ],
       { cwd: dir, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] },
@@ -175,7 +179,7 @@ test('a merge lists the files its resolution changed, not those the merged branc
     git('add', '.')
     commit('feat: master')
     git('switch', '-q', 'branch')
-    assert.throws(() => git('merge', '-q', 'master'))
+    assert.throws(() => git('merge', '-q', '--no-verify-signatures', 'master'))
     write('a.ts', '4')
     write('spec.ts', 'changed in the resolution')
     git('add', '.')
@@ -184,7 +188,9 @@ test('a merge lists the files its resolution changed, not those the merged branc
       env: { BASE_SHA: base, HEAD_SHA: git('rev-parse', 'HEAD') },
       run: (file, args) => defaultRun(file, args, { cwd: dir }),
     })
-    assert.deepEqual(ctx.commits().at(-1).files.toSorted(), ['a.ts', 'spec.ts'])
+    const merge = ctx.commits().at(-1)
+    assert.equal(merge.isMerge, true)
+    assert.deepEqual(merge.files.toSorted(), ['a.ts', 'spec.ts'])
   } finally {
     rmSync(dir, { recursive: true, force: true })
   }

@@ -37,7 +37,7 @@ function signalsFor({
   return {
     sentry: sentrySignal(sentry, deploy.sha),
     uptime: uptimeSignal(uptime, HEALTH),
-    health: healthSignal(health, deploy),
+    health: healthSignal(health, deploy, (sha) => sha === 'ccc'),
   }
 }
 
@@ -115,8 +115,10 @@ test('a missing token is not checked and the window is not clean', () => {
   assert.match(body, /- UptimeRobot: not checked: UPTIMEROBOT_READ_KEY is not set/)
 })
 
-test('/health serving a newer deploy is fine; an older or unknown SHA is not', () => {
+test('/health serving a newer release is fine; an older, rolled back or unknown SHA is not', () => {
   assert.equal(judge(signalsFor({ health: { sha: 'ccc' } })), true)
+  const rollback = { ...deploy, newerShas: ['aaa'] }
+  assert.equal(healthSignal({ sha: 'aaa' }, rollback, () => false).ok, false)
   assert.equal(judge(signalsFor({ health: { sha: 'aaa' } })), false)
   assert.equal(judge(signalsFor({ health: { error: 'HTTP 503' } })), false)
 })
@@ -143,17 +145,40 @@ test('a marker from an untrusted author is ignored', () => {
   assert.equal(ticketAction(OPEN, comments, 'bbb', authors), 'judge')
 })
 
-test('a clean verdict on a ticket still open retries the close, unless the person reopened it', () => {
+test('a clean verdict on a ticket still open retries the close, unless reopened after it', () => {
   const authors = observationAuthors(config)
   const clean = {
     user: { login: 'github-actions[bot]', type: 'Bot' },
     body: buildComment(deploy, signalsFor()),
+    created_at: '2026-11-20T10:30:00Z',
   }
+  const REOPENED = { state: 'open', state_reason: 'reopened' }
+  const reopenedAt = (created_at) => [{ event: 'reopened', created_at }]
   assert.equal(ticketAction(OPEN, [clean], 'bbb', authors), 'close')
   assert.equal(
-    ticketAction({ state: 'open', state_reason: 'reopened' }, [clean], 'bbb', authors),
+    ticketAction(REOPENED, [clean], 'bbb', authors, reopenedAt('2026-11-20T11:00:00Z')),
     'skip',
   )
+  assert.equal(
+    ticketAction(REOPENED, [clean], 'bbb', authors, reopenedAt('2026-11-20T09:00:00Z')),
+    'close',
+  )
+})
+
+test('a later verdict needing the person stops the retried close of a clean one', () => {
+  const authors = observationAuthors(config)
+  const clean = {
+    user: { login: 'github-actions[bot]', type: 'Bot' },
+    body: buildComment(deploy, signalsFor()),
+    created_at: '2026-11-20T10:30:00Z',
+  }
+  const later = {
+    ...needsPerson('github-actions[bot]', 'Bot', 'ccc'),
+    created_at: '2026-11-21T10:30:00Z',
+  }
+  const earlier = { ...later, created_at: '2026-11-19T10:30:00Z' }
+  assert.equal(ticketAction(OPEN, [clean, later], 'bbb', authors), 'skip')
+  assert.equal(ticketAction(OPEN, [earlier, clean], 'bbb', authors), 'close')
 })
 
 test('Sentry and UptimeRobot read the deploy window, not one relative to the run', () => {

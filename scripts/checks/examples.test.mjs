@@ -12,11 +12,11 @@ const SPEC = [
   'head:docs/domains/public-site.md:8:    @id:public-site-20-1',
 ].join('\n')
 
-function run(tests, file) {
+function run(tests, file, spec = SPEC) {
   const ctx = context({
     env: { VERIFICATION_FILE: file },
     routes: [
-      [/^git grep .* -- docs\/domains$/, SPEC],
+      [/^git grep .* -- docs\/domains$/, spec],
       [/^git grep .* -- apps packages$/, tests],
     ],
   })
@@ -64,8 +64,23 @@ test('a malformed @id in a spec or a test fails', () => {
     "head:packages/domain/x.test.ts:9:it('@id:companies-15-1 @id:public-site-20-1', () => {",
     "head:packages/domain/y.test.ts:3:it.fails('@id:companies-<issue>-<n> @id:Companies-15-1')",
   ].join('\n')
-  assert.deepEqual(run(tests).errors, [
+  const spec = [
+    SPEC,
+    'head:docs/domains/README.md:47:| `@id:<domain>-<issue>-<n>` | On each example |',
+    'head:docs/domains/companies.md:20:    @id:companies-15-x',
+  ].join('\n')
+  assert.deepEqual(run(tests, undefined, spec).errors, [
+    'docs/domains/companies.md:20: malformed @id:companies-15-x',
     'packages/domain/y.test.ts:3: malformed @id:companies-<issue>-<n>',
     'packages/domain/y.test.ts:3: malformed @id:Companies-15-1',
+  ])
+})
+
+test('an @id with a valid prefix and a bad suffix is malformed and cites nothing', () => {
+  const tests =
+    "head:packages/domain/x.test.ts:9:it('@id:companies-15-1é @id:public-site-20-1 t', () => {"
+  assert.deepEqual(run(tests).errors, [
+    'packages/domain/x.test.ts:9: malformed @id:companies-15-1é',
+    'docs/domains/companies.md:12: example @id:companies-15-1 has no test',
   ])
 })
