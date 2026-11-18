@@ -46,10 +46,18 @@ jobs:
       - if: ${{ !cancelled() }}
         # Fork PRs get a read-only token; the check result must not depend on the comment.
         continue-on-error: true
+        # Edit our own comment, found by its marker: --edit-last would hit any later Actions comment.
+        shell: bash
         run: |
           [ -s "$RUNNER_TEMP/verification.md" ] || exit 0
-          gh pr comment "$PR_NUMBER" --edit-last --body-file "$RUNNER_TEMP/verification.md" \
-            || gh pr comment "$PR_NUMBER" --body-file "$RUNNER_TEMP/verification.md"
+          body="$(printf '<!-- verification -->\n%s' "$(cat "$RUNNER_TEMP/verification.md")")"
+          id=$(gh api "repos/$GH_REPO/issues/$PR_NUMBER/comments" --paginate \
+            --jq '.[] | select(.user.login == "github-actions[bot]" and (.body | startswith("<!-- verification -->"))) | .id' | tail -n 1)
+          if [ -n "$id" ]; then
+            gh api -X PATCH "repos/$GH_REPO/issues/comments/$id" -f body="$body" --silent
+          else
+            gh pr comment "$PR_NUMBER" --body "$body"
+          fi
         env:
           PR_NUMBER: ${{ github.event.pull_request.number }}
           GH_TOKEN: ${{ github.token }}
