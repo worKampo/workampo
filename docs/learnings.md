@@ -15,6 +15,7 @@ Short lessons that agents must not relearn. Why this file: [ADR-0052](adr/0052-l
 - Editing `.github/ISSUE_TEMPLATE` · it is excluded from Biome · Biome's Markdown formatter adds blank lines inside the front matter of issue templates, which breaks them · [PR #1](https://github.com/worKampo/workampo/pull/1), issue #6.
 - Writing "D1" · it means the Cloudflare database unless it clearly cites ADR-0001; never auto-link it · avoids false links to the decision · [PR #26](https://github.com/worKampo/workampo/pull/26).
 - Fixing review comments · group them into one push per round · a push after the person's approval dismisses it (the ruleset requires approval of the last push) · [ADR-0013](adr/0013-ci-cd-with-github-actions.md), [PR #3](https://github.com/worKampo/workampo/pull/3).
+- Reading CodeRabbit's comments on a PR · read the review bodies too, not only the inline threads · CodeRabbit puts Minor and Nitpick findings inside the review body, so a review with no open thread can still carry findings · [PR #33](https://github.com/worKampo/workampo/pull/33).
 - Adding a CI check · put it in `pnpm check:ci`, not in a workflow file · the agents' App cannot push commits that change `.github/workflows/` · [PR #28](https://github.com/worKampo/workampo/pull/28).
 - Checking that a path exists · a git-ignored file exists locally but not in CI, so the check treats it as missing · do not require ignored files · [PR #28](https://github.com/worKampo/workampo/pull/28).
 
