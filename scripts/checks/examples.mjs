@@ -25,7 +25,7 @@ function malformed(hits) {
   )
 }
 
-export function verificationMatrix(specHits, testHits) {
+export function verificationMatrix(specHits, testHits, headSha) {
   const specHitsOnly = specHits.filter((hit) => hit.file !== 'docs/domains/README.md')
   const specs = index(specHitsOnly)
   const tests = index(testHits)
@@ -43,6 +43,7 @@ export function verificationMatrix(specHits, testHits) {
   const markdown = [
     '## Verification',
     '',
+    ...(headSha ? [`Verified commit: ${headSha}`, ''] : []),
     rows.length
       ? ['| Example | Living spec | Tests |', '|---|---|---|', ...rows].join('\n')
       : 'No living-spec example has an @id yet.',
@@ -56,6 +57,7 @@ export function check(ctx) {
   const { errors, markdown } = verificationMatrix(
     ctx.grep('@id:', ['docs/domains']),
     ctx.grep('@id:', ['apps', 'packages']),
+    ctx.env.HEAD_SHA,
   )
   if (ctx.env.VERIFICATION_FILE) writeFileSync(ctx.env.VERIFICATION_FILE, markdown)
   return { errors }

@@ -1,12 +1,15 @@
 import assert from 'node:assert/strict'
+import { createServer } from 'node:http'
 import { test } from 'node:test'
 import {
   buildComment,
+  fetchJson,
   healthSignal,
   judge,
   marker,
   observationAuthors,
   pendingDeploys,
+  readHealth,
   sentryQuery,
   sentrySignal,
   successTime,
@@ -197,4 +200,46 @@ test('an UptimeRobot error never puts request data in the public comment', () =>
   assert.equal(signal.ok, false)
   assert.ok(!signal.text.includes(key))
   assert.match(signal.text, /invalid_parameter/)
+})
+
+async function redirectingServer(fn) {
+  const hits = []
+  const server = createServer((req, res) => {
+    hits.push(req.url)
+    if (req.url === '/') res.writeHead(302, { Location: '/other' }).end()
+    else res.writeHead(200, { 'Content-Type': 'application/json' }).end('{"sha":"bbb"}')
+  })
+  await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve))
+  try {
+    return { result: await fn(`http://127.0.0.1:${server.address().port}/`), hits }
+  } finally {
+    server.close()
+  }
+}
+
+test('fetchJson does not follow a redirect', async () => {
+  const { result, hits } = await redirectingServer((url) => fetchJson(url, { method: 'POST' }))
+  assert.deepEqual(result, { error: 'request failed' })
+  assert.deepEqual(hits, ['/'])
+})
+
+test('readHealth follows a redirect', async () => {
+  const { result, hits } = await redirectingServer(readHealth)
+  assert.deepEqual(result, { sha: 'bbb' })
+  assert.deepEqual(hits, ['/', '/other'])
+})
+
+test('readHealth reports a 200 body without a string sha instead of throwing', async () => {
+  for (const body of ['null', '{}', '{"sha":42}', '"ok"', 'not json']) {
+    const server = createServer((_, res) =>
+      res.writeHead(200, { 'Content-Type': 'application/json' }).end(body),
+    )
+    await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve))
+    try {
+      const result = await readHealth(`http://127.0.0.1:${server.address().port}/`)
+      assert.ok(result.error && !('sha' in result), `${body}: ${JSON.stringify(result)}`)
+    } finally {
+      server.close()
+    }
+  }
 })

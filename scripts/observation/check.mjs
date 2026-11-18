@@ -145,9 +145,14 @@ export function buildComment(deploy, signals) {
   ].join('\n')
 }
 
-async function fetchJson(url, init) {
+export async function fetchJson(url, init) {
   try {
-    const response = await fetch(url, { ...init, signal: AbortSignal.timeout(TIMEOUT_MS) })
+    // redirect: 'error' by default keeps an API key from ever reaching another origin.
+    const response = await fetch(url, {
+      redirect: 'error',
+      ...init,
+      signal: AbortSignal.timeout(TIMEOUT_MS),
+    })
     if (!response.ok) return { error: `HTTP ${response.status}` }
     return { body: await response.json() }
   } catch (error) {
@@ -197,9 +202,11 @@ async function readUptime(env, deploy) {
   return error ? { error } : { response: body }
 }
 
-async function readHealth(healthUrl) {
-  const { body, error } = await fetchJson(healthUrl)
-  return error ? { error } : { sha: body.sha }
+// No credentials go to /health, so it may redirect.
+export async function readHealth(healthUrl) {
+  const { body, error } = await fetchJson(healthUrl, { redirect: 'follow' })
+  if (error) return { error }
+  return typeof body?.sha === 'string' ? { sha: body.sha } : { error: 'no sha in the body' }
 }
 
 function run(command, args, { input } = {}) {

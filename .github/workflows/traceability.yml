@@ -1,0 +1,64 @@
+name: traceability
+
+# Process and traceability rules on every PR (ADR-0042, ADR-0030, ADR-0052). The checks live in
+# scripts/checks/ so they can change without editing this workflow (the agents' App cannot).
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited, labeled, unlabeled]
+
+concurrency:
+  group: traceability-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  issues: read
+  pull-requests: write # the Verification comment
+
+jobs:
+  check-pr:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      # Event values reach the scripts only through env, never interpolated into run (injection).
+      - run: pnpm check:pr
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+          PR_LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+          VERIFICATION_FILE: ${{ runner.temp }}/verification.md
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+      - if: ${{ !cancelled() }}
+        # Fork PRs get a read-only token; the check result must not depend on the comment.
+        continue-on-error: true
+        # Edit our own comment, found by its marker: --edit-last would hit any later Actions comment.
+        shell: bash
+        run: |
+          [ -s "$RUNNER_TEMP/verification.md" ] || exit 0
+          body="$(printf '<!-- verification -->\n%s' "$(cat "$RUNNER_TEMP/verification.md")")"
+          id=$(gh api "repos/$GH_REPO/issues/$PR_NUMBER/comments" --paginate \
+            --jq '.[] | select(.user.login == "github-actions[bot]" and (.body | startswith("<!-- verification -->"))) | .id' | tail -n 1)
+          if [ -n "$id" ]; then
+            gh api -X PATCH "repos/$GH_REPO/issues/comments/$id" -f body="$body" --silent
+          else
+            gh pr comment "$PR_NUMBER" --body "$body"
+          fi
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}

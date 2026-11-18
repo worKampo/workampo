@@ -45,5 +45,5 @@ Actions → `backfill` → Run workflow with `name` and `environment` (`stg` or 
 
 1. Try it on `stg` first.
 2. `prod` waits for the person's approval on the `prod` Environment.
-3. It shares the `deploy-<env>` concurrency group, so it never overlaps a deploy.
+3. It shares the `deploy-<env>` concurrency group, so it never overlaps a deploy. A run that waits in the group is queued (`queue: max`, up to 100) and never cancelled by a newer one.
 4. Copy the run's summary (environment, batches, rows per database) to the ticket's issue.

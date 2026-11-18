@@ -33,7 +33,7 @@ test('passes when every example has a test, and writes the matrix', () => {
     ].join('\n')
     assert.deepEqual(run(tests, file).errors, [])
     const matrix = readFileSync(file, 'utf8')
-    assert.match(matrix, /^## Verification/)
+    assert.match(matrix, /^## Verification\n\nVerified commit: head\n/)
     assert.match(
       matrix,
       /\| `companies-15-1` \| docs\/domains\/companies.md:12 \| apps\/api\/src\/companies\/slug.test.ts \|/,

@@ -1,5 +1,5 @@
 // The only way to deploy, by hand and from CI (ADR-0013):
-//   node scripts/deploy/deploy.mjs <stg|prod> [--all]
+//   node scripts/deploy/deploy.mjs <stg|prod> [--all] [--allow-stale]
 // Wrangler reads CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID; source maps need SENTRY_AUTH_TOKEN,
 // SENTRY_ORG and SENTRY_PROJECT. Tokens are only passed to child processes through the environment.
 import { execFileSync } from 'node:child_process'
@@ -16,13 +16,14 @@ export const WORKERS = [{ package: '@workampo/api', dir: 'apps/api' }]
 const ROOT = fileURLToPath(new URL('../../', import.meta.url))
 const SENTRY_URL = 'https://de.sentry.io'
 const HEALTH_TIMEOUT_MS = 10 * 1000
-const USAGE = 'Usage: node scripts/deploy/deploy.mjs <stg|prod> [--all]'
+const USAGE = 'Usage: node scripts/deploy/deploy.mjs <stg|prod> [--all] [--allow-stale]'
+const FLAGS = ['--all', '--allow-stale']
 
 export function parseArgs(argv) {
   const [env, ...rest] = argv
   if (!ENVIRONMENTS.includes(env)) throw new Error(`Missing or unknown environment. ${USAGE}`)
-  if (rest.some((arg) => arg !== '--all')) throw new Error(`Unknown argument. ${USAGE}`)
-  return { env, all: rest.includes('--all') }
+  if (rest.some((arg) => !FLAGS.includes(arg))) throw new Error(`Unknown argument. ${USAGE}`)
+  return { env, all: rest.includes('--all'), allowStale: rest.includes('--allow-stale') }
 }
 
 export function affectedWorkers(affectedPackages, workers) {
@@ -55,14 +56,44 @@ async function selectWorkers(env, sha, io) {
     return { workers: WORKERS, from: '' }
   }
   io.log(`${env} serves ${deployed}; target is ${sha}.`)
+  return { workers: workersChanged(deployed, sha, io), from: deployed }
+}
+
+function workersChanged(from, to, io) {
   const listing = JSON.parse(
-    io.run('turbo', ['ls', '--filter', `...[${deployed}...${sha}]`, '--output', 'json']),
+    io.run('turbo', ['ls', '--filter', `...[${from}...${to}]`, '--output', 'json']),
   )
-  const workers = affectedWorkers(
+  return affectedWorkers(
     listing.packages.items.map((item) => item.name),
     WORKERS,
   )
-  return { workers, from: deployed }
+}
+
+// Runs of older pushes can start late: deploying one would roll back a newer Worker change on master.
+// Later commits that touch no Worker (docs only) never deploy anything, so they do not make a run stale.
+function staleReason(sha, io) {
+  // ls-remote, not FETCH_HEAD: another fetch in the job can overwrite FETCH_HEAD.
+  const tip = io.run('git', ['ls-remote', 'origin', 'refs/heads/master']).split(/\s/)[0]
+  if (!tip) throw new Error('origin has no master branch')
+  if (tip === sha) return null
+  io.run('git', ['fetch', 'origin', 'master'])
+  if (!isKnownCommit(tip, io)) throw new Error(`origin/master tip ${tip} is not available locally`)
+  if (!isAncestor(sha, tip, io)) return `${sha} is not on origin/master (at ${tip})`
+  const workers = workersChanged(sha, tip, io)
+  if (!workers.length) {
+    io.log(`origin/master is at ${tip}; the commits after ${sha} affect no Worker.`)
+    return null
+  }
+  return `origin/master is at ${tip} and changes ${workers.map((w) => w.package).join(', ')} after ${sha}: its own run deploys it`
+}
+
+function isAncestor(sha, tip, io) {
+  try {
+    io.run('git', ['merge-base', '--is-ancestor', sha, tip])
+    return true
+  } catch {
+    return false
+  }
 }
 
 function isKnownCommit(sha, io) {
@@ -120,8 +151,13 @@ function uploadSourceMaps(cwd, sha, io) {
 }
 
 // `from` is the SHA the environment served before the deploy, or '' when unknown.
-export async function deploy({ env, all }, io) {
+export async function deploy({ env, all, allowStale = false }, io) {
   const sha = io.run('git', ['rev-parse', 'HEAD']).trim()
+  const stale = allowStale ? null : staleReason(sha, io)
+  if (stale) {
+    io.log(`${stale}. Nothing deployed.`)
+    return { workers: [], from: '' }
+  }
   const { workers, from } = all ? { workers: WORKERS, from: '' } : await selectWorkers(env, sha, io)
   if (!workers.length) {
     io.log(`No Worker is affected since the deployed SHA: nothing to deploy to ${env}.`)
