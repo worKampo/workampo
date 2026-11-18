@@ -10,8 +10,8 @@ Ninguna todavía: las primeras llegan con el PRD #13 «Plans and billing».
 
 ## Terms
 
-- [company](../../GLOSSARY.md#company)
-- [feature flag](../../GLOSSARY.md#feature-flag)
+- [company](../glossary.md#company)
+- [feature flag](../glossary.md#feature-flag)
 
 ## Out of scope
 

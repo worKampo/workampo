@@ -23,7 +23,7 @@ Any task that touches auth/session, isolation between companies, migrations, bil
 | security-reviewer | max | — |
 | researcher | fast | Escalation only |
 | ui-ux-designer | standard | New complete flow ([ADR-0031](../adr/0031-ui-ux-designer.md)) |
-| planner | standard | `plan.md` in L (cross-cutting plan) |
+| planner | standard | `.work/plan.md` in L (cross-cutting plan) |
 | test-designer | standard | Critical zone ([ADR-0030](../adr/0030-test-designer.md)) |
 | implementer | standard | `Level` column says `max` |
 | writer | standard | Escalation only |
@@ -32,7 +32,7 @@ Any task that touches auth/session, isolation between companies, migrations, bil
 
 ## Per task
 
-- The `Level` column of `tasks.md` overrides the role default for that task (except "Always max"). S tickets have no `tasks.md`: role default plus "Always max".
+- The `Level` column of `.work/tasks.md` overrides the role default for that task (except "Always max"). S tickets have no `.work/tasks.md`: role default plus "Always max".
 - The adapter's `model:` is the default. For another level, pass that model when launching the subagent. If the tool cannot set effort per subagent, the model alone carries the level.
 
 ## Escalation

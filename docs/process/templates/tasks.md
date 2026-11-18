@@ -1,4 +1,4 @@
-# tasks.md template
+# .work/tasks.md template
 
 Temporary file on the ticket branch. `pnpm work pr` deletes it when opening the PR; the checklist in the issue becomes the source ([ADR-0052](../../adr/0052-living-specs-only-and-flow-by-size.md)). Format: [ADR-0020](../../adr/0020-ticket-lifecycle.md).
 

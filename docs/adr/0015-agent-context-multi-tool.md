@@ -23,3 +23,7 @@ Agents need one source of context that works across tools. Lesson from the previ
 ## Consequences
 
 See Decision.
+
+## Updates
+
+- **2026-11-18** (decided by the person): `REVIEW.md` lives at `docs/process/review.md`, to keep the repo root for files that tools require there (`AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, `README.md`).

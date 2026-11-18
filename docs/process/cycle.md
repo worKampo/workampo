@@ -9,7 +9,7 @@ La persona interviene tres veces, igual en todos los tamaños. Entre momentos el
 | Moment | Cuándo | Qué hace la persona | Dónde |
 |---|---|---|---|
 | 1. Ask | PRD y slicing; en tickets sueltos, al crear el issue | Aprueba el PRD, la lista de tickets con su tamaño y los ejemplos (E1, E2…) de todos a la vez | Issue del PRD o del ticket |
-| 2. Check | PR abierta, CI verde y reviews atendidas | Sigue la lista de pruebas en local (`pnpm work verify #n`, llega con el ticket 5, #9), mira el código señalado; aprueba la PR (merge) o devuelve hallazgos | PR; paquete en el comentario "Work log" del issue |
+| 2. Check | PR abierta, CI verde y reviews atendidas | Sigue la lista de pruebas en local (`pnpm work verify <n>`, [work](../procedures/work.md#verify)), mira el código señalado; aprueba la PR (merge) o devuelve hallazgos | PR; paquete en el comentario "Work log" del issue |
 | 3. Publish | Smoke de staging verde | Prueba en staging solo lo marcado "Only verifiable in staging" y promueve a producción | Comentario "Staging verification"; aprobación de `prod` (llega con el ticket 3, #7) |
 
 ## Steps
@@ -20,8 +20,8 @@ Once pasos para el agente. S y M acortan el camino ([Flow by size](#flow-by-size
 |---|---|---|---|
 | Define | 1. Discover | Researchers; en un PRD, el slicer | Intención en el issue (momento 1) |
 | | 2. Specify | Orchestrator (+ UI/UX, security si aplica) | Ejemplos Gherkin numerados en el issue (momento 1) |
-| | 3. Design | Planner (solo L) | `plan.md` temporal en la rama |
-| | 4. Tasks | Planner + test designer | Diff de la living spec (`@wip(#n)`), escenarios protegidos, `tasks.md` con tests `it.fails` en la primera wave |
+| | 3. Design | Planner (solo L) | `.work/plan.md` temporal en la rama |
+| | 4. Tasks | Planner + test designer | Diff de la living spec (`@wip(#n)`), escenarios protegidos, `.work/tasks.md` con tests `it.fails` en la primera wave |
 | Build | 5. Implement | Implementers (TDD, un commit por task, waves) | Commits; `pnpm check` verde por wave |
 | | 6. Verify | Spec reviewer, verifier (+ UI/UX, security) | Hallazgos y rondas en "Work log"; paquete de verificación |
 | | 7. Document | Writer | Ayuda, changelog y capturas si el cambio es visible |
@@ -39,8 +39,8 @@ El tamaño (`size:S|M|L` en el issue, confirmado por la persona) decide cuánto 
 | Size | Camino | Revisión automática |
 |---|---|---|
 | S | El momento 1 es el propio issue; issue → rama → PR, tasks como checklist del issue; un bug empieza por su test de regresión | CI, CodeRabbit y paquete reducido del verifier; + security reviewer si toca una zona crítica o contenido escrito por empresas que se renderiza ([ADR-0032](../adr/0032-security-reviewer.md)) |
-| M | Sin Design ni `plan.md` (el plan cabe en `tasks.md`): ejemplos aprobados → living spec y escenarios → tasks → PR | + test designer (escenarios protegidos), spec reviewer, UI/UX si aplica |
-| L / zona crítica | Los once pasos, con `plan.md` | + sección Security y security reviewer, nivel `max` |
+| M | Sin Design ni `.work/plan.md` (el plan cabe en `.work/tasks.md`): ejemplos aprobados → living spec y escenarios → tasks → PR | + test designer (escenarios protegidos), spec reviewer, UI/UX si aplica |
+| L / zona crítica | Los once pasos, con `.work/plan.md` | + sección Security y security reviewer, nivel `max` |
 
 Clasificación (la primera que aplica gana):
 1. Toca zona crítica (sesión, aislamiento, migraciones, facturación, secretos), modelo de datos, contrato de API o migración: L.
@@ -78,13 +78,13 @@ Ventana de observación en Release: un verifier programado revisa Sentry, métri
 
 ## State and log
 
-- Estado actual: `PROGRESS.md` hasta Document; comentario "Progress" de la PR durante la review; comentarios del issue en Staging y Release.
+- Estado actual: `.work/PROGRESS.md` hasta Document; comentario "Progress" de la PR durante la review; comentarios del issue en Staging y Release.
 - Un único comentario "Work log" en el issue recoge saltos de fase, paradas, hallazgos, rondas y el paquete de verificación.
 - Varios tickets a la vez: dentro del límite WIP (2 en Build, 1 PRD en slicing, [ADR-0037](../adr/0037-roadmap-board-and-wip-limit.md)).
 - Mientras no existan las piezas de "Working foundation", se aplica el ciclo con las excepciones de [ADR-0035](../adr/0035-technical-work-and-bootstrap-prd.md) ([bootstrap](bootstrap.md)).
 
 ## Commands
 
-Un solo script con subcomandos (llega con el ticket 5, #9): `pnpm work` (ayuda), `status`, `resume`, `start #n`, `inbox`, `verify #n`, `pr`, `close`. No hay comandos para mover tarjetas a mano: `start`, `pr` y `close` las mueven hasta Review y el workflow de deploy las mueve a Staging, Release y Done. Hasta entonces se hace a mano.
+Un solo script con subcomandos ([work](../procedures/work.md)): `pnpm work` (ayuda), `status`, `resume`, `start <n>`, `inbox`, `verify <n>`, `pr`, `close <n>`. No hay comandos para mover tarjetas a mano: `start` y `pr` las mueven hasta Review, y `close` o el workflow de la ventana de observación las mueven a Done. Ningún script mueve todavía a Staging ni a Release: esas dos columnas se mueven a mano en el tablero.
 
 Ramas, PRs y fixes: [branching](branching.md). Entrada y salida de un ticket: [definition of ready](definition-of-ready.md), [definition of done](definition-of-done.md).

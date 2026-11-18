@@ -29,6 +29,6 @@
 - **"Ready" view** (what comes next): roadmap by PRD with its progress; tickets that meet the Definition of Ready against those that do not, and why; what is deferred and the Backlog checks.
 - Both are read-only, are computed from GitHub and git with a local cache (so as not to exhaust the API limit) and store nothing new. They make sense once several PRDs are closed. If the living documentation of [ADR-0052](../adr/0052-living-specs-only-and-flow-by-size.md) is set up, each rule can also link to the issues that changed it.
 
-- **It can**: open the verification package, run `pnpm work verify #n`, run read-only commands or commands with `--dry-run`, and open the corresponding file or issue.
+- **It can**: open the verification package, run `pnpm work verify <n>`, run read-only commands or commands with `--dry-run`, and open the corresponding file or issue.
 - **It cannot**: merge, approve PRs or approve production (it only links to GitHub); change rulesets, Environments or secrets (scripts the person runs with their own token, [ADR-0041](../adr/0041-agent-boundaries.md)); edit configuration (it is code and goes through a PR). It runs with the project's `gh`, the same one agents can use: if the panel could approve, an agent could too.
 - **Different from "System health"** in the backoffice ([ADR-0039](../adr/0039-operations-and-incidents.md)): that one shows production health to the staff; this one is a development tool and never leaves the machine.

@@ -10,13 +10,13 @@ Ninguna todavía: las primeras llegan con el PRD #10 «Access and first company�
 
 ## Terms
 
-- [company](../../GLOSSARY.md#company)
-- [tenant](../../GLOSSARY.md#tenant)
-- [slug](../../GLOSSARY.md#slug)
-- [user](../../GLOSSARY.md#user)
-- [membership](../../GLOSSARY.md#membership)
-- [role](../../GLOSSARY.md#role)
-- [staff](../../GLOSSARY.md#staff)
+- [company](../glossary.md#company)
+- [tenant](../glossary.md#tenant)
+- [slug](../glossary.md#slug)
+- [user](../glossary.md#user)
+- [membership](../glossary.md#membership)
+- [role](../glossary.md#role)
+- [staff](../glossary.md#staff)
 
 ## Out of scope
 

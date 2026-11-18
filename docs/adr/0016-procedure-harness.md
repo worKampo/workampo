@@ -70,3 +70,7 @@ Repeated work should not depend on manual steps or on one tool. Each procedure i
 ## Consequences
 
 See Decision.
+
+## Updates
+
+- **2026-11-18** (decided by the person): the branch temporaries live in a `.work/` folder at the repo root: `.work/PROGRESS.md`, `.work/plan.md`, `.work/tasks.md`. Same rules: committed on the branch, never on `master`.

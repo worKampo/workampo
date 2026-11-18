@@ -28,4 +28,4 @@ Then
 <!-- Use GitHub's native "blocked by" relationship. -->
 
 ## Tasks
-<!-- Written by `pnpm plan:sync` from tasks.md; never edited by hand. -->
+<!-- Written by `pnpm plan:sync` from .work/tasks.md; never edited by hand. -->

@@ -19,7 +19,7 @@ Una base SaaS multitenant sobre Cloudflare sobre la que montar cualquier negocio
 | Descripción de procesos, PRDs, specs, discusión en issues y PRs | Español permitido |
 | Interfaz de usuario, emails, ayuda (`/docs`), changelog, páginas legales | **Multiidioma (i18n) desde el inicio: `en` por defecto y `es` (es-ES)** (D47) |
 
-- Los términos del sector se usan tal cual (PRD, spec, staging, release, rollback, hotfix, SLO…) y están definidos en `GLOSSARY.md`.
+- Los términos del sector se usan tal cual (PRD, spec, staging, release, rollback, hotfix, SLO…) y están definidos en `docs/glossary.md`.
 - Las landings de empresa están en el idioma que elige cada empresa (su contenido lo escribe ella).
 
 ## Requisitos no funcionales globales

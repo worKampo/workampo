@@ -1,4 +1,4 @@
-# plan.md template
+# .work/plan.md template
 
 Only for size L and critical zones. Temporary file on the ticket branch; `pnpm work pr` turns it into a "Plan" comment on the PR ([ADR-0052](../../adr/0052-living-specs-only-and-flow-by-size.md)). Sections: Design step of [ADR-0020](../../adr/0020-ticket-lifecycle.md).
 

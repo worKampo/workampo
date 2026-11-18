@@ -5,6 +5,6 @@ Un ticket pasa de Backlog a Ready cuando cumple todo. Fuente: [ADR-0034](../adr/
 - [ ] Capability, value y al menos un ejemplo (Gherkin, E1…).
 - [ ] Slicing de su PRD aprobado (si tiene PRD).
 - [ ] Dependencias ("blocked by" nativo de GitHub) resueltas o planificadas.
-- [ ] Tamaño confirmado por la persona (label `size:S|M|L`); sin él no pasa a Ready y `pnpm work start` no arranca (llega con el ticket 5, #9).
+- [ ] Tamaño confirmado por la persona (label `size:S|M|L`); sin él no pasa a Ready y `pnpm work start` no arranca ([work](../procedures/work.md)).
 
 Todos los tickets llevan además un label `area:` ([ADR-0034](../adr/0034-prds-slicing-and-ticket-format.md)). Es el momento 1 del [cycle](cycle.md).

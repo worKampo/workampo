@@ -10,9 +10,9 @@ Ninguna todavía: las primeras llegan con el PRD #10 «Access and first company�
 
 ## Terms
 
-- [user](../../GLOSSARY.md#user)
-- [staff](../../GLOSSARY.md#staff)
-- [company](../../GLOSSARY.md#company)
+- [user](../glossary.md#user)
+- [staff](../glossary.md#staff)
+- [company](../glossary.md#company)
 
 ## Out of scope
 

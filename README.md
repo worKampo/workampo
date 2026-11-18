@@ -17,7 +17,7 @@ pnpm check
 
 `pnpm check` runs typecheck, lint, architecture rules, unused-code detection and tests. It also runs before every commit.
 
-Design documents live in [`docs/`](docs/).
+Design documents live in [`docs/`](docs).
 
 ## License
 

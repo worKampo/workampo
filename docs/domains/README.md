@@ -21,7 +21,7 @@ Every spec has these four sections, in this order ([ADR-0052](../adr/0052-living
 |---|---|
 | Purpose | What the domain is for, in a few lines |
 | Rules | `Rule:` blocks, each with its Gherkin examples |
-| Terms | Links to entries of [`GLOSSARY.md`](../../GLOSSARY.md); no definitions here |
+| Terms | Links to entries of [`docs/glossary.md`](../glossary.md); no definitions here |
 | Out of scope | What belongs to another domain or lives outside the specs |
 
 Observable behaviour only: what a user or an API client can see. No tables, endpoints or libraries.
@@ -42,9 +42,9 @@ Gherkin tags ([ADR-0052](../adr/0052-living-specs-only-and-flow-by-size.md), [AD
 
 | Mark | Where | Meaning |
 |---|---|---|
-| `@wip(#n)` | On the `Rule:` | New or changed rule while work is on the branch. Never reaches `master`; the reviewer checks it by hand until CI does (ticket 5, #9) |
-| `@issue(#n)` | On the `Rule:` | Last issue that changed the rule. One per rule, not per example. Replaces `@wip` when the PR is opened (`pnpm work pr`, arrives with ticket 5, #9; by hand until then) |
-| `@id:<domain>-<issue>-<n>` | On each example | Stable identifier, e.g. `@id:companies-15-1`. Assigned by `pnpm specs:ids` (arrives with ticket 5, #9) from the E1, E2… numbering of the issue. Each test cites it. An example without a test, or a test of a missing example, is a review failure, checked by hand until CI does (ticket 5, #9) |
+| `@wip(#n)` | On the `Rule:` | New or changed rule while work is on the branch. Never reaches `master`; CI checks it ([traceability](../procedures/traceability.md#ci-checks)) |
+| `@issue(#n)` | On the `Rule:` | Last issue that changed the rule. One per rule, not per example. Replaces `@wip` when the PR is opened by `pnpm work pr` ([work](../procedures/work.md)) |
+| `@id:<domain>-<issue>-<n>` | On each example | Stable identifier, e.g. `@id:companies-15-1`. Assigned by `pnpm specs:ids` ([living specs](../procedures/living-specs.md)) from the E1, E2… numbering of the issue. Each test cites it. An example without a test, or a test of a missing example, is a review failure; CI checks it ([traceability](../procedures/traceability.md#ci-checks)) |
 
 What is under construction across the product is seen on the board, not in `master`.
 
