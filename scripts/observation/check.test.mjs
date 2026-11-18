@@ -9,6 +9,7 @@ import {
   marker,
   observationAuthors,
   pendingDeploys,
+  readHealth,
   sentryQuery,
   sentrySignal,
   successTime,
@@ -201,15 +202,29 @@ test('an UptimeRobot error never puts request data in the public comment', () =>
   assert.match(signal.text, /invalid_parameter/)
 })
 
-test('fetchJson does not follow a redirect', async () => {
+async function redirectingServer(fn) {
+  const hits = []
   const server = createServer((req, res) => {
-    res.writeHead(302, { Location: '/other' }).end()
+    hits.push(req.url)
+    if (req.url === '/') res.writeHead(302, { Location: '/other' }).end()
+    else res.writeHead(200, { 'Content-Type': 'application/json' }).end('{"sha":"bbb"}')
   })
   await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve))
   try {
-    const result = await fetchJson(`http://127.0.0.1:${server.address().port}/`, { method: 'POST' })
-    assert.deepEqual(result, { error: 'request failed' })
+    return { result: await fn(`http://127.0.0.1:${server.address().port}/`), hits }
   } finally {
     server.close()
   }
+}
+
+test('fetchJson does not follow a redirect', async () => {
+  const { result, hits } = await redirectingServer((url) => fetchJson(url, { method: 'POST' }))
+  assert.deepEqual(result, { error: 'request failed' })
+  assert.deepEqual(hits, ['/'])
+})
+
+test('readHealth follows a redirect', async () => {
+  const { result, hits } = await redirectingServer(readHealth)
+  assert.deepEqual(result, { sha: 'bbb' })
+  assert.deepEqual(hits, ['/', '/other'])
 })

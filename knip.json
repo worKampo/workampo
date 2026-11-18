@@ -1,4 +1,7 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
-  "workspaces": { ".": { "entry": ["scripts/**/*.mjs", ".claude/hooks/*.mjs"] } }
+  "workspaces": {
+    ".": { "entry": ["scripts/**/*.mjs", ".claude/hooks/*.mjs"] },
+    "apps/api": { "ignoreDependencies": ["@workampo/db"] }
+  }
 }

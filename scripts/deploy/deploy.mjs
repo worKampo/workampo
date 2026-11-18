@@ -1,5 +1,5 @@
 // The only way to deploy, by hand and from CI (ADR-0013):
-//   node scripts/deploy/deploy.mjs <stg|prod> [--all]
+//   node scripts/deploy/deploy.mjs <stg|prod> [--all] [--allow-stale]
 // Wrangler reads CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID; source maps need SENTRY_AUTH_TOKEN,
 // SENTRY_ORG and SENTRY_PROJECT. Tokens are only passed to child processes through the environment.
 import { execFileSync } from 'node:child_process'
@@ -16,13 +16,14 @@ export const WORKERS = [{ package: '@workampo/api', dir: 'apps/api' }]
 const ROOT = fileURLToPath(new URL('../../', import.meta.url))
 const SENTRY_URL = 'https://de.sentry.io'
 const HEALTH_TIMEOUT_MS = 10 * 1000
-const USAGE = 'Usage: node scripts/deploy/deploy.mjs <stg|prod> [--all]'
+const USAGE = 'Usage: node scripts/deploy/deploy.mjs <stg|prod> [--all] [--allow-stale]'
+const FLAGS = ['--all', '--allow-stale']
 
 export function parseArgs(argv) {
   const [env, ...rest] = argv
   if (!ENVIRONMENTS.includes(env)) throw new Error(`Missing or unknown environment. ${USAGE}`)
-  if (rest.some((arg) => arg !== '--all')) throw new Error(`Unknown argument. ${USAGE}`)
-  return { env, all: rest.includes('--all') }
+  if (rest.some((arg) => !FLAGS.includes(arg))) throw new Error(`Unknown argument. ${USAGE}`)
+  return { env, all: rest.includes('--all'), allowStale: rest.includes('--allow-stale') }
 }
 
 export function affectedWorkers(affectedPackages, workers) {
@@ -120,8 +121,19 @@ function uploadSourceMaps(cwd, sha, io) {
 }
 
 // `from` is the SHA the environment served before the deploy, or '' when unknown.
-export async function deploy({ env, all }, io) {
+export async function deploy({ env, all, allowStale = false }, io) {
   const sha = io.run('git', ['rev-parse', 'HEAD']).trim()
+  // Runs of older pushes can start late: only the tip of master may deploy, or it would roll back a newer one.
+  if (!allowStale) {
+    io.run('git', ['fetch', 'origin', 'master'])
+    const tip = io.run('git', ['rev-parse', 'FETCH_HEAD']).trim()
+    if (tip !== sha) {
+      io.log(
+        `origin/master is at ${tip}, not ${sha}: a newer commit is on master and its own run deploys it. Nothing deployed.`,
+      )
+      return { workers: [], from: '' }
+    }
+  }
   const { workers, from } = all ? { workers: WORKERS, from: '' } : await selectWorkers(env, sha, io)
   if (!workers.length) {
     io.log(`No Worker is affected since the deployed SHA: nothing to deploy to ${env}.`)

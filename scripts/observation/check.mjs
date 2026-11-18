@@ -147,10 +147,10 @@ export function buildComment(deploy, signals) {
 
 export async function fetchJson(url, init) {
   try {
-    // redirect: 'error' keeps the API key of a POST body from ever reaching another origin.
+    // redirect: 'error' by default keeps an API key from ever reaching another origin.
     const response = await fetch(url, {
-      ...init,
       redirect: 'error',
+      ...init,
       signal: AbortSignal.timeout(TIMEOUT_MS),
     })
     if (!response.ok) return { error: `HTTP ${response.status}` }
@@ -202,8 +202,9 @@ async function readUptime(env, deploy) {
   return error ? { error } : { response: body }
 }
 
-async function readHealth(healthUrl) {
-  const { body, error } = await fetchJson(healthUrl)
+// No credentials go to /health, so it may redirect.
+export async function readHealth(healthUrl) {
+  const { body, error } = await fetchJson(healthUrl, { redirect: 'follow' })
   return error ? { error } : { sha: body.sha }
 }
 

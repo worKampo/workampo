@@ -35,6 +35,7 @@ function fakeIo({
   affected = ['@workampo/api'],
   subject = 'feat: x (#12)',
   env = {},
+  tip = SHA,
 } = {}) {
   const calls = []
   const io = {
@@ -45,7 +46,8 @@ function fakeIo({
     deployedSha: async () => deployed,
     run: (command, args) => {
       calls.push({ command, args })
-      if (command === 'git' && args[0] === 'rev-parse') return `${SHA}\n`
+      if (command === 'git' && args[0] === 'rev-parse')
+        return `${args[1] === 'FETCH_HEAD' ? tip : SHA}\n`
       if (command === 'git' && args[0] === 'log') return `${subject}\n`
       if (command === 'turbo')
         return JSON.stringify({ packages: { items: affected.map((name) => ({ name })) } })
@@ -60,8 +62,13 @@ test('refuses without stg or prod', () => {
   assert.throws(() => parseArgs(['local']), /stg\|prod/)
   assert.throws(() => parseArgs(['--all']), /stg\|prod/)
   assert.throws(() => parseArgs(['stg', '--force']), /Unknown argument/)
-  assert.deepEqual(parseArgs(['stg']), { env: 'stg', all: false })
-  assert.deepEqual(parseArgs(['prod', '--all']), { env: 'prod', all: true })
+  assert.deepEqual(parseArgs(['stg']), { env: 'stg', all: false, allowStale: false })
+  assert.deepEqual(parseArgs(['prod', '--all']), { env: 'prod', all: true, allowStale: false })
+  assert.deepEqual(parseArgs(['stg', '--allow-stale']), {
+    env: 'stg',
+    all: false,
+    allowStale: true,
+  })
 })
 
 test('selects the Workers among the affected packages', () => {
@@ -146,4 +153,30 @@ test('uploads source maps with release = SHA when the Sentry token is set', asyn
   ])
   const order = calls.map((c) => c.command)
   assert.ok(order.lastIndexOf('sentry-cli') < order.indexOf('removeMaps'))
+})
+
+test('a run whose SHA is no longer the tip of master deploys nothing, on every path', async () => {
+  for (const [options, all] of [
+    [{}, false],
+    [{ deployed: null }, false],
+    [{}, true],
+  ]) {
+    const { io, calls } = fakeIo({ ...options, tip: DEPLOYED })
+    assert.deepEqual(await deploy({ env: 'prod', all }, io), { workers: [], from: '' })
+    assert.deepEqual(
+      calls.find((c) => c.args[0] === 'fetch'),
+      { command: 'git', args: ['fetch', 'origin', 'master'] },
+    )
+    assert.ok(!calls.some((c) => ['wrangler', 'turbo'].includes(c.command)))
+  }
+})
+
+test('--allow-stale deploys a SHA that is not the tip of master', async () => {
+  const { io, calls } = fakeIo({ tip: DEPLOYED })
+  assert.deepEqual(await deploy({ env: 'prod', all: true, allowStale: true }, io), {
+    workers: WORKERS,
+    from: '',
+  })
+  assert.ok(!calls.some((c) => c.args[0] === 'fetch'))
+  assert.equal(calls.filter((c) => c.command === 'wrangler').length, 3)
 })
