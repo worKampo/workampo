@@ -25,7 +25,7 @@ feature|bugfix|hotfix/<issue>-<slug>  <- desde master
 - Título conventional commit; cuerpo con `Ticket #N` (y `PRD #N` si tiene padre); mismos labels `type:` y `area:` que el ticket.
 - Commits con conventional commit y trailer `Refs: #<ticket>` (y `PRD: #N`, `Task: Tn`). Nunca `Closes #N`: el ticket lo cierra el orchestrator tras la ventana de observación limpia.
 - Autor con el email *noreply* de la cuenta del proyecto.
-- Ninguna PR llega a `master` con `@wip` ni con `PROGRESS.md`, `plan.md` o `tasks.md`.
+- Ninguna PR llega a `master` con `@wip` ni con `.work/PROGRESS.md`, `.work/plan.md` o `.work/tasks.md`.
 - Un push nuevo descarta la aprobación (el ruleset exige aprobación posterior al último push): la persona aprueba otra vez.
 
 ## Merge

@@ -18,8 +18,8 @@ documents:
   agents: AGENTS.md
   vision: docs/product/vision.md
   decisions: docs/adr/README.md
-  review: REVIEW.md
-  glossary: GLOSSARY.md
+  review: docs/process/review.md
+  glossary: docs/glossary.md
 
 cloudflare:
   accountId: d162a227436461d3e6f71c30b0e0f290

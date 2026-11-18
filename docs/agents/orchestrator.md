@@ -13,10 +13,10 @@ The main session, not a subagent. Why: [ADR-0021](../adr/0021-orchestrator-and-s
 
 ## State
 
-- `PROGRESS.md`: follow the [progress procedure](../procedures/progress.md). Update it at every step up to Document, at the end of each wave and always before stopping.
+- `.work/PROGRESS.md`: follow the [progress procedure](../procedures/progress.md). Update it at every step up to Document, at the end of each wave and always before stopping.
 - **"Work log"**: one comment on the issue, edited in place: phase jumps, stops, findings, rounds and the verification package.
-- `tasks.md` ([template](../process/templates/tasks.md)): set `Status` to `doing` when a task starts and `done` when its commit is made.
-- Issue checklist: synced from `tasks.md` by hand until `pnpm plan:sync` exists, in the format of [ADR-0034](../adr/0034-prds-slicing-and-ticket-format.md). In S, tick it directly.
+- `.work/tasks.md` ([template](../process/templates/tasks.md)): set `Status` to `doing` when a task starts and `done` when its commit is made.
+- Issue checklist: synced from `.work/tasks.md` by hand until `pnpm plan:sync` exists, in the format of [ADR-0034](../adr/0034-prds-slicing-and-ticket-format.md). In S, tick it directly.
 - Formats of headers, commits and trailers: [traceability](../procedures/traceability.md).
 
 ## Roles by size
@@ -30,8 +30,8 @@ Ticket cycle ([ADR-0052](../adr/0052-living-specs-only-and-flow-by-size.md)):
 | 1. Discover | [researcher](researcher.md) | If facts are missing | If facts are missing | If facts are missing |
 | 2. Specify | [ui-ux-designer](ui-ux-designer.md) | — | If it touches the interface or public pages | Same as M |
 | 2. Specify | [security-reviewer](security-reviewer.md) | Hotfix on a critical-zone path | Critical zone or rendered company-written content | Yes |
-| 3. Design | [planner](planner.md) (`plan.md`) | — | — | Yes |
-| 4. Tasks | [planner](planner.md) (`tasks.md`) | — (issue checklist) | Yes | Yes |
+| 3. Design | [planner](planner.md) (`.work/plan.md`) | — | — | Yes |
+| 4. Tasks | [planner](planner.md) (`.work/tasks.md`) | — (issue checklist) | Yes | Yes |
 | 4. Tasks | [test-designer](test-designer.md) | Hotfix on a critical-zone path | Yes | Yes |
 | 5. Implement | [implementer](implementer.md) | Yes | Yes | Yes |
 | 6. Verify | [spec-reviewer](spec-reviewer.md) | — | Yes | Yes |
@@ -44,10 +44,10 @@ The UI/UX designer is never skipped for a new complete flow or a new public page
 
 ## Waves
 
-- Run the waves of `tasks.md` in order; tasks marked `[P]` in parallel, one subagent per task. Parallel reading is free; parallel writing only as the waves allow.
+- Run the waves of `.work/tasks.md` in order; tasks marked `[P]` in parallel, one subagent per task. Parallel reading is free; parallel writing only as the waves allow.
 - Before running, check dependencies, cycles and overlapping `Touches` by hand until `pnpm plan:check` exists. Hot spots always in sequence ([ADR-0020](../adr/0020-ticket-lifecycle.md)).
 - After each wave: `pnpm check` green, then one commit per task, in task order, with the trailers of [traceability](../procedures/traceability.md). Subagents never commit.
-- Commits touching `e2e/acceptance/` go before any commit touching another path; before them only `docs/**`, `PROGRESS.md`, `plan.md` and `tasks.md` ([ADR-0030](../adr/0030-test-designer.md)).
+- Commits touching `e2e/acceptance/` go before any commit touching another path; before them only `docs/**`, `.work/PROGRESS.md`, `.work/plan.md` and `.work/tasks.md` ([ADR-0030](../adr/0030-test-designer.md)).
 
 ## Brief
 
@@ -62,7 +62,7 @@ Do not touch: <paths and actions out of scope>
 ```
 
 - Reviewers (spec, UI/UX, security) get the spec plus the diff (`git diff master...HEAD`), never the implementer's brief, reasoning or summary.
-- The test designer gets the spec plus `plan.md` or `tasks.md`, never the implementation.
+- The test designer gets the spec plus `.work/plan.md` or `.work/tasks.md`, never the implementation.
 
 ## Return
 

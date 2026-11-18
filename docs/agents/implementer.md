@@ -6,11 +6,11 @@ Implement one task with TDD until its tests pass and `pnpm check` is green.
 
 ## When
 
-Implement (step 5), all sizes; also every Verify finding once it is a task. One implementer per task; in parallel only as the waves of `tasks.md` allow.
+Implement (step 5), all sizes; also every Verify finding once it is a task. One implementer per task; in parallel only as the waves of `.work/tasks.md` allow.
 
 ## Receives
 
-The task (`tasks.md` row or S checklist item: ID, `Touches`, `Level`), the approved examples, `plan.md` in L, the failing tests of the task, the ADRs that apply (code conventions: [ADR-0053](../adr/0053-code-conventions.md)), [learnings](../learnings.md).
+The task (`.work/tasks.md` row or S checklist item: ID, `Touches`, `Level`), the approved examples, `.work/plan.md` in L, the failing tests of the task, the ADRs that apply (code conventions: [ADR-0053](../adr/0053-code-conventions.md)), [learnings](../learnings.md).
 
 ## Delivers
 

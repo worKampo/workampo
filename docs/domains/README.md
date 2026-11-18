@@ -21,7 +21,7 @@ Every spec has these four sections, in this order ([ADR-0052](../adr/0052-living
 |---|---|
 | Purpose | What the domain is for, in a few lines |
 | Rules | `Rule:` blocks, each with its Gherkin examples |
-| Terms | Links to entries of [`GLOSSARY.md`](../../GLOSSARY.md); no definitions here |
+| Terms | Links to entries of [`docs/glossary.md`](../glossary.md); no definitions here |
 | Out of scope | What belongs to another domain or lives outside the specs |
 
 Observable behaviour only: what a user or an API client can see. No tables, endpoints or libraries.

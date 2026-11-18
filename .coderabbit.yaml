@@ -12,10 +12,10 @@ reviews:
   path_instructions:
     - path: "**"
       instructions: |
-        Apply the review policy in REVIEW.md (D15) when it exists.
+        Apply the review policy in docs/process/review.md (ADR-0015).
         This repository is public (D43): flag as a blocking issue any secret, token, personal data,
         real email address (other than the project's noreply and the seed test domain) or customer data.
 knowledge_base:
   code_guidelines:
     filePatterns:
-      - REVIEW.md
+      - docs/process/review.md

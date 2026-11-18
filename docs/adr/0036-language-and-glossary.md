@@ -22,3 +22,7 @@ The project needs one language policy and one shared vocabulary, with one term p
 ## Consequences
 
 See Decision.
+
+## Updates
+
+- **2026-11-18** (decided by the person): the glossary lives at `docs/glossary.md`.

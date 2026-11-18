@@ -13,7 +13,7 @@ M and L:
 
 ## Receives
 
-The approved examples from the issue, the UI section, the living-spec diff, `tasks.md`, and the diff (`git diff master...HEAD`). Never the implementer's reasoning or summary.
+The approved examples from the issue, the UI section, the living-spec diff, `.work/tasks.md`, and the diff (`git diff master...HEAD`). Never the implementer's reasoning or summary.
 
 ## Delivers
 

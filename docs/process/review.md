@@ -1,6 +1,6 @@
 # Review policy
 
-Applied by the spec reviewer, the security reviewer and the AI review in CI (CodeRabbit reads this file through [`.coderabbit.yaml`](.coderabbit.yaml)). Why: [ADR-0015](docs/adr/0015-agent-context-multi-tool.md).
+Applied by the spec reviewer, the security reviewer and the AI review in CI (CodeRabbit reads this file through [`.coderabbit.yaml`](../../.coderabbit.yaml)). Why: [ADR-0015](../adr/0015-agent-context-multi-tool.md).
 
 Findings neither approve nor block: the person approves. One exception: a finding from the "No entra" list is a failure that must be resolved before the PR moves on.
 
@@ -13,12 +13,12 @@ Review the diff against the issue it refers to (`Ticket #N` in the PR body).
 | Bugs                 | Logic errors, unhandled errors, missing edge cases, races (a write that must be atomic and is not in one `batch()`), wrong tenant scoping, N+1 queries, `SELECT *`, unbounded lists                                                                                                                                                                   |
 | Security             | The checklist below                                                                                                                                                                                                                                                                                                                                   |
 | Compliance           | The diff does what the issue's intent and its approved examples say, nothing more. Every approved example has a test that cites its `@id`. Behavior without an approved example is a finding                                                                                                                                                          |
-| Living spec and plan | When the diff touches `docs/domains/*.md` (and `plan.md`, if the ticket has one): rules and examples match the code, tags follow the [traceability](docs/procedures/traceability.md) formats, no rule is duplicated across domains, terms match [`GLOSSARY.md`](GLOSSARY.md)                                                                          |
-| UI/UX                | Only if the diff touches the interface. Against [ADR-0031](docs/adr/0031-ui-ux-designer.md) and [`docs/design/`](docs/design/README.md): tokens and scale classes only, states (empty, loading, error), accessibility, copy, i18n keys instead of literals. Flag a new component similar to an existing one in `packages/ui` or `_shared/components/` |
+| Living spec and plan | When the diff touches `docs/domains/*.md` (and `.work/plan.md`, if the ticket has one): rules and examples match the code, tags follow the [traceability](../procedures/traceability.md) formats, no rule is duplicated across domains, terms match [`docs/glossary.md`](../glossary.md)                                                                          |
+| UI/UX                | Only if the diff touches the interface. Against [ADR-0031](../adr/0031-ui-ux-designer.md) and [`docs/design/`](../design/README.md): tokens and scale classes only, states (empty, loading, error), accessibility, copy, i18n keys instead of literals. Flag a new component similar to an existing one in `packages/ui` or `_shared/components/` |
 
 ### Security checklist
 
-From [ADR-0032](docs/adr/0032-security-reviewer.md). Mandatory in critical zones and for company-written content that gets rendered; elsewhere, apply what the diff touches.
+From [ADR-0032](../adr/0032-security-reviewer.md). Mandatory in critical zones and for company-written content that gets rendered; elsewhere, apply what the diff touches.
 
 - Authorization and isolation: IDOR; every company query carries `tenant_id`; the isolation suite stays green.
 - XSS in landings: JSX escaping, rich text sanitized, no `dangerouslySetInnerHTML` without a sanitizer, strict CSP.
@@ -47,11 +47,11 @@ Label each finding `Important` or `Nit`. Report Nits in one short list at the en
 
 ## Traceability checks
 
-Verify by hand until CI does them; formats and the pending checks live in [traceability](docs/procedures/traceability.md#ci-checks). At minimum: branch name, `Refs:` trailer in every commit, `Ticket #N` and labels in the PR body, no `Closes #n`, no `@wip` / `PROGRESS.md` / `plan.md` / `tasks.md` reaching `master`, author with the project's noreply email, `size:` label (`size:L` if critical-zone paths change), every example's `@id` cited by a test.
+Verify by hand until CI does them; formats and the pending checks live in [traceability](../procedures/traceability.md#ci-checks). At minimum: branch name, `Refs:` trailer in every commit, `Ticket #N` and labels in the PR body, no `Closes #n`, no `@wip` / `.work/PROGRESS.md` / `.work/plan.md` / `.work/tasks.md` reaching `master`, author with the project's noreply email, `size:` label (`size:L` if critical-zone paths change), every example's `@id` cited by a test.
 
 ## No entra
 
-The repo is public ([ADR-0043](docs/adr/0043-public-repo.md)). None of this enters code, `docs/`, issues, PRs or commit messages. Check the diff and the PR text; a hit is a failure, not a Nit.
+The repo is public ([ADR-0043](../adr/0043-public-repo.md)). None of this enters code, `docs/`, issues, PRs or commit messages. Check the diff and the PR text; a hit is a failure, not a Nit.
 
 | Does not enter                                                                                                                                  | Where it goes                                                                                              |
 | ----------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |

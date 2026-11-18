@@ -11,7 +11,7 @@ Check locally, before the person, that the change does what was asked, and prepa
 
 ## Receives
 
-The approved examples, the issue, the diff, the findings of the other reviewers, `tasks.md` and "Decisions made".
+The approved examples, the issue, the diff, the findings of the other reviewers, `.work/tasks.md` and "Decisions made".
 
 ## Delivers
 

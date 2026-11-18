@@ -6,13 +6,13 @@ Write the tests before any implementation exists, so that a misunderstanding sha
 
 ## When
 
-- Tasks (step 4), M and L. Its work is the first wave of `tasks.md`.
+- Tasks (step 4), M and L. Its work is the first wave of `.work/tasks.md`.
 - S hotfix that touches a critical-zone path.
 - Again when the person reopens a scenario with `/reopen-acceptance`, or re-approves examples at stop 1.
 
 ## Receives
 
-The issue (intent, approved examples E1…, UI and Security sections), `plan.md` or `tasks.md`, the domain's living spec. Never the implementation or the implementer's reasoning.
+The issue (intent, approved examples E1…, UI and Security sections), `.work/plan.md` or `.work/tasks.md`, the domain's living spec. Never the implementation or the implementer's reasoning.
 
 ## Delivers
 

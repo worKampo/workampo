@@ -20,8 +20,8 @@ Once pasos para el agente. S y M acortan el camino ([Flow by size](#flow-by-size
 |---|---|---|---|
 | Define | 1. Discover | Researchers; en un PRD, el slicer | Intención en el issue (momento 1) |
 | | 2. Specify | Orchestrator (+ UI/UX, security si aplica) | Ejemplos Gherkin numerados en el issue (momento 1) |
-| | 3. Design | Planner (solo L) | `plan.md` temporal en la rama |
-| | 4. Tasks | Planner + test designer | Diff de la living spec (`@wip(#n)`), escenarios protegidos, `tasks.md` con tests `it.fails` en la primera wave |
+| | 3. Design | Planner (solo L) | `.work/plan.md` temporal en la rama |
+| | 4. Tasks | Planner + test designer | Diff de la living spec (`@wip(#n)`), escenarios protegidos, `.work/tasks.md` con tests `it.fails` en la primera wave |
 | Build | 5. Implement | Implementers (TDD, un commit por task, waves) | Commits; `pnpm check` verde por wave |
 | | 6. Verify | Spec reviewer, verifier (+ UI/UX, security) | Hallazgos y rondas en "Work log"; paquete de verificación |
 | | 7. Document | Writer | Ayuda, changelog y capturas si el cambio es visible |
@@ -39,8 +39,8 @@ El tamaño (`size:S|M|L` en el issue, confirmado por la persona) decide cuánto 
 | Size | Camino | Revisión automática |
 |---|---|---|
 | S | El momento 1 es el propio issue; issue → rama → PR, tasks como checklist del issue; un bug empieza por su test de regresión | CI, CodeRabbit y paquete reducido del verifier; + security reviewer si toca una zona crítica o contenido escrito por empresas que se renderiza ([ADR-0032](../adr/0032-security-reviewer.md)) |
-| M | Sin Design ni `plan.md` (el plan cabe en `tasks.md`): ejemplos aprobados → living spec y escenarios → tasks → PR | + test designer (escenarios protegidos), spec reviewer, UI/UX si aplica |
-| L / zona crítica | Los once pasos, con `plan.md` | + sección Security y security reviewer, nivel `max` |
+| M | Sin Design ni `.work/plan.md` (el plan cabe en `.work/tasks.md`): ejemplos aprobados → living spec y escenarios → tasks → PR | + test designer (escenarios protegidos), spec reviewer, UI/UX si aplica |
+| L / zona crítica | Los once pasos, con `.work/plan.md` | + sección Security y security reviewer, nivel `max` |
 
 Clasificación (la primera que aplica gana):
 1. Toca zona crítica (sesión, aislamiento, migraciones, facturación, secretos), modelo de datos, contrato de API o migración: L.
@@ -78,7 +78,7 @@ Ventana de observación en Release: un verifier programado revisa Sentry, métri
 
 ## State and log
 
-- Estado actual: `PROGRESS.md` hasta Document; comentario "Progress" de la PR durante la review; comentarios del issue en Staging y Release.
+- Estado actual: `.work/PROGRESS.md` hasta Document; comentario "Progress" de la PR durante la review; comentarios del issue en Staging y Release.
 - Un único comentario "Work log" en el issue recoge saltos de fase, paradas, hallazgos, rondas y el paquete de verificación.
 - Varios tickets a la vez: dentro del límite WIP (2 en Build, 1 PRD en slicing, [ADR-0037](../adr/0037-roadmap-board-and-wip-limit.md)).
 - Mientras no existan las piezas de "Working foundation", se aplica el ciclo con las excepciones de [ADR-0035](../adr/0035-technical-work-and-bootstrap-prd.md) ([bootstrap](bootstrap.md)).

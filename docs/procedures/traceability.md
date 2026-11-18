@@ -25,7 +25,7 @@ Exact formats so every piece can be navigated in both directions. Why: [ADR-0042
 | Help and changelog | Frontmatter not visible to the user: `ticket: 15` |
 | Migration | Header `-- ticket: #15` |
 | Feature flag | Registry entry with `ticket: 15` |
-| `PROGRESS.md` / "Progress" comment | Header `PRD #12 · Ticket #15 · Branch: …` ([progress](progress.md)) |
+| `.work/PROGRESS.md` / "Progress" comment | Header `PRD #12 · Ticket #15 · Branch: …` ([progress](progress.md)) |
 | Deployment | Worker version message and Sentry release = commit SHA: `wrangler deploy --message "#40 a1b2c3d"` |
 | Incident | `sev:*` issue: `Caused by #40` · `Fixed by #52` |
 
@@ -46,7 +46,7 @@ All arrive with ticket 5, #9. Until then they are checked by hand at review.
 | Branch name matches the regex and the number is an open issue | ticket 5, #9 |
 | commitlint: conventional commit and `Refs: #<ticket of the branch>` in every commit | ticket 5, #9 |
 | PR body has `Ticket #N` (and `PRD #N` if the ticket has a parent); `type:` and `area:` labels | ticket 5, #9 |
-| No `@wip` and no `PROGRESS.md`, `plan.md` or `tasks.md` in what reaches `master` | ticket 5, #9 |
+| No `@wip` and no `.work/PROGRESS.md`, `.work/plan.md` or `.work/tasks.md` in what reaches `master` | ticket 5, #9 |
 | `size:` label on the issue; `size:L` if the diff touches critical-zone paths | ticket 5, #9 |
 | Author of every commit has the project's *noreply* email, never another account (see the [bootstrap](../process/bootstrap.md)) | ticket 5, #9 |
 | Every living-spec example has a test (by `@id`) and no test cites a missing example; CI then publishes the "Verification" comment | ticket 5, #9 |

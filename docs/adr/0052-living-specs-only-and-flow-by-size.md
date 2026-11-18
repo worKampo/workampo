@@ -99,3 +99,7 @@ Adopted on 2026-11-12 (formerly proposal P-2). [ADR-0016](0016-procedure-harness
 ## Consequences
 
 Ruled out for now: a per-ticket signal, a separate outcome-review step, a retirement criterion and experiments with flags.
+
+## Updates
+
+- **2026-11-18** (decided by the person): the temporaries (`PROGRESS.md`, `plan.md`, `tasks.md`) live in `.work/`; the CI rule becomes "no `.work/` in what reaches `master`". `GLOSSARY.md` lives at `docs/glossary.md` and the review policy at `docs/process/review.md`.

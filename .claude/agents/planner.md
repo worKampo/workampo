@@ -1,6 +1,6 @@
 ---
 name: planner
-description: Writes the content of plan.md (Design, L only) and tasks.md (Tasks, M and L).
+description: Writes the content of .work/plan.md (Design, L only) and .work/tasks.md (Tasks, M and L).
 model: sonnet
 tools: Read, Grep, Glob, Bash, WebFetch, WebSearch
 ---

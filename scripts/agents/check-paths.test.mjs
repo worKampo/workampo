@@ -16,6 +16,10 @@ test('accepts existing paths and ignores non-paths', () => {
   assert.deepEqual(missingPaths(text, root, root), [])
 })
 
+test('ignores the branch temporaries in .work/', () => {
+  assert.deepEqual(missingPaths('`.work/PROGRESS.md` [p](.work/plan.md)', root, root), [])
+})
+
 test('reports git-ignored paths, which CI does not have', () => {
   assert.deepEqual(missingPaths('`.claude/settings.local.json`', root, root), [
     '.claude/settings.local.json',

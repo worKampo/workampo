@@ -6,20 +6,20 @@ Turn the approved examples into a technical plan and a task list that implemente
 
 ## When
 
-- Design (step 3), L and critical zones only: `plan.md`.
-- Tasks (step 4), M and L: `tasks.md`, together with the test designer, whose tests are the first wave.
+- Design (step 3), L and critical zones only: `.work/plan.md`.
+- Tasks (step 4), M and L: `.work/tasks.md`, together with the test designer, whose tests are the first wave.
 - Not in S: the issue checklist holds the tasks.
 
 ## Receives
 
-The issue (intent, approved examples, UI and Security sections), the living spec of the domain, the relevant ADRs and code paths, [learnings](../learnings.md); for `tasks.md` in L, the `plan.md`.
+The issue (intent, approved examples, UI and Security sections), the living spec of the domain, the relevant ADRs and code paths, [learnings](../learnings.md); for `.work/tasks.md` in L, the `.work/plan.md`.
 
 ## Delivers
 
 The file contents, in the [return format](orchestrator.md#return); the orchestrator writes them on the branch.
 
-- `plan.md` from the [template](../process/templates/plan.md): data model, API contracts, migrations, flags, analytics events, risks. Only the technical items that follow from the UI and Security sections; it does not reopen the spec.
-- `tasks.md` from the [template](../process/templates/tasks.md):
+- `.work/plan.md` from the [template](../process/templates/plan.md): data model, API contracts, migrations, flags, analytics events, risks. Only the technical items that follow from the UI and Security sections; it does not reopen the spec.
+- `.work/tasks.md` from the [template](../process/templates/tasks.md):
   - First wave: the failing tests (test designer).
   - `Touches`: exact paths or folders each task writes.
   - `Level` per [routing](routing.md), `max` in the "Always max" zones.
@@ -29,12 +29,12 @@ The file contents, in the [return format](orchestrator.md#return); the orchestra
 ## Must not
 
 - Change the examples or the scope: a gap is stop 1, reported as an open question.
-- Write `plan.md` in S or M.
+- Write `.work/plan.md` in S or M.
 - Edit files.
 
 ## Level
 
-`standard`; `max` for `plan.md` in L ([routing](routing.md)).
+`standard`; `max` for `.work/plan.md` in L ([routing](routing.md)).
 
 ## Tools
 

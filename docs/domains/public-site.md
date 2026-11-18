@@ -10,9 +10,9 @@ Ninguna todavía: las primeras llegan con el PRD #12 «Company public site».
 
 ## Terms
 
-- [landing](../../GLOSSARY.md#landing)
-- [company](../../GLOSSARY.md#company)
-- [slug](../../GLOSSARY.md#slug)
+- [landing](../glossary.md#landing)
+- [company](../glossary.md#company)
+- [slug](../glossary.md#slug)
 
 ## Out of scope
 

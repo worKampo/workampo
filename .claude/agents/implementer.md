@@ -1,6 +1,6 @@
 ---
 name: implementer
-description: Implements one task of tasks.md or the S checklist with TDD (Implement).
+description: Implements one task of .work/tasks.md or the S checklist with TDD (Implement).
 model: sonnet
 tools: Read, Grep, Glob, Bash, Edit, Write, WebFetch, WebSearch
 hooks:

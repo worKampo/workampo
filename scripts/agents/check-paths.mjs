@@ -19,16 +19,19 @@ function inRepo(path) {
   }
 }
 
+// .work/ holds the branch temporaries: it exists only while a ticket is in progress, never on master.
+const isTemporary = (path) => /^(\.\/)?\.work\//.test(path)
+
 export function missingPaths(text, fileDir, root = ROOT) {
   const missing = []
   for (const [, target] of text.matchAll(/\]\(([^)\s]+)\)/g)) {
     const path = target.split('#')[0]
-    if (!path || /^[a-z]+:/.test(path)) continue
+    if (!path || /^[a-z]+:/.test(path) || isTemporary(path)) continue
     if (!inRepo(join(fileDir, path))) missing.push(path)
   }
   for (const [, code] of text.matchAll(/`([^`\s]+)`/g)) {
     // Globs, placeholders, home paths and package names are not repo paths.
-    if (/[*<>$~@]/.test(code) || !code.includes('/')) continue
+    if (/[*<>$~@]/.test(code) || !code.includes('/') || isTemporary(code)) continue
     if (!REPO_DIRS.test(code) && !FILE_EXT.test(code)) continue
     if (!inRepo(join(root, code))) missing.push(code)
   }

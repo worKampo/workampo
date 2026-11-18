@@ -6,7 +6,7 @@
 
 | What | How it is synced |
 |---|---|
-| Code and docs | Git: pull at the start, push at the end. `PROGRESS.md` is committed ([ADR-0016](../adr/0016-procedure-harness.md)), so half-done work passes from one machine to another |
+| Code and docs | Git: pull at the start, push at the end. `.work/PROGRESS.md` is committed ([ADR-0016](../adr/0016-procedure-harness.md)), so half-done work passes from one machine to another |
 | Local development secrets (`.dev.vars`) | Single source in the manager of [ADR-0064](../adr/0064-local-secrets.md) (Bitwarden, with CLI); `pnpm secrets:pull` regenerates `.dev.vars` and warns if a key from `.dev.vars.example` is missing |
 | Access (`gh`, `wrangler`, SSH) | Not copied: registered on each machine (`gh auth login`, `wrangler login`, one SSH key per machine, all in the GitHub account). If a machine is lost, only that one is revoked |
 | What lives outside the repo | Private repo `worKampo/business` (set in [ADR-0043](../adr/0043-public-repo.md); folders to be decided when picked up) with the prototype and an idempotent bootstrap script |
