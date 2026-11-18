@@ -1,23 +1,36 @@
 // Ticket cycle commands (ADR-0052): node scripts/work/work.mjs [command] [args]
 // gh and git run as child processes with argument arrays; tokens only travel through the environment.
-import { execFileSync } from 'node:child_process'
-import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { execFileSync, spawn } from 'node:child_process'
+import {
+  existsSync,
+  mkdirSync,
+  openSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs'
 import { dirname, join } from 'node:path'
 import { createInterface } from 'node:readline/promises'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { parse } from 'yaml'
+import { LOCAL_DATABASES } from '../db/seed.mjs'
 
 const ROOT = fileURLToPath(new URL('../../', import.meta.url))
 const BRANCH_TICKET = /^(?:feature|bugfix|hotfix)\/(\d+)-/
 const ACTIVE_COLUMNS = ['Define', 'Build', 'Review']
 const EMPTY_VALUES = ['', '—', '-']
-const COMMANDS = ['help', 'status', 'inbox', 'resume', 'start', 'pr', 'close']
+const COMMANDS = ['help', 'status', 'inbox', 'resume', 'start', 'pr', 'close', 'verify']
 const VALUE_OPTIONS = { '--title': 'title', '--body-file': 'bodyFile', '--learning': 'learning' }
 const PROGRESS_FILE = '.work/PROGRESS.md'
 const PLAN_FILE = '.work/plan.md'
 const TASKS_FILE = '.work/tasks.md'
 const SPECS_DIR = 'docs/domains'
 const SLUG_MAX = 40
+export const VERIFY_URL = 'http://127.0.0.1:8787'
+const VERIFY_PERSIST = '.wrangler/verify'
+const VERIFY_LOG = '.wrangler/verify.log'
+const WRANGLER = 'node_modules/wrangler/bin/wrangler.js'
 
 export const HELP = `Usage: pnpm work <command> [args]
 
@@ -29,6 +42,8 @@ export const HELP = `Usage: pnpm work <command> [args]
                           On a ticket branch: pnpm check, @wip to @issue, remove .work/, push, open the PR
   close <n> [--learning "<text>"] [--dry-run]
                           Close the issue as completed and move the card to Done
+  verify <n> [--dry-run]  Worktree of the ticket's branch, fresh local database, app running,
+                          browser open, and the verification list
 
 Issue numbers are written 15 or #15.`
 
@@ -60,7 +75,7 @@ export function parseArgs(argv) {
     throw new Error('resume takes at most one issue number.')
   if (['inbox', 'pr'].includes(command) && args.numbers.length)
     throw new Error(`${command} takes no issue numbers.`)
-  if (['start', 'close'].includes(command) && args.numbers.length !== 1)
+  if (['start', 'close', 'verify'].includes(command) && args.numbers.length !== 1)
     throw new Error(`${command} takes one issue number.`)
   const allowed = { pr: ['title', 'bodyFile'], close: ['learning'] }[command] ?? []
   for (const [option, key] of Object.entries(VALUE_OPTIONS))
@@ -124,6 +139,7 @@ function isHeadedBy(comment, heading, authors) {
 
 const PROGRESS_HEADING = /^\s*#{1,6}\s*Progress\s*$/
 const PLAN_HEADING = /^\s*#{1,6}\s*Plan\s*$/
+const WORK_LOG_HEADING = /^\s*#{1,6}\s*Work log\s*$/
 
 export function latestProgress(comments, authors) {
   return (comments ?? []).findLast((c) => isHeadedBy(c, PROGRESS_HEADING, authors)) ?? null
@@ -658,19 +674,29 @@ function parentOf(issue, config, io) {
   return fromBody ? Number(fromBody[1]) : null
 }
 
-// The App token goes only into the push URL, never into a remote, a log or an error message.
+// The App token travels only in the environment of the push (GIT_CONFIG_*), never in argv,
+// a remote, a log or an error message: argv is visible to every process on the machine.
+export function pushEnv(token) {
+  const basic = Buffer.from(`x-access-token:${token}`).toString('base64')
+  return {
+    GIT_CONFIG_COUNT: '1',
+    GIT_CONFIG_KEY_0: 'http.https://github.com/.extraheader',
+    GIT_CONFIG_VALUE_0: `AUTHORIZATION: basic ${basic}`,
+  }
+}
+
 function push(branch, args, config, io) {
   const token = io.env.GH_TOKEN
-  const target = token
-    ? [
-        `https://x-access-token:${args.dryRun ? '<GH_TOKEN>' : token}@github.com/${config.github.repository}.git`,
-        branch,
-      ]
-    : ['-u', 'origin', branch]
+  if (!token) return actor(args, io)('git', ['push', '-u', 'origin', branch])
+  const url = `https://github.com/${config.github.repository}.git`
+  if (args.dryRun)
+    return io.log(`Would run: GIT_CONFIG_VALUE_0=<GH_TOKEN header> git push ${url} ${branch}`)
+  const env = pushEnv(token)
   try {
-    actor(args, io)('git', ['push', ...target])
+    io.run('git', ['push', url, branch], { env })
   } catch (error) {
-    throw new Error(token ? error.message.replaceAll(token, '***') : error.message)
+    const secrets = [token, env.GIT_CONFIG_VALUE_0.split(' ').at(-1)]
+    throw new Error(secrets.reduce((text, s) => text.replaceAll(s, '***'), error.message))
   }
 }
 
@@ -887,8 +913,107 @@ export function close(args, config, io) {
   moveCard(issue.url, 'Done', args, config, io)
 }
 
+// Outside the repo but inside its parent folder, so the per-folder git identity still applies.
+export function verifyDir(number) {
+  return join(ROOT, '..', `workampo-verify-${number}`)
+}
+
+export function openCommand(platform, url) {
+  if (platform === 'win32') return ['cmd', ['/c', 'start', '', url]]
+  return [platform === 'darwin' ? 'open' : 'xdg-open', [url]]
+}
+
+export function stopHint(platform, pid) {
+  return platform === 'win32' ? `taskkill /PID ${pid} /T /F` : `kill ${pid}`
+}
+
+// The verification package lives in the issue's "Work log" (ADR-0020); until it exists,
+// the PR's "Progress" comment is the closest thing.
+export function verificationList(issueComments, prComments, authors) {
+  const workLog = (issueComments ?? []).findLast((c) => isHeadedBy(c, WORK_LOG_HEADING, authors))
+  if (workLog)
+    return `From the "Work log" comment by ${commentAuthor(workLog)}:\n\n${workLog.body.trim()}`
+  const progress = latestProgress(prComments, authors)
+  if (progress) return `${progressSource(progress, 'the PR')}:\n\n${progress.body.trim()}`
+  return 'No "Work log" or "Progress" comment with a verification list yet.'
+}
+
+async function waitUntilServing(url, io) {
+  for (let i = 0; i < 60; i++) {
+    if (await io.isServing(url)) return true
+    await io.sleep(1000)
+  }
+  return false
+}
+
+export async function verify(args, config, io) {
+  const [number] = args.numbers
+  const repo = config.github.repository
+  const act = actor(args, io)
+  const health = `${VERIFY_URL}/health`
+  const branch = readBranches(io).get(number)?.branch
+  if (!branch) throw new Error(`#${number} has no branch yet: pnpm work start ${number}`)
+  if (!args.dryRun && (await io.isServing(health)))
+    throw new Error(`Something already answers on ${VERIFY_URL}: stop it before verifying again.`)
+
+  tryRun(io, 'git', ['fetch', 'origin', branch])
+  const isPushed = tryRun(io, 'git', ['rev-parse', '--verify', '--quiet', `origin/${branch}`])
+  const ref = isPushed ? `origin/${branch}` : branch
+  const dir = verifyDir(number)
+  // Detached, so the branch can stay checked out in the main working tree.
+  if (io.exists(dir)) act('git', ['-C', dir, 'switch', '--detach', ref])
+  else act('git', ['worktree', 'add', '--detach', dir, ref])
+
+  const apiDir = join(dir, 'apps', 'api')
+  const wrangler = join(apiDir, WRANGLER)
+  const persist = join(apiDir, VERIFY_PERSIST)
+  const visible = (cwd) => ({ cwd, isVisible: true })
+  act('pnpm', ['install'], visible(dir))
+  if (args.dryRun) io.log(`Would remove ${persist}`)
+  else io.remove(persist)
+  for (const db of Object.values(LOCAL_DATABASES))
+    act(
+      'node',
+      [wrangler, 'd1', 'migrations', 'apply', db, '--local', '--persist-to', persist],
+      visible(apiDir),
+    )
+  act('node', [join('scripts', 'db', 'seed.mjs'), '--persist-to', persist], visible(dir))
+
+  const dev = [wrangler, 'dev', '--local', '--ip', '127.0.0.1', '--port', '8787']
+  dev.push('--persist-to', persist)
+  const [openFile, openArgs] = openCommand(io.platform, health)
+  if (args.dryRun) {
+    io.log(`Would start in the background: ${['node', ...dev].map(shown).join(' ')}`)
+    io.log(`Would run: ${[openFile, ...openArgs].map(shown).join(' ')}`)
+  } else {
+    const log = join(apiDir, VERIFY_LOG)
+    const pid = io.spawnDetached('node', dev, { cwd: apiDir, log })
+    if (!(await waitUntilServing(health, io)))
+      throw new Error(`wrangler dev did not answer within 60 s: see ${log}`)
+    io.log(`App running at ${VERIFY_URL} (log: ${log}).`)
+    io.log(`Stop it with: ${stopHint(io.platform, pid)}`)
+    if (tryRun(io, openFile, openArgs) === null) io.warn(`Open ${health} in the browser.`)
+  }
+
+  const [open] = ghJson(io, [
+    'pr',
+    'list',
+    '--repo',
+    repo,
+    '--head',
+    branch,
+    '--state',
+    'open',
+    '--json',
+    'number',
+  ])
+  const prComments = open ? readComments(io, repo, open.number) : []
+  const list = verificationList(readComments(io, repo, number), prComments, trustedAuthors(config))
+  io.log(`\n${list}`)
+}
+
 // Started through `pnpm work`, npm_execpath is pnpm's own script: Node cannot spawn pnpm.cmd without a shell.
-function run(command, args, { input, isVisible = false } = {}) {
+function run(command, args, { input, isVisible = false, cwd = ROOT, env } = {}) {
   const [file, fileArgs] =
     command === 'pnpm' && process.env.npm_execpath
       ? [process.execPath, [process.env.npm_execpath, ...args]]
@@ -896,7 +1021,8 @@ function run(command, args, { input, isVisible = false } = {}) {
   const output = isVisible ? 'inherit' : 'pipe'
   try {
     return execFileSync(file, fileArgs, {
-      cwd: ROOT,
+      cwd,
+      env: env && { ...process.env, ...env },
       encoding: 'utf8',
       input,
       stdio: [input == null ? 'ignore' : 'pipe', output, output],
@@ -929,6 +1055,25 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
       writeFileSync(path, text)
     },
     list: readdirSync,
+    remove: (path) => rmSync(path, { recursive: true, force: true }),
+    platform: process.platform,
+    isServing: (url) =>
+      fetch(url, { signal: AbortSignal.timeout(2000) }).then(
+        (response) => response.ok,
+        () => false,
+      ),
+    sleep: (ms) => new Promise((done) => setTimeout(done, ms)),
+    spawnDetached: (command, commandArgs, { cwd, log }) => {
+      mkdirSync(dirname(log), { recursive: true })
+      const out = openSync(log, 'a')
+      const child = spawn(command, commandArgs, {
+        cwd,
+        detached: true,
+        stdio: ['ignore', out, out],
+      })
+      child.unref()
+      return child.pid
+    },
     now: () => new Date(),
     log: console.log,
     warn: console.error,
@@ -937,7 +1082,16 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   try {
     const args = parseArgs(process.argv.slice(2))
     const config = parse(readFileSync(join(ROOT, 'project.yaml'), 'utf8'))
-    const commands = { help: () => help(io, config), status, inbox, resume, start, pr, close }
+    const commands = {
+      help: () => help(io, config),
+      status,
+      inbox,
+      resume,
+      start,
+      pr,
+      close,
+      verify,
+    }
     await commands[args.command](args, config, io)
   } catch (error) {
     console.error(error.message)

@@ -11,20 +11,25 @@ import {
   help,
   latestProgress,
   nextStep,
+  openCommand,
   parseArgs,
   parseIssueNumber,
   pr,
   prBody,
   progressText,
   prTitle,
+  pushEnv,
   resume,
   slugify,
   start,
   statusLine,
+  stopHint,
   tagIssue,
   taskCounts,
   ticketFromBranch,
   trustedAuthors,
+  verificationList,
+  verify,
 } from './work.mjs'
 
 const CONFIG = {
@@ -147,6 +152,7 @@ const slashes = (path) => path.replaceAll('\\', '/')
 function fakeIo(responses, { env = {}, files = {} } = {}) {
   const calls = []
   const inputs = []
+  const envs = []
   const output = []
   const warnings = []
   const writes = {}
@@ -154,6 +160,7 @@ function fakeIo(responses, { env = {}, files = {} } = {}) {
     env,
     calls,
     inputs,
+    envs,
     output,
     warnings,
     writes,
@@ -173,6 +180,7 @@ function fakeIo(responses, { env = {}, files = {} } = {}) {
     run: (command, args, options) => {
       calls.push([command, ...args])
       if (options?.input) inputs.push(options.input)
+      if (options?.env) envs.push(options.env)
       const key = [command, ...args].join(' ')
       const match = Object.keys(responses)
         .filter((prefix) => key.startsWith(prefix))
@@ -528,8 +536,10 @@ test('start creates the linked branch, writes and commits PROGRESS.md, moves the
     'git commit -m chore: start ticket 15\n\nRefs: #15\nPRD: #12',
     'gh project item-add 1 --owner worKampo --format json --url https://github.com/worKampo/workampo/issues/15',
     'gh project item-edit --id I1 --project-id P1 --field-id F1 --single-select-option-id O-Define',
-    `git push https://x-access-token:${TOKEN}@github.com/worKampo/workampo.git ${BRANCH_15}`,
+    `git push https://github.com/worKampo/workampo.git ${BRANCH_15}`,
   ])
+  assert.deepEqual(io.envs, [pushEnv(TOKEN)])
+  assert.ok(!io.calls.flat().some((arg) => arg.includes(TOKEN)))
   const [progress] = Object.values(io.writes)
   assert.ok(Object.keys(io.writes)[0].endsWith('.work/PROGRESS.md'))
   assert.equal(
@@ -619,8 +629,25 @@ test('start --dry-run prints every action, writes nothing and never prints the t
   assert.match(out, /Would write \.work\/PROGRESS\.md:\n# Progress/)
   assert.match(out, /Would run: git commit -m "chore: start ticket 15/)
   assert.match(out, /Would move the board card to Define/)
-  assert.match(out, /Would run: git push https:\/\/x-access-token:<GH_TOKEN>@github\.com/)
+  assert.match(
+    out,
+    /Would run: GIT_CONFIG_VALUE_0=<GH_TOKEN header> git push https:\/\/github\.com\/worKampo/,
+  )
   assert.ok(!out.includes(TOKEN))
+})
+
+test('a failed push never shows the token or its header', () => {
+  const env = pushEnv(TOKEN)
+  const encoded = env.GIT_CONFIG_VALUE_0.split(' ').at(-1)
+  assert.equal(Buffer.from(encoded, 'base64').toString(), `x-access-token:${TOKEN}`)
+  const io = startIo(
+    { 'git push': new Error(`fatal: ${TOKEN} ${env.GIT_CONFIG_VALUE_0}`) },
+    { env: { GH_TOKEN: TOKEN } },
+  )
+  assert.throws(
+    () => start({ numbers: [15] }, CONFIG, io),
+    (error) => !error.message.includes(TOKEN) && !error.message.includes(encoded),
+  )
 })
 
 test('@wip(#n) becomes @issue(#n) only for the ticket', () => {
@@ -854,4 +881,128 @@ test('write commands parse their options', () => {
   assert.throws(() => parseArgs(['pr', '3']), /no issue numbers/)
   assert.throws(() => parseArgs(['close', '3', '--title', 'x']), /close takes no --title/)
   assert.throws(() => parseArgs(['pr', '--title']), /needs a value/)
+})
+
+const VERIFY_BRANCH = 'feature/9-automation'
+const WORK_LOG = {
+  user: { login: 'workampo-agents[bot]', type: 'Bot' },
+  body: '## Work log\n- [ ] Open /health',
+}
+
+function verifyIo({
+  serving = [false, false, true],
+  exists = false,
+  pushed = true,
+  comments = {},
+} = {}) {
+  const io = fakeIo({
+    'git for-each-ref': `${VERIFY_BRANCH}\n`,
+    'git fetch': '',
+    'git rev-parse': pushed ? 'abc123\n' : new Error('no ref'),
+    'git worktree add': '',
+    'git -C': '',
+    'pnpm install': '',
+    node: '',
+    cmd: '',
+    'xdg-open': '',
+    'gh pr list': [{ number: 30 }],
+    [COMMENTS]: commentsOf([
+      { number: 9, comments: comments.issue ?? [] },
+      { number: 30, comments: comments.pr ?? [] },
+    ]),
+  })
+  const answers = [...serving]
+  Object.assign(io, {
+    platform: 'linux',
+    exists: () => exists,
+    removed: [],
+    spawned: [],
+    remove: (path) => io.removed.push(slashes(path)),
+    isServing: async () => answers.shift() ?? false,
+    sleep: async () => {},
+    spawnDetached: (command, args, options) => {
+      io.spawned.push([command, ...args, options.cwd])
+      return 4242
+    },
+  })
+  return io
+}
+
+const joined = (io) => io.calls.map((call) => slashes(call.join(' ')))
+
+test('verify: worktree of the pushed branch, fresh database, app in the background, browser, list', async () => {
+  const io = verifyIo({ comments: { issue: [WORK_LOG] } })
+  await verify({ numbers: [9] }, CONFIG, io)
+  const calls = joined(io)
+  const worktree = calls.findIndex((c) => c.startsWith('git worktree add --detach'))
+  assert.match(calls[worktree], /\/workampo-verify-9 origin\/feature\/9-automation$/)
+  const install = calls.indexOf('pnpm install')
+  const migrations = calls.filter((c) => c.includes('d1 migrations apply'))
+  assert.equal(migrations.length, 2)
+  assert.ok(
+    migrations.every((c) => c.includes('--local --persist-to') && c.endsWith('.wrangler/verify')),
+  )
+  const seed = calls.findIndex((c) => c.includes('scripts/db/seed.mjs --persist-to'))
+  assert.ok(worktree < install && install < seed)
+  assert.deepEqual(io.removed, [migrations[0].split(' ').at(-1)])
+  assert.match(
+    slashes(io.spawned[0].join(' ')),
+    /wrangler\.js dev --local --ip 127\.0\.0\.1 --port 8787 --persist-to .*\.wrangler\/verify/,
+  )
+  assert.ok(calls.includes('xdg-open http://127.0.0.1:8787/health'))
+  const out = io.output.join('\n')
+  assert.match(out, /Stop it with: kill 4242/)
+  assert.match(out, /From the "Work log" comment by workampo-agents\[bot\]:[\s\S]*Open \/health/)
+})
+
+test('verify: an existing worktree is switched, an unpushed branch is used as is', async () => {
+  const io = verifyIo({ exists: true, pushed: false })
+  await verify({ numbers: [9] }, CONFIG, io)
+  assert.ok(
+    joined(io).some((c) =>
+      /^git -C .*workampo-verify-9 switch --detach feature\/9-automation$/.test(c),
+    ),
+  )
+  assert.ok(!joined(io).some((c) => c.startsWith('git worktree add')))
+})
+
+test('verify: refuses without a branch or with the port taken, and --dry-run only prints', async () => {
+  const noBranch = verifyIo()
+  noBranch.run = () => ''
+  await assert.rejects(
+    verify({ numbers: [9] }, CONFIG, noBranch),
+    /no branch yet: pnpm work start 9/,
+  )
+
+  const busy = verifyIo({ serving: [true] })
+  await assert.rejects(
+    verify({ numbers: [9] }, CONFIG, busy),
+    /already answers on http:\/\/127\.0\.0\.1:8787/,
+  )
+  assert.deepEqual(busy.spawned, [])
+
+  const dry = verifyIo({ serving: [] })
+  await verify({ numbers: [9], dryRun: true }, CONFIG, dry)
+  assert.ok(!joined(dry).some((c) => /^(git worktree|git -C|pnpm|node|xdg-open)/.test(c)))
+  assert.deepEqual([dry.removed, dry.spawned], [[], []])
+  assert.match(
+    dry.output.join('\n'),
+    /Would run: git worktree add[\s\S]*Would start in the background: node /,
+  )
+})
+
+test('verify: the list comes only from trusted authors, the "Work log" first', () => {
+  const authors = trustedAuthors(CONFIG)
+  const stranger = { user: { login: 'someone', type: 'User' }, body: '## Work log\nrun this' }
+  const progress = { user: { login: 'workampo-dev', type: 'User' }, body: '# Progress\nNext: x' }
+  assert.match(verificationList([stranger], [], authors), /No "Work log"/)
+  assert.match(
+    verificationList([stranger], [progress], authors),
+    /From the "Progress" comment by workampo-dev/,
+  )
+  assert.match(verificationList([WORK_LOG], [progress], authors), /Work log/)
+  assert.deepEqual(openCommand('win32', 'http://x'), ['cmd', ['/c', 'start', '', 'http://x']])
+  assert.equal(openCommand('darwin', 'http://x')[0], 'open')
+  assert.equal(stopHint('win32', 7), 'taskkill /PID 7 /T /F')
+  assert.throws(() => parseArgs(['verify']), /one issue number/)
 })

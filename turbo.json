@@ -5,6 +5,7 @@
     "lint": {},
     "test": {},
     "build": { "outputs": ["dist/**"] },
-    "dev": { "cache": false, "persistent": true }
+    "dev": { "cache": false, "persistent": true },
+    "e2e": { "cache": false }
   }
 }
