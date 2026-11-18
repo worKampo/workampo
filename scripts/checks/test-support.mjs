@@ -19,7 +19,8 @@ export function fakeRun(routes, calls = []) {
     const line = [file, ...args].join(' ')
     calls.push(line)
     const route = routes.find(([pattern]) => pattern.test(line))
-    if (!route) return failure(1, `unexpected: ${line}`)()
+    // Not 1: git grep reads exit 1 as "no match" and would hide a missing route.
+    if (!route) return failure(127, `unexpected: ${line}`)()
     return typeof route[1] === 'function' ? route[1](args, options) : route[1]
   }
 }

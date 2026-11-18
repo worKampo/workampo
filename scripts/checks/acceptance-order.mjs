@@ -24,6 +24,10 @@ export function acceptanceErrors(commits, isTrusted) {
   const used = new Set()
   let firstOther = null
   for (const commit of commits) {
+    if (!firstOther && commit.files.some(isAcceptance) && !commit.files.every(isAllowedBefore))
+      errors.push(
+        `${commit.sha.slice(0, 7)} mixes e2e/acceptance/ with other paths: the scenarios go first, in commits of their own`,
+      )
     if (firstOther && commit.files.some(isAcceptance)) {
       const id = commit.reopens.find((id) => !used.has(id) && isTrusted(id))
       if (id) used.add(id)

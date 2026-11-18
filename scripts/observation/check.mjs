@@ -12,7 +12,6 @@ const ROOT = fileURLToPath(new URL('../../', import.meta.url))
 const WINDOW_MS = 24 * 60 * 60 * 1000
 const MIN_UPTIME = 99.9
 const UPTIMEROBOT_UP = 2
-const DEPLOYS_READ = 30
 const TIMEOUT_MS = 15_000
 
 export const marker = (sha) => `<!-- observation-window:${sha} -->`
@@ -51,12 +50,25 @@ export function observationAuthors(config) {
   return [...trustedAuthors(config), { login: 'github-actions[bot]', type: 'Bot' }]
 }
 
-export function isJudged(comments, sha, authors) {
-  return comments.some(
+const CLEAN_HEADING = '## Observation window clean'
+
+function verdictOf(comments, sha, authors) {
+  return comments.find(
     (c) =>
       (c.body ?? '').includes(marker(sha)) &&
       authors.some((a) => a.login === c.user?.login && a.type === c.user?.type),
   )
+}
+
+// 'judge', 'close' (a clean verdict whose close failed: retried) or 'skip'. A ticket the person
+// reopened after a clean close is hers, so it is never closed again.
+export function ticketAction(issue, comments, sha, authors) {
+  if (issue.state !== 'open') return 'skip'
+  const verdict = verdictOf(comments, sha, authors)
+  if (!verdict) return 'judge'
+  return verdict.body.startsWith(CLEAN_HEADING) && issue.state_reason !== 'reopened'
+    ? 'close'
+    : 'skip'
 }
 
 const notChecked = (variable) => ({ ok: false, text: `not checked: ${variable} is not set` })
@@ -83,9 +95,9 @@ export function uptimeSignal(result, healthUrl) {
     (m) => (m.url ?? '').replace(/\/+$/, '') === target,
   )
   if (!monitor) return { ok: false, text: `no monitor for ${healthUrl}` }
-  const uptime = Number(String(monitor.custom_uptime_ratio).split('-')[0])
+  const uptime = Number(String(monitor.custom_uptime_ranges).split('-')[0])
   const ok = monitor.status === UPTIMEROBOT_UP && uptime >= MIN_UPTIME
-  return { ok, text: `monitor status ${monitor.status} (2 is up), 1-day uptime ${uptime}%` }
+  return { ok, text: `monitor status ${monitor.status} (2 is up), window uptime ${uptime}%` }
 }
 
 export function healthSignal(result, deploy) {
@@ -103,11 +115,16 @@ export function judge(signals) {
   return Object.values(signals).every((s) => s.ok)
 }
 
+export function windowOf(deploy) {
+  const start = Date.parse(deploy.deployedAt)
+  return { start, end: start + WINDOW_MS }
+}
+
 export function buildComment(deploy, signals) {
   const isClean = judge(signals)
-  const ended = new Date(Date.parse(deploy.deployedAt) + WINDOW_MS).toISOString()
+  const ended = new Date(windowOf(deploy).end).toISOString()
   return [
-    isClean ? '## Observation window clean' : '## Observation window: needs the person',
+    isClean ? CLEAN_HEADING : '## Observation window: needs the person',
     '',
     `- Release: ${deploy.sha}`,
     `- Window: ${deploy.deployedAt} to ${ended}`,
@@ -117,7 +134,7 @@ export function buildComment(deploy, signals) {
     '',
     isClean
       ? 'Closing the ticket.'
-      : 'Left open: review the findings, then close with `pnpm work close <n>` if the release is fine.',
+      : 'Left open: review the findings. A false alarm (a signal not read, an unrelated issue): close with `pnpm work close <n>`. A real failure: follow ADR-0020 (revert or fix) and ADR-0039; the ticket stays open.',
     '',
     marker(deploy.sha),
   ].join('\n')
@@ -134,14 +151,26 @@ async function fetchJson(url, init) {
   }
 }
 
-async function readSentry(env, sha) {
+// The deploy's own window, not one relative to when this runs: a late run must not lose its start.
+export function sentryQuery(deploy) {
+  const { start, end } = windowOf(deploy)
+  return new URLSearchParams({
+    query: `firstRelease:${deploy.sha}`,
+    environment: 'prod',
+    start: new Date(start).toISOString(),
+    end: new Date(end).toISOString(),
+  })
+}
+
+export function uptimeRange(deploy) {
+  const { start, end } = windowOf(deploy)
+  return `${Math.floor(start / 1000)}_${Math.floor(end / 1000)}`
+}
+
+async function readSentry(env, deploy) {
   if (!env.SENTRY_READ_TOKEN) return { missing: 'SENTRY_READ_TOKEN' }
   if (!env.SENTRY_ORG) return { missing: 'SENTRY_ORG' }
-  const query = new URLSearchParams({
-    query: `firstRelease:${sha}`,
-    environment: 'prod',
-    statsPeriod: '48h',
-  })
+  const query = sentryQuery(deploy)
   const { body, error } = await fetchJson(
     `https://de.sentry.io/api/0/organizations/${encodeURIComponent(env.SENTRY_ORG)}/issues/?${query}`,
     { headers: { Authorization: `Bearer ${env.SENTRY_READ_TOKEN}` } },
@@ -149,7 +178,7 @@ async function readSentry(env, sha) {
   return error ? { error } : { issues: body }
 }
 
-async function readUptime(env) {
+async function readUptime(env, deploy) {
   if (!env.UPTIMEROBOT_READ_KEY) return { missing: 'UPTIMEROBOT_READ_KEY' }
   const { body, error } = await fetchJson('https://api.uptimerobot.com/v2/getMonitors', {
     method: 'POST',
@@ -157,7 +186,7 @@ async function readUptime(env) {
     body: new URLSearchParams({
       api_key: env.UPTIMEROBOT_READ_KEY,
       format: 'json',
-      custom_uptime_ratios: '1',
+      custom_uptime_ranges: uptimeRange(deploy),
     }),
   })
   return error ? { error } : { response: body }
@@ -180,10 +209,16 @@ function run(command, args, { input } = {}) {
 
 const ghJson = (args) => JSON.parse(run('gh', ['api', ...args]))
 
+const ghLines = (args) =>
+  run('gh', ['api', '--paginate', ...args, '--jq', '.[]'])
+    .split(/\r?\n/)
+    .filter(Boolean)
+    .map((line) => JSON.parse(line))
+
 function readDeploys(repository, now) {
-  const deployments = ghJson([
-    `repos/${repository}/deployments?environment=prod&per_page=${DEPLOYS_READ}`,
-  ])
+  // ponytail: every page and the statuses of every past deploy on each run; add a lookback once
+  // the deploy count brings the hourly run near the API rate limit.
+  const deployments = ghLines([`repos/${repository}/deployments?environment=prod&per_page=100`])
   // Statuses only of deployments old enough to have a closed window (or to be the "from" of one).
   return deployments.map((d) => ({
     sha: d.sha,
@@ -199,10 +234,10 @@ function issuesOf(deploy) {
   try {
     return parseRefs(run('git', messagesLogArgs(deploy.sha, deploy.from)))
   } catch {
-    console.error(
-      `${deploy.from}..${deploy.sha} is not in the history: reading ${deploy.sha} only.`,
+    // A partial range would judge some tickets and silently forget the rest.
+    throw new Error(
+      `${deploy.from ?? ''}..${deploy.sha} is not in the history: check out the full history (fetch-depth: 0).`,
     )
-    return parseRefs(run('git', messagesLogArgs(deploy.sha)))
   }
 }
 
@@ -218,56 +253,73 @@ async function main(argv, env) {
 
   const pending = pendingDeploys(readDeploys(repository, now), now)
   if (!pending.length) console.log('No prod deploy with a closed observation window.')
+  const close = (issue) => {
+    run('gh', [
+      'issue',
+      'close',
+      String(issue.number),
+      '--repo',
+      repository,
+      '--reason',
+      'completed',
+      '--comment',
+      closeComment(),
+    ])
+    moveCard(issue.html_url, 'Done', { dryRun: false }, config, io)
+  }
+  const attempt = (number, action) => {
+    try {
+      action()
+    } catch (error) {
+      console.error(`#${number}: ${error.stderr?.toString().trim() || error.message}`)
+      failures++
+    }
+  }
+
   for (const deploy of pending) {
-    const issues = issuesOf(deploy).filter((number) => {
-      const state = run('gh', ['api', `repos/${repository}/issues/${number}`, '--jq', '.state'])
-      return (
-        state.trim() === 'open' &&
-        !isJudged(readComments(io, repository, number), deploy.sha, authors)
-      )
-    })
-    if (!issues.length) {
+    let numbers
+    try {
+      numbers = issuesOf(deploy)
+    } catch (error) {
+      console.error(error.message)
+      failures++
+      continue
+    }
+    const toJudge = []
+    for (const number of numbers) {
+      const issue = ghJson([`repos/${repository}/issues/${number}`])
+      const action = ticketAction(issue, readComments(io, repository, number), deploy.sha, authors)
+      if (action === 'judge') toJudge.push(issue)
+      if (action !== 'close') continue
+      console.log(`#${number} (${deploy.sha}): judged clean but still open, closing again`)
+      if (!isDryRun) attempt(number, () => close(issue))
+    }
+    if (!toJudge.length) {
       console.log(`${deploy.sha}: no open, unjudged ticket.`)
       continue
     }
 
     const signals = {
-      sentry: sentrySignal(await readSentry(env, deploy.sha), deploy.sha),
-      uptime: uptimeSignal(await readUptime(env), healthUrl),
+      sentry: sentrySignal(await readSentry(env, deploy), deploy.sha),
+      uptime: uptimeSignal(await readUptime(env, deploy), healthUrl),
       health: healthSignal(await readHealth(healthUrl), deploy),
     }
     const body = buildComment(deploy, signals)
     const isClean = judge(signals)
 
-    for (const number of issues) {
+    for (const issue of toJudge) {
+      const { number } = issue
       console.log(`#${number} (${deploy.sha}): ${isClean ? 'clean, closing' : 'needs the person'}`)
       if (isDryRun) {
         console.log(body)
         continue
       }
-      try {
+      attempt(number, () => {
         run('gh', ['issue', 'comment', String(number), '--repo', repository, '--body-file', '-'], {
           input: body,
         })
-        if (isClean) {
-          const issue = ghJson([`repos/${repository}/issues/${number}`])
-          run('gh', [
-            'issue',
-            'close',
-            String(number),
-            '--repo',
-            repository,
-            '--reason',
-            'completed',
-            '--comment',
-            closeComment(),
-          ])
-          moveCard(issue.html_url, 'Done', { dryRun: false }, config, io)
-        }
-      } catch (error) {
-        console.error(`#${number}: ${error.stderr?.toString().trim() || error.message}`)
-        failures++
-      }
+        if (isClean) close(issue)
+      })
     }
   }
   if (failures) process.exitCode = 1

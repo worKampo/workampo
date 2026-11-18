@@ -32,7 +32,7 @@ export function parseTasks(text) {
         .filter((t) => t && t !== '—'),
       status,
     }))
-  const wavesLine = text.split('\n').find((line) => line.startsWith('Waves:')) ?? ''
+  const wavesLine = text.split('\n').find((line) => line.trimStart().startsWith('Waves:')) ?? ''
   const waves = wavesLine
     .replace('Waves:', '')
     .split('·')

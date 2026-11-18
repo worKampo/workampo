@@ -23,9 +23,12 @@ test('fails when a scenario changes after code, saying how to reopen', () => {
   assert.match(error, /Reopen: <comment-id>/)
 })
 
-test('a mixed commit before any code passes and counts as code', () => {
+test('a mixed commit before any code fails and counts as code', () => {
   const commits = [commit('m1', [SCENARIO, 'apps/web/src/x.tsx']), commit('a2', [SCENARIO])]
-  assert.equal(acceptanceErrors(commits, none).length, 1)
+  const errors = acceptanceErrors(commits, none)
+  assert.equal(errors.length, 2)
+  assert.match(errors[0], /^m1 mixes e2e\/acceptance\/ with other paths/)
+  assert.match(errors[1], /^a2 touches e2e\/acceptance\/ after m1/)
 })
 
 test('a late scenario commit needs a trusted Reopen id, each id usable once', () => {

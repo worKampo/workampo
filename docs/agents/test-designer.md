@@ -37,4 +37,4 @@ Files on the branch, then the [return format](orchestrator.md#return):
 
 ## Tools
 
-Reads and edits files. Bash for `pnpm check`, Vitest, `git diff`, `git log` and `gh` reads. Documentation and `gh`: [tools](README.md#tools).
+Reads and edits files. Bash for `pnpm check`, `pnpm specs:ids`, Vitest, `git diff`, `git log` and `gh` reads. Documentation and `gh`: [tools](README.md#tools).

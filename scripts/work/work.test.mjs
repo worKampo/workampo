@@ -173,10 +173,14 @@ function fakeIo(responses, { env = {}, files = {} } = {}) {
     writeFile: (path, text) => {
       writes[slashes(path)] = text
     },
+    // Recursive, like readdirSync with { recursive: true }: names relative to dir.
     list: (dir) =>
-      Object.keys(files)
-        .filter((name) => slashes(dir).endsWith(name.slice(0, name.lastIndexOf('/'))))
-        .map((name) => name.slice(name.lastIndexOf('/') + 1)),
+      Object.keys(files).flatMap((name) => {
+        const parts = name.split('/')
+        for (let i = parts.length - 1; i > 0; i--)
+          if (slashes(dir).endsWith(parts.slice(0, i).join('/'))) return [parts.slice(i).join('/')]
+        return []
+      }),
     run: (command, args, options) => {
       calls.push([command, ...args])
       if (options?.input) inputs.push(options.input)
@@ -717,6 +721,13 @@ function prIo(overrides = {}, options = {}) {
   )
 }
 
+test('pr: @wip becomes @issue in the specs of a domain folder too', () => {
+  const io = prIo({}, { files: { 'docs/domains/companies/team.md': SPEC } })
+  pr({ numbers: [] }, CONFIG, io)
+  assert.ok(Object.keys(io.writes)[0].endsWith('docs/domains/companies/team.md'))
+  assert.ok(writeCalls(io).includes('git add -- docs/domains/companies/team.md'))
+})
+
 test('pr: check, @issue, temporaries removed in one commit, push, PR with body and labels, Plan and Progress comments', () => {
   const io = prIo()
   pr({ numbers: [] }, CONFIG, io)
@@ -754,7 +765,14 @@ test('pr uses --title and --body-file and refuses off a ticket branch or with ch
     {},
     { files: { 'docs/domains/companies.md': SPEC, 'summary.md': 'Adds invitations.' } },
   )
+  const readFile = io.readFile
+  let readAt
+  io.readFile = (path) => {
+    if (path === 'summary.md') readAt = io.calls.length
+    return readFile(path)
+  }
   pr({ numbers: [], title: 'feat(companies): invite', bodyFile: 'summary.md' }, CONFIG, io)
+  assert.ok(readAt <= io.calls.findIndex((c) => c[1] === 'rm' || c[1] === 'commit'))
   assert.match(
     writeCalls(io).find((c) => c.startsWith('gh pr create')),
     /--title feat\(companies\): invite /,
@@ -881,6 +899,8 @@ test('write commands parse their options', () => {
   assert.throws(() => parseArgs(['pr', '3']), /no issue numbers/)
   assert.throws(() => parseArgs(['close', '3', '--title', 'x']), /close takes no --title/)
   assert.throws(() => parseArgs(['pr', '--title']), /needs a value/)
+  assert.throws(() => parseArgs(['close', '15', '--learning', '--dry-run']), /needs a value/)
+  assert.throws(() => parseArgs(['pr', '--title', '--body-file', 's.md']), /needs a value/)
 })
 
 const VERIFY_BRANCH = 'feature/9-automation'
@@ -964,6 +984,21 @@ test('verify: an existing worktree is switched, an unpushed branch is used as is
     ),
   )
   assert.ok(!joined(io).some((c) => c.startsWith('git worktree add')))
+})
+
+test('verify: stops wrangler dev when it does not answer in time', async () => {
+  const io = verifyIo({ serving: [false] })
+  await assert.rejects(verify({ numbers: [9] }, CONFIG, io), /did not answer within 60 s/)
+  assert.ok(joined(io).includes('kill 4242'))
+})
+
+test('verify: refuses an existing worktree with local changes and leaves them', async () => {
+  const io = verifyIo({ exists: true })
+  const run = io.run
+  io.run = (command, args, options) =>
+    args.includes('status') ? ' M apps/api/src/index.ts\n' : run(command, args, options)
+  await assert.rejects(verify({ numbers: [9] }, CONFIG, io), /has local changes/)
+  assert.ok(!joined(io).some((c) => c.includes('switch') || c.includes('worktree remove')))
 })
 
 test('verify: refuses without a branch or with the port taken, and --dry-run only prints', async () => {

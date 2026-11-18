@@ -16,7 +16,7 @@ Qué abre y qué hace la persona en cada etapa. Los tres momentos: [cycle](cycle
 | Review | Momento 2, en la PR: Conversation (comentarios de CodeRabbit) → Checks → Files changed → comprobación local con `pnpm work verify <n>` ([work](../procedures/work.md#verify)) → Approve → Squash and merge |
 | Staging | Lee el comentario "Staging verification" y prueba en staging los casos marcados "Only verifiable in staging" antes de aprobar producción (llega con el ticket 3, #7) |
 | Release | Momento 3: "Review deployments" en el run del workflow de deploy y aprueba `prod` (llega con el ticket 3, #7) |
-| Done | Se cierra solo tras una ventana de observación limpia de 24 horas; si no sale limpia, la persona lo cierra con `pnpm work close <n>` ([deploy](../runbooks/deploy.md#release-observation-window)) |
+| Done | Se cierra solo tras una ventana de observación limpia de 24 horas. Si no sale limpia, sigue abierto: la persona lo cierra con `pnpm work close <n>` solo si es una falsa alarma; un fallo real sigue [ADR-0039](../adr/0039-operations-and-incidents.md) ([deploy](../runbooks/deploy.md#release-observation-window)) |
 
 Un push nuevo a la PR descarta la aprobación (el ruleset exige aprobación posterior al último push): hay que aprobar otra vez.
 

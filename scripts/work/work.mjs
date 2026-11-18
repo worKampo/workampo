@@ -10,7 +10,7 @@ import {
   rmSync,
   writeFileSync,
 } from 'node:fs'
-import { dirname, join } from 'node:path'
+import { dirname, join, sep } from 'node:path'
 import { createInterface } from 'node:readline/promises'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { parse } from 'yaml'
@@ -64,7 +64,9 @@ export function parseArgs(argv) {
     const arg = rest[i]
     if (VALUE_OPTIONS[arg]) {
       const value = rest[++i]
-      if (value === undefined) throw new Error(`${arg} needs a value.`)
+      // `--learning --dry-run` would otherwise eat the flag and close for real.
+      if (value === undefined || value in VALUE_OPTIONS || ['--json', '--dry-run'].includes(value))
+        throw new Error(`${arg} needs a value.`)
       args[VALUE_OPTIONS[arg]] = value
     } else if (arg === '--json') args.json = true
     else if (arg === '--dry-run') args.dryRun = true
@@ -809,7 +811,10 @@ function readTemporaries(number, io) {
 
 function tagSpecs(number, args, io) {
   const changed = []
-  for (const name of io.list(join(ROOT, SPECS_DIR)).filter((n) => n.endsWith('.md'))) {
+  // Recursive: a large domain becomes a folder of specs.
+  for (const entry of io.list(join(ROOT, SPECS_DIR), { recursive: true })) {
+    const name = entry.split(sep).join('/')
+    if (!name.endsWith('.md')) continue
     const path = join(ROOT, SPECS_DIR, name)
     const text = io.readFile(path)
     const tagged = tagIssue(text, number)
@@ -834,6 +839,8 @@ export function pr(args, config, io) {
   const issue = viewIssue(number, 'number,title,url,labels,body', config, io)
   const parent = parentOf(issue, config, io)
   act('pnpm', ['check'], { isVisible: true })
+  // Before .work/ goes: the summary may live there.
+  const summary = args.bodyFile ? io.readFile(args.bodyFile) : null
 
   const saved = readTemporaries(number, io)
   const specs = tagSpecs(number, args, io)
@@ -858,7 +865,6 @@ export function pr(args, config, io) {
   ])
   if (open) io.log(`PR already open: ${open.url}`)
   else {
-    const summary = args.bodyFile ? io.readFile(args.bodyFile) : null
     const labels = prLabels(issue).flatMap((label) => ['--label', label])
     const url = act(
       'gh',
@@ -961,8 +967,14 @@ export async function verify(args, config, io) {
   const ref = isPushed ? `origin/${branch}` : branch
   const dir = verifyDir(number)
   // Detached, so the branch can stay checked out in the main working tree.
-  if (io.exists(dir)) act('git', ['-C', dir, 'switch', '--detach', ref])
-  else act('git', ['worktree', 'add', '--detach', dir, ref])
+  if (io.exists(dir)) {
+    // `git switch` carries local edits along, and the app would run them instead of the PR.
+    if (io.run('git', ['-C', dir, 'status', '--porcelain']).trim())
+      throw new Error(
+        `${dir} has local changes: inspect them with git -C ${dir} status, then discard them or remove the worktree (git worktree remove --force ${dir}).`,
+      )
+    act('git', ['-C', dir, 'switch', '--detach', ref])
+  } else act('git', ['worktree', 'add', '--detach', dir, ref])
 
   const apiDir = join(dir, 'apps', 'api')
   const wrangler = join(apiDir, WRANGLER)
@@ -988,8 +1000,11 @@ export async function verify(args, config, io) {
   } else {
     const log = join(apiDir, VERIFY_LOG)
     const pid = io.spawnDetached('node', dev, { cwd: apiDir, log })
-    if (!(await waitUntilServing(health, io)))
-      throw new Error(`wrangler dev did not answer within 60 s: see ${log}`)
+    if (!(await waitUntilServing(health, io))) {
+      const [stop, ...stopArgs] = stopHint(io.platform, pid).split(' ')
+      tryRun(io, stop, stopArgs)
+      throw new Error(`wrangler dev did not answer within 60 s and was stopped: see ${log}`)
+    }
     io.log(`App running at ${VERIFY_URL} (log: ${log}).`)
     io.log(`Stop it with: ${stopHint(io.platform, pid)}`)
     if (tryRun(io, openFile, openArgs) === null) io.warn(`Open ${health} in the browser.`)

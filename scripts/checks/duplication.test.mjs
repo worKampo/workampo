@@ -3,7 +3,7 @@ import { writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { test } from 'node:test'
 import { check } from './duplication.mjs'
-import { context } from './test-support.mjs'
+import { context, failure } from './test-support.mjs'
 
 const clone = {
   firstFile: { name: 'apps\\web\\src\\a.tsx', start: 1, end: 13 },
@@ -35,4 +35,9 @@ test('clones are warnings, never errors', () => {
     errors: [],
     warnings: ['apps/web/src/a.tsx:1-13 duplicates apps/web/src/b.tsx:4-16 (13 lines)'],
   })
+})
+
+test('a jscpd crash is a warning, not a failure', () => {
+  const ctx = context({ routes: [[/run-jscpd\.js/, failure(2)]] })
+  assert.deepEqual(check(ctx), { errors: [], warnings: ['jscpd could not run: exit 2'] })
 })

@@ -12,11 +12,22 @@ function index(hits) {
   return ids
 }
 
+// A malformed id would match nothing above and slip past both checks.
+function malformed(hits) {
+  return hits.flatMap((hit) =>
+    [...hit.text.matchAll(/@id:[\w<>-]*/g)]
+      .map(([raw]) => raw)
+      .filter((raw) => !/^@id:[a-z][a-z0-9-]*-\d+-\d+$/.test(raw))
+      .map((raw) => `${hit.file}:${hit.line}: malformed ${raw}`),
+  )
+}
+
 export function verificationMatrix(specHits, testHits) {
-  const specs = index(specHits.filter((hit) => hit.file !== 'docs/domains/README.md'))
+  const specHitsOnly = specHits.filter((hit) => hit.file !== 'docs/domains/README.md')
+  const specs = index(specHitsOnly)
   const tests = index(testHits)
   const files = (places) => [...new Set(places.map((place) => place.replace(/:\d+$/, '')))]
-  const errors = []
+  const errors = malformed([...specHitsOnly, ...testHits])
   const rows = []
   for (const [id, places] of specs) {
     const citing = files(tests.get(id) ?? [])

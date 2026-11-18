@@ -107,6 +107,8 @@ export function createContext({ env, run = defaultRun, commitEmail }) {
       .split(',')
       .map((l) => l.trim())
       .filter(Boolean),
+    // A merge lists only what differs from every parent: what its resolution introduced, not
+    // what the merged branch brought.
     commits: () =>
       once('commits', () =>
         parseLog(
@@ -114,6 +116,7 @@ export function createContext({ env, run = defaultRun, commitEmail }) {
             'log',
             '--reverse',
             '--topo-order',
+            '--diff-merges=combined',
             '--format=%x1e%H%x1f%ae%x1f%an%x1f%(trailers:key=Reopen,valueonly,unfold,separator=%x2c)',
             '--name-only',
             `${base}..${head}`,

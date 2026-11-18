@@ -102,13 +102,13 @@ After the prod deploy a verifier reviews new Sentry errors, Worker metrics and t
 
 [`.github/workflows/observation-window.yml`](../../.github/workflows/observation-window.yml) runs every hour (minute 17) and by hand, with `node scripts/observation/check.mjs`. It is a deterministic script, not an AI agent.
 
-1. Reads the GitHub deployments of the `prod` Environment. A deploy is due when its success status is at least 24 hours old.
-2. Its tickets are the `Refs: #N` trailers of the commits between the previous prod deploy and this one. It skips a closed ticket and a ticket that already has a comment with `<!-- observation-window:<sha> -->` by the workflow, the agents' App or the project account.
+1. Reads every page of the GitHub deployments of the `prod` Environment. A deploy is due when its success status is at least 24 hours old.
+2. Its tickets are the `Refs: #N` trailers of the commits between the previous prod deploy and this one; it needs the full history, and if that range is missing it fails for that deploy instead of judging part of it. It skips a closed ticket and a ticket that already has a comment with `<!-- observation-window:<sha> -->` by the workflow, the agents' App or the project account; if that comment is clean and the ticket is still open (the close failed), it closes it again, unless the person reopened it.
 3. Three signals:
-   - Sentry: issues of the organization whose first release is that SHA, in the `prod` environment. None is clean.
-   - UptimeRobot: the monitor of the prod `/health`. Clean if it is up and its 1-day uptime is at least 99.9%.
+   - Sentry: issues of the organization whose first release is that SHA, in the `prod` environment, within the window (from the deploy to 24 hours later, whenever the check runs). None is clean.
+   - UptimeRobot: the monitor of the prod `/health`. Clean if it is up and its uptime over the window is at least 99.9%.
    - `/health` serves that SHA. If prod already serves a newer deploy, the window is judged on Sentry and UptimeRobot only.
-4. Clean: comment "Observation window clean" and close the ticket as completed. Otherwise: comment "Observation window: needs the person" with the findings and leave it open; the person closes it with `pnpm work close <n>`.
+4. Clean: comment "Observation window clean" and close the ticket as completed. Otherwise: comment "Observation window: needs the person" with the findings and leave it open. The person reviews them: a false alarm (a signal not read, an issue unrelated to the release) she judges clean and closes with `pnpm work close <n>`; a real failure is not closed as completed: the ticket stays open and follows ADR-0020 (revert or fix) and [ADR-0039](../adr/0039-operations-and-incidents.md).
 
 A missing secret leaves its signal "not checked", and the window is not clean. Sentry issues are listed by id and link only: their titles can carry user data and the issue is public.
 

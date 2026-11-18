@@ -1,4 +1,4 @@
-// Validates tasks.md: dependencies, cycles, waves and file collisions inside a wave (ADR-0020).
+// Validates .work/tasks.md: dependencies, cycles, waves and file collisions inside a wave (ADR-0020).
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { parseTasks } from './tasks.mjs'
@@ -40,6 +40,13 @@ export function checkPlan(text) {
   }
   for (const id of waveOf.keys())
     if (!known.has(id)) problems.push(`Waves: ${id} is not in the table`)
+  // waveOf keeps one wave per task and the collision check reads one entry per wave.
+  const numbers = waves.map(({ n }) => n)
+  for (const n of new Set(numbers.filter((n, i) => numbers.indexOf(n) !== i)))
+    problems.push(`Waves: wave ${n} appears more than once`)
+  const ids = waves.flatMap((wave) => wave.ids)
+  for (const id of new Set(ids.filter((id, i) => ids.indexOf(id) !== i)))
+    problems.push(`Waves: ${id} is in more than one wave`)
 
   const cycle = findCycle(tasks)
   if (cycle) problems.push(`cycle: ${cycle.join(' → ')}`)
@@ -66,7 +73,7 @@ export function checkPlan(text) {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  const file = process.argv[2] ?? 'tasks.md'
+  const file = process.argv[2] ?? '.work/tasks.md'
   const problems = checkPlan(readFileSync(file, 'utf8'))
   if (problems.length) {
     console.error(`${file}:\n- ${problems.join('\n- ')}`)

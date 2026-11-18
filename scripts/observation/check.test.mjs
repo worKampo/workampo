@@ -3,13 +3,15 @@ import { test } from 'node:test'
 import {
   buildComment,
   healthSignal,
-  isJudged,
   judge,
   marker,
   observationAuthors,
   pendingDeploys,
+  sentryQuery,
   sentrySignal,
   successTime,
+  ticketAction,
+  uptimeRange,
   uptimeSignal,
 } from './check.mjs'
 
@@ -24,7 +26,7 @@ const deploy = {
 }
 const upMonitor = {
   stat: 'ok',
-  monitors: [{ url: `${HEALTH}/`, status: 2, custom_uptime_ratio: '100.000' }],
+  monitors: [{ url: `${HEALTH}/`, status: 2, custom_uptime_ranges: '100.000' }],
 }
 
 function signalsFor({
@@ -95,8 +97,8 @@ test('a new Sentry issue needs the person, listed without its title', () => {
 })
 
 test('a monitor down or below 99.9% uptime needs the person', () => {
-  const down = { stat: 'ok', monitors: [{ url: HEALTH, status: 9, custom_uptime_ratio: '100' }] }
-  const flaky = { stat: 'ok', monitors: [{ url: HEALTH, status: 2, custom_uptime_ratio: '99.5' }] }
+  const down = { stat: 'ok', monitors: [{ url: HEALTH, status: 9, custom_uptime_ranges: '100' }] }
+  const flaky = { stat: 'ok', monitors: [{ url: HEALTH, status: 2, custom_uptime_ranges: '99.5' }] }
   assert.equal(judge(signalsFor({ uptime: { response: down } })), false)
   assert.equal(judge(signalsFor({ uptime: { response: flaky } })), false)
   assert.equal(uptimeSignal({ response: { stat: 'ok', monitors: [] } }, HEALTH).ok, false)
@@ -119,25 +121,48 @@ test('/health serving a newer deploy is fine; an older or unknown SHA is not', (
   assert.equal(judge(signalsFor({ health: { error: 'HTTP 503' } })), false)
 })
 
+const OPEN = { state: 'open', state_reason: null }
+const needsPerson = (login, type, sha = 'bbb') => ({
+  user: { login, type },
+  body: `## Observation window: needs the person\n${marker(sha)}`,
+})
+
 test('a marker from a trusted author marks the window as judged', () => {
   const authors = observationAuthors(config)
-  const comment = (login, type, sha = 'bbb') => ({
-    user: { login, type },
-    body: `x\n${marker(sha)}`,
-  })
-  assert.equal(isJudged([comment('github-actions[bot]', 'Bot')], 'bbb', authors), true)
-  assert.equal(isJudged([comment('workampo-agents[bot]', 'Bot')], 'bbb', authors), true)
-  assert.equal(isJudged([comment('workampo-dev', 'User')], 'bbb', authors), true)
-  assert.equal(isJudged([comment('github-actions[bot]', 'Bot', 'aaa')], 'bbb', authors), false)
+  const action = (comment) => ticketAction(OPEN, [comment], 'bbb', authors)
+  assert.equal(action(needsPerson('github-actions[bot]', 'Bot')), 'skip')
+  assert.equal(action(needsPerson('workampo-agents[bot]', 'Bot')), 'skip')
+  assert.equal(action(needsPerson('workampo-dev', 'User')), 'skip')
+  assert.equal(action(needsPerson('github-actions[bot]', 'Bot', 'aaa')), 'judge')
+  assert.equal(ticketAction({ state: 'closed' }, [], 'bbb', authors), 'skip')
 })
 
 test('a marker from an untrusted author is ignored', () => {
   const authors = observationAuthors(config)
-  const comments = [
-    { user: { login: 'stranger', type: 'User' }, body: marker('bbb') },
-    { user: { login: 'github-actions[bot]', type: 'User' }, body: marker('bbb') },
-  ]
-  assert.equal(isJudged(comments, 'bbb', authors), false)
+  const comments = [needsPerson('stranger', 'User'), needsPerson('github-actions[bot]', 'User')]
+  assert.equal(ticketAction(OPEN, comments, 'bbb', authors), 'judge')
+})
+
+test('a clean verdict on a ticket still open retries the close, unless the person reopened it', () => {
+  const authors = observationAuthors(config)
+  const clean = {
+    user: { login: 'github-actions[bot]', type: 'Bot' },
+    body: buildComment(deploy, signalsFor()),
+  }
+  assert.equal(ticketAction(OPEN, [clean], 'bbb', authors), 'close')
+  assert.equal(
+    ticketAction({ state: 'open', state_reason: 'reopened' }, [clean], 'bbb', authors),
+    'skip',
+  )
+})
+
+test('Sentry and UptimeRobot read the deploy window, not one relative to the run', () => {
+  const query = sentryQuery(deploy)
+  assert.equal(query.get('query'), 'firstRelease:bbb')
+  assert.equal(query.get('start'), '2026-11-19T10:00:00.000Z')
+  assert.equal(query.get('end'), '2026-11-20T10:00:00.000Z')
+  assert.equal(query.has('statsPeriod'), false)
+  assert.equal(uptimeRange(deploy), '1795082400_1795168800')
 })
 
 test('an UptimeRobot error never puts request data in the public comment', () => {

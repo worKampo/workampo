@@ -21,12 +21,12 @@ function wipe(db, io) {
       capture: true,
     }),
   ).map((row) => row.name)
-  if (tables.every((name) => name === 'd1_migrations')) {
-    io.log(`${db}: no tables, nothing to wipe.`)
-    return
+  if (tables.every((name) => name === 'd1_migrations')) io.log(`${db}: no tables, nothing to wipe.`)
+  else {
+    io.log(`${db}: dropping ${tables.join(', ')}.`)
+    io.wrangler(['d1', 'execute', db, ...target(ENV), '--command', wipeSql(tables)])
   }
-  io.log(`${db}: dropping ${tables.join(', ')} and re-applying migrations.`)
-  io.wrangler(['d1', 'execute', db, ...target(ENV), '--command', wipeSql(tables)])
+  // Always, so a rerun after a failure between the drop and the apply rebuilds the schema.
   io.wrangler(['d1', 'migrations', 'apply', db, ...target(ENV)])
 }
 

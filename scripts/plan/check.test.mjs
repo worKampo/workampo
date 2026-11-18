@@ -74,3 +74,23 @@ test('reports a task missing from the waves', () => {
   )
   assert.deepEqual(checkPlan(plan), ['T2: missing from the waves'])
 })
+
+test('reports a repeated wave number and a task in two waves', () => {
+  const rows = [
+    ['T1', 'a', '—', 'x.md'],
+    ['T2', 'b', 'T1', 'x.md'],
+  ]
+  assert.ok(
+    checkPlan(table(rows, '1 → T1 · 1 → T2')).includes('Waves: wave 1 appears more than once'),
+  )
+  assert.ok(
+    checkPlan(table(rows, '1 → T2 · 2 → T1 · 3 → T2')).includes(
+      'Waves: T2 is in more than one wave',
+    ),
+  )
+})
+
+test('reads an indented Waves line', () => {
+  const plan = table([['T1', 'a', '—', 'x.md']], '1 → T1').replace('Waves:', '  Waves:')
+  assert.deepEqual(checkPlan(plan), [])
+})

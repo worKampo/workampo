@@ -1,6 +1,17 @@
 import assert from 'node:assert/strict'
+import { execFileSync } from 'node:child_process'
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { test } from 'node:test'
-import { branchTicket, parseAddedLines, parseLog, parseNameStatus } from './context.mjs'
+import {
+  branchTicket,
+  createContext,
+  defaultRun,
+  parseAddedLines,
+  parseLog,
+  parseNameStatus,
+} from './context.mjs'
 import { context, failure, issueJson, logOf, RENOVATE } from './test-support.mjs'
 
 test('reads the ticket from the branch', () => {
@@ -128,4 +139,53 @@ test('git grep without matches is empty', () => {
   assert.deepEqual(hit.grep('@id:', ['docs/domains']), [
     { file: 'docs/domains/a.md', line: 3, text: '  @id:a-1-1' },
   ])
+})
+
+test('a merge lists the files its resolution changed, not those the merged branch brought', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'merge-files-'))
+  const git = (...args) =>
+    execFileSync(
+      'git',
+      [
+        '-c',
+        `core.hooksPath=${join(dir, 'no-hooks')}`,
+        '-c',
+        'user.name=t',
+        '-c',
+        'user.email=t@example.com',
+        ...args,
+      ],
+      { cwd: dir, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] },
+    ).trim()
+  const write = (file, text) => writeFileSync(join(dir, file), text)
+  const commit = (message) => git('commit', '-q', '-a', '-m', message)
+  try {
+    git('init', '-q', '-b', 'master')
+    write('a.ts', '1')
+    write('spec.ts', 's')
+    git('add', '.')
+    commit('chore: base')
+    const base = git('rev-parse', 'HEAD')
+    git('switch', '-q', '-c', 'branch')
+    write('a.ts', '2')
+    commit('feat: branch')
+    git('switch', '-q', 'master')
+    write('a.ts', '3')
+    write('m.ts', 'm')
+    git('add', '.')
+    commit('feat: master')
+    git('switch', '-q', 'branch')
+    assert.throws(() => git('merge', '-q', 'master'))
+    write('a.ts', '4')
+    write('spec.ts', 'changed in the resolution')
+    git('add', '.')
+    commit('chore: merge master')
+    const ctx = createContext({
+      env: { BASE_SHA: base, HEAD_SHA: git('rev-parse', 'HEAD') },
+      run: (file, args) => defaultRun(file, args, { cwd: dir }),
+    })
+    assert.deepEqual(ctx.commits().at(-1).files.toSorted(), ['a.ts', 'spec.ts'])
+  } finally {
+    rmSync(dir, { recursive: true, force: true })
+  }
 })

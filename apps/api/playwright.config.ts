@@ -1,7 +1,9 @@
 import { defineConfig, devices } from '@playwright/test'
 
 const PERSIST = '.wrangler/e2e'
-const URL = 'http://127.0.0.1:8787'
+// Not 8787: `pnpm work verify` and `wrangler dev` use it with other data.
+const PORT = 8788
+const URL = `http://127.0.0.1:${PORT}`
 
 export default defineConfig({
   testDir: 'e2e',
@@ -17,10 +19,11 @@ export default defineConfig({
       `wrangler d1 migrations apply global-local --local --persist-to ${PERSIST}`,
       `wrangler d1 migrations apply shard-1-local --local --persist-to ${PERSIST}`,
       `node ../../scripts/db/seed.mjs --persist-to ${PERSIST}`,
-      `wrangler dev --local --ip 127.0.0.1 --port 8787 --persist-to ${PERSIST}`,
+      `wrangler dev --local --ip 127.0.0.1 --port ${PORT} --persist-to ${PERSIST}`,
     ].join(' && '),
     url: `${URL}/health`,
-    reuseExistingServer: !process.env.CI,
+    // A server already running skips the migrations and the seed above.
+    reuseExistingServer: false,
     timeout: 120_000,
   },
 })

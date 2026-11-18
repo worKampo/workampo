@@ -58,3 +58,14 @@ test('no examples and no tests pass', () => {
   const ctx = context({ routes: [[/^git grep/, failure(1)]] })
   assert.deepEqual(check(ctx).errors, [])
 })
+
+test('a malformed @id in a spec or a test fails', () => {
+  const tests = [
+    "head:packages/domain/x.test.ts:9:it('@id:companies-15-1 @id:public-site-20-1', () => {",
+    "head:packages/domain/y.test.ts:3:it.fails('@id:companies-<issue>-<n> @id:Companies-15-1')",
+  ].join('\n')
+  assert.deepEqual(run(tests).errors, [
+    'packages/domain/y.test.ts:3: malformed @id:companies-<issue>-<n>',
+    'packages/domain/y.test.ts:3: malformed @id:Companies-15-1',
+  ])
+})

@@ -1,4 +1,4 @@
-// Writes tasks.md as the issue checklist between markers (ADR-0020, ADR-0034). GH_TOKEN comes from the environment.
+// Writes .work/tasks.md as the issue checklist between markers (ADR-0020, ADR-0034). GH_TOKEN comes from the environment.
 import { execFileSync } from 'node:child_process'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
@@ -26,9 +26,9 @@ export function applyBlock(body, block) {
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const args = process.argv.slice(2)
   const dryRun = args.includes('--dry-run')
-  const [issue, file = 'tasks.md'] = args.filter((a) => !a.startsWith('--'))
+  const [issue, file = '.work/tasks.md'] = args.filter((a) => !a.startsWith('--'))
   if (!/^\d+$/.test(issue ?? '')) {
-    console.error('usage: plan:sync <issue> [file=tasks.md] [--dry-run]')
+    console.error('usage: plan:sync <issue> [file=.work/tasks.md] [--dry-run]')
     process.exit(2)
   }
   const block = renderBlock(parseTasks(readFileSync(file, 'utf8')).tasks)

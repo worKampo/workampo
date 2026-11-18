@@ -54,7 +54,7 @@ Pre-commit runs gitleaks and `pnpm check`. Never skip it, except the documented 
 
 ## 6. GitHub identity
 
-- Agents act on GitHub only as the App `workampo-agents`: `GH_TOKEN=$(node scripts/github/app-token.mjs) gh …`. Push with the token in an HTTP header, never in the URL: `T=$(node scripts/github/app-token.mjs); git -c http.https://github.com/.extraheader="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$T" | base64 -w0)" push https://github.com/worKampo/workampo.git <branch>`. `-c` is visible in the process list too, so scripts pass it through `GIT_CONFIG_*` instead (`pnpm work` does).
+- Agents act on GitHub only as the App `workampo-agents`: `GH_TOKEN=$(node scripts/github/app-token.mjs) gh …`. Push with the token in an HTTP header passed through the environment, never in the URL nor in `-c` (the process list shows arguments): `T=$(node scripts/github/app-token.mjs); GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=http.https://github.com/.extraheader GIT_CONFIG_VALUE_0="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$T" | base64 -w0)" git push https://github.com/worKampo/workampo.git <branch>` (`pnpm work` does the same).
 - Never the person's `gh` login or SSH key. Never read `~/.workampo/` (the App key; denied in `.claude/settings.json`).
 - Agents cannot merge, approve, push to `master` or approve deployments: the rulesets require the person ([ADR-0041](docs/adr/0041-agent-boundaries.md)).
 - Commit author is the project's noreply address, set by git per folder; never change git identity.

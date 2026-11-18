@@ -22,6 +22,9 @@ export function check(ctx) {
     ctx.run(process.execPath, [CLI, '--config', '.jscpd.json', '--output', output], { cwd: ROOT })
     const report = JSON.parse(readFileSync(join(output, 'jscpd-report.json'), 'utf8'))
     return { errors: [], warnings: duplicationWarnings(report) }
+  } catch (error) {
+    // Warnings only: a jscpd crash must not fail the PR either.
+    return { errors: [], warnings: [`jscpd could not run: ${error.message.split('\n')[0]}`] }
   } finally {
     rmSync(output, { recursive: true, force: true })
   }

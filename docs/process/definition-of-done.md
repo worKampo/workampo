@@ -13,4 +13,4 @@ Esa condición incluye:
 - [ ] Momento 3: lo marcado "Only verifiable in staging" probado y producción aprobada.
 - [ ] Release: smoke de solo lectura y ventana de observación limpia (Sentry, métricas, SLOs).
 
-Entonces el workflow de la ventana de observación cierra el issue; si necesita a la persona, ella lo cierra con `pnpm work close <n>` ([deploy](../runbooks/deploy.md#release-observation-window), [work](../procedures/work.md)). Si la ventana no sale limpia: [ADR-0039](../adr/0039-operations-and-incidents.md).
+Entonces el workflow de la ventana de observación cierra el issue. Si la ventana no sale limpia, el issue sigue abierto: si la persona ve que es una falsa alarma (una señal sin leer, un error ajeno a la release), la da por limpia y lo cierra con `pnpm work close <n>`; si es un fallo real, no se cierra y se sigue [ADR-0039](../adr/0039-operations-and-incidents.md) ([deploy](../runbooks/deploy.md#release-observation-window), [work](../procedures/work.md)).

@@ -44,11 +44,16 @@ test('refuses outside GitHub Actions and any target other than stg', () => {
   }
 })
 
-test('with no tables and no seed files it only lists tables on stg', () => {
-  const { io, calls } = fakeIo({ tables: ['d1_migrations'] })
-  resetStg([], io)
-  assert.equal(calls.length, 2)
-  for (const args of calls) assert.deepEqual(args.slice(3, 6), ['--env', 'stg', '--remote'])
+test('with no tables it drops nothing but still applies migrations, so a failed reset resumes', () => {
+  for (const tables of [[], ['d1_migrations']]) {
+    const { io, calls } = fakeIo({ tables })
+    resetStg([], io)
+    assert.deepEqual(
+      calls.map((args) => args.slice(0, 2).join(' ')),
+      ['d1 execute', 'd1 migrations', 'd1 execute', 'd1 migrations'],
+    )
+    for (const args of calls) assert.ok(args.join(' ').includes('--env stg --remote'))
+  }
 })
 
 test('drops the tables, re-applies migrations and seeds', () => {
