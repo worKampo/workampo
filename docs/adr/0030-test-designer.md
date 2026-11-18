@@ -24,6 +24,10 @@ Whoever designs the tests must not be whoever implements (same reason as the ind
   - **After the merge** they stay in the E2E suite of every PR ([ADR-0029](0029-testing-strategy.md)) and are the basis of the staging smoke. Changing the scenario of an existing rule is only possible in a ticket whose moment 1 approved that change, with the same ordering rule.
 - **Suggestions in other steps**: Implement, propose E2E when touching a screen or critical journey; Verify, the spec reviewer flags every example without a test as a failure; Document, propose regenerating screenshots if the interface changed.
 
+## Updates
+
+- 2026-11-18: a `/reopen-acceptance` comment by the person opens a new segment for the commit-order check: acceptance commits come first within each segment. A segment is marked by the commit's trailer `Reopen: <comment-id>` naming that comment, one commit per comment, not by time: commit dates are set by whoever commits (decided in issue #27).
+
 ## Consequences
 
 See Decision.

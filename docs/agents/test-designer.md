@@ -18,7 +18,7 @@ The issue (intent, approved examples E1…, UI and Security sections), `.work/pl
 
 Files on the branch, then the [return format](orchestrator.md#return):
 
-1. **Living-spec diff** in `docs/domains/<domain>.md` ([domains](../domains/README.md)): the approved examples under `@wip(#n)` with their `@id:<domain>-<issue>-<n>`, assigned by hand until `pnpm specs:ids` exists.
+1. **Living-spec diff** in `docs/domains/<domain>.md` ([domains](../domains/README.md)): the approved examples under `@wip(#n)` with their `@id:<domain>-<issue>-<n>`, assigned by `pnpm specs:ids` ([living specs](../procedures/living-specs.md)).
 2. **Failing tests** next to the code (`*.test.ts`, `*.int.test.ts`), marked `it.fails`, each citing its `@id`, plus the fixed edge cases of [ADR-0029](../adr/0029-testing-strategy.md) (limits, nulls, unicode, concurrency, isolation).
 3. **Protected acceptance scenarios**: one Playwright E2E per approved example in `apps/<app>/e2e/acceptance/`, citing its `@id` and walking the app as a user would. Until the repo has Playwright, skip them and say so under open questions.
 4. `pnpm check` green with the `it.fails` marks.

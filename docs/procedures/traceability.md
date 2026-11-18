@@ -16,6 +16,7 @@ Exact formats so every piece can be navigated in both directions. Why: [ADR-0042
 | Ticket ↔ PRD | Native GitHub sub-issue |
 | Branch | Created with `gh issue develop`; name matches `^(feature\|bugfix\|hotfix)/\d+-[a-z0-9-]+$`, e.g. `feature/15-invite-by-email` |
 | Task commit | Conventional commit + trailers `Refs: #15` · `PRD: #12` · `Task: T3`, e.g. `feat(members): add POST /invitations` |
+| Reopened acceptance commit | Also the trailer `Reopen: <comment-id>`, the id of the person's `/reopen-acceptance` comment on the issue ([testing](testing.md#acceptance-scenarios)) |
 | PR title | Conventional commit |
 | PR body | `PRD #12` and `Ticket #15` (PRD only if the ticket has a parent); filled by `pnpm work pr`. Same `type:` and `area:` labels as the ticket. "Plan", "Progress" and "Verification" are comments |
 | Commit on `master` (squash) | PR title + the PR number GitHub adds, e.g. `feat(members): invite members by email (#40)`; body with the trailers |
@@ -39,17 +40,21 @@ No hand-written version constants: the version is the commit SHA; the `version` 
 
 ## CI checks
 
-All arrive with ticket 5, #9. Until then they are checked by hand at review.
+Run in CI on every PR (`.github/workflows/traceability.yml`) by `pnpm check:pr`, one script per check in [`scripts/checks/`](../../scripts/checks/pr.mjs). Locally they need the PR's environment variables, so they run in CI only.
 
-| Check | Brought by |
+| Check | Rule |
 |---|---|
-| Branch name matches the regex and the number is an open issue | ticket 5, #9 |
-| commitlint: conventional commit and `Refs: #<ticket of the branch>` in every commit | ticket 5, #9 |
-| PR body has `Ticket #N` (and `PRD #N` if the ticket has a parent); `type:` and `area:` labels | ticket 5, #9 |
-| No `@wip` and no `.work/PROGRESS.md`, `.work/plan.md` or `.work/tasks.md` in what reaches `master` | ticket 5, #9 |
-| `size:` label on the issue; `size:L` if the diff touches critical-zone paths | ticket 5, #9 |
-| Author of every commit has the project's *noreply* email, never another account (see the [bootstrap](../process/bootstrap.md)) | ticket 5, #9 |
-| Every living-spec example has a test (by `@id`) and no test cites a missing example; CI then publishes the "Verification" comment | ticket 5, #9 |
+| Branch | Name matches the regex and the number is an open issue |
+| Commits | commitlint: conventional commit and `Refs: #<ticket of the branch>` in every commit |
+| PR body and labels | `Ticket #N` (and `PRD #N` if the ticket has a parent); `type:` and `area:` labels |
+| Size | `size:` label on the issue; `size:L` if the diff touches a path of [critical-paths](critical-paths.md) |
+| Temporaries | No `@wip`, `.work/PROGRESS.md`, `.work/plan.md` or `.work/tasks.md` in what reaches `master` |
+| Examples | Every living-spec example has a test (by `@id`) and no test cites a missing example; CI then publishes the "Verification" comment |
+| Acceptance order | In topological order, never by date: commits touching `e2e/acceptance/` come before the first code commit; a later one needs a `Reopen: <comment-id>` trailer naming an unused `/reopen-acceptance` comment by an admin user on the issue ([testing](testing.md#acceptance-scenarios)) |
+| Author | Every commit has the project's *noreply* email (see the [bootstrap](../process/bootstrap.md)) |
+| Emails in the diff | None except the noreply and the seed test domains |
+| `paid-plan` marks | Format `paid-plan(<ADR>)` |
+| Duplicated `.tsx` | jscpd; warning only |
 
 ### Learned in practice
 

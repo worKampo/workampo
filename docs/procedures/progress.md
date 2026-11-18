@@ -16,7 +16,7 @@ Same format and always overwritten; only the place changes with the phase ([ADR-
 | Phase | Where |
 |---|---|
 | Steps 1-7 (up to Document) | `.work/PROGRESS.md` on the branch |
-| Pull request (step 8) | One **"Progress"** comment on the PR, edited by the orchestrator. `pnpm work pr` copies the content there and deletes the temporary files in the same commit (arrives with ticket 5, #9; until then by hand) |
+| Pull request (step 8) | One **"Progress"** comment on the PR, edited by the orchestrator. `pnpm work pr` copies the content there and deletes the temporary files in the same commit |
 | Staging and Release (steps 9-10) | Issue comments |
 | PRD cycle (P1-P3) | **"Progress"** comment on the PRD issue: a PRD has no branch ([ADR-0034](../adr/0034-prds-slicing-and-ticket-format.md)) |
 
@@ -27,7 +27,7 @@ Same format and always overwritten; only the place changes with the phase ([ADR-
 3. The issue
 4. `.work/tasks.md` and `.work/plan.md`, if they exist
 
-Then continue from "Next". `pnpm work resume` prints this summary (arrives with ticket 5, #9).
+Then continue from "Next". `pnpm work resume` prints this summary ([work](work.md)).
 
 ## Format
 

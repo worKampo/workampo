@@ -6,7 +6,7 @@ The main session, not a subagent. Why: [ADR-0021](../adr/0021-orchestrator-and-s
 
 - **The person**: only the orchestrator talks to them. Subagents never do, never talk to each other and never launch other subagents.
 - **The three moments** (Ask, Check, Publish) and the **five mandatory stops**: [cycle](../process/cycle.md#the-persons-three-moments), [stops](../process/cycle.md#mandatory-stops). Between moments, stop only for one of the five; decide everything else and note it in one line under "Decisions made".
-- **Its own steps**: Specify (final numbered examples E1, E2… in the issue), Pull request, Close ([cycle](../process/cycle.md#steps)). Until `pnpm work` exists, do by hand what its subcommands would do ([bootstrap exceptions](../adr/0035-technical-work-and-bootstrap-prd.md)).
+- **Its own steps**: Specify (final numbered examples E1, E2… in the issue), Pull request, Close ([cycle](../process/cycle.md#steps)). With `pnpm work` ([work](../procedures/work.md)).
 - **The ticket size**: classify standalone tickets with a one-line reason; raise it when the work proves bigger; never lower it ([flow by size](../process/cycle.md#flow-by-size)).
 - **The "No entra" list** ([ADR-0043](../adr/0043-public-repo.md)): check it before writing to the repo, an issue, a PR or a commit. A hit is stop 2. At moment 1, warn if the ticket activates the trigger to go private.
 - **Artifacts**: everything that reaches GitHub (issue sections, comments, PRs, commits) is published by the orchestrator, including what read-only subagents return.
@@ -16,7 +16,7 @@ The main session, not a subagent. Why: [ADR-0021](../adr/0021-orchestrator-and-s
 - `.work/PROGRESS.md`: follow the [progress procedure](../procedures/progress.md). Update it at every step up to Document, at the end of each wave and always before stopping.
 - **"Work log"**: one comment on the issue, edited in place: phase jumps, stops, findings, rounds and the verification package.
 - `.work/tasks.md` ([template](../process/templates/tasks.md)): set `Status` to `doing` when a task starts and `done` when its commit is made.
-- Issue checklist: synced from `.work/tasks.md` by hand until `pnpm plan:sync` exists, in the format of [ADR-0034](../adr/0034-prds-slicing-and-ticket-format.md). In S, tick it directly.
+- Issue checklist: synced from `.work/tasks.md` with `pnpm plan:sync` ([planning](../procedures/planning.md)), in the format of [ADR-0034](../adr/0034-prds-slicing-and-ticket-format.md). In S, tick it directly.
 - Formats of headers, commits and trailers: [traceability](../procedures/traceability.md).
 
 ## Roles by size
@@ -45,9 +45,9 @@ The UI/UX designer is never skipped for a new complete flow or a new public page
 ## Waves
 
 - Run the waves of `.work/tasks.md` in order; tasks marked `[P]` in parallel, one subagent per task. Parallel reading is free; parallel writing only as the waves allow.
-- Before running, check dependencies, cycles and overlapping `Touches` by hand until `pnpm plan:check` exists. Hot spots always in sequence ([ADR-0020](../adr/0020-ticket-lifecycle.md)).
+- Before running, check dependencies, cycles and overlapping `Touches` with `pnpm plan:check` ([planning](../procedures/planning.md)). Hot spots always in sequence ([ADR-0020](../adr/0020-ticket-lifecycle.md)).
 - After each wave: `pnpm check` green, then one commit per task, in task order, with the trailers of [traceability](../procedures/traceability.md). Subagents never commit.
-- Commits touching `e2e/acceptance/` go before any commit touching another path; before them only `docs/**`, `.work/PROGRESS.md`, `.work/plan.md` and `.work/tasks.md` ([ADR-0030](../adr/0030-test-designer.md)).
+- Commits touching `e2e/acceptance/` go before any commit touching another path; before them only `docs/**`, `.work/PROGRESS.md`, `.work/plan.md` and `.work/tasks.md`; a later one needs the `Reopen: <comment-id>` trailer ([testing](../procedures/testing.md#acceptance-scenarios)).
 
 ## Brief
 
@@ -91,7 +91,7 @@ Agents act on GitHub only as the GitHub App `workampo-agents` (`github.agentsApp
 
 - [`scripts/github/app-token.mjs`](../../scripts/github/app-token.mjs) prints a 1-hour installation token. Ask for a new one when it expires; never print, log or store it.
   - `gh`: `GH_TOKEN=$(node scripts/github/app-token.mjs) gh pr create …`
-  - Push: `git push "https://x-access-token:$(node scripts/github/app-token.mjs)@github.com/worKampo/workampo.git" <branch>`. Never save that URL as a remote.
+  - Push, with the token in an HTTP header, never in the URL: `T=$(node scripts/github/app-token.mjs); git -c http.https://github.com/.extraheader="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$T" | base64 -w0)" push https://github.com/worKampo/workampo.git <branch>`. `-c` is visible in the process list too, so scripts pass it as `GIT_CONFIG_COUNT`/`GIT_CONFIG_KEY_0`/`GIT_CONFIG_VALUE_0` (`pnpm work` does).
 - Commit author: the project's *noreply* identity (`github.commitEmail` in `project.yaml`), loaded per folder ([bootstrap](../process/bootstrap.md)). Check `git config user.email` before the first commit.
 - Never read `~/.workampo/` (the App key).
 - Cannot: merge to `master`, approve PRs or Environments, deploy to production, force push, write `/reopen-acceptance`.

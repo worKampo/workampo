@@ -47,7 +47,7 @@ Label each finding `Important` or `Nit`. Report Nits in one short list at the en
 
 ## Traceability checks
 
-Verify by hand until CI does them; formats and the pending checks live in [traceability](../procedures/traceability.md#ci-checks). At minimum: branch name, `Refs:` trailer in every commit, `Ticket #N` and labels in the PR body, no `Closes #n`, no `@wip` / `.work/PROGRESS.md` / `.work/plan.md` / `.work/tasks.md` reaching `master`, author with the project's noreply email, `size:` label (`size:L` if critical-zone paths change), every example's `@id` cited by a test.
+CI runs them on every PR (`pnpm check:pr`); formats and checks live in [traceability](../procedures/traceability.md#ci-checks). A failed check is a failure. CI does not look for `Closes #n` in commits or the PR body: check it by hand.
 
 ## No entra
 

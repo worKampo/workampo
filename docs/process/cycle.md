@@ -9,7 +9,7 @@ La persona interviene tres veces, igual en todos los tamaños. Entre momentos el
 | Moment | Cuándo | Qué hace la persona | Dónde |
 |---|---|---|---|
 | 1. Ask | PRD y slicing; en tickets sueltos, al crear el issue | Aprueba el PRD, la lista de tickets con su tamaño y los ejemplos (E1, E2…) de todos a la vez | Issue del PRD o del ticket |
-| 2. Check | PR abierta, CI verde y reviews atendidas | Sigue la lista de pruebas en local (`pnpm work verify #n`, llega con el ticket 5, #9), mira el código señalado; aprueba la PR (merge) o devuelve hallazgos | PR; paquete en el comentario "Work log" del issue |
+| 2. Check | PR abierta, CI verde y reviews atendidas | Sigue la lista de pruebas en local (`pnpm work verify #n`, [work](../procedures/work.md#verify)), mira el código señalado; aprueba la PR (merge) o devuelve hallazgos | PR; paquete en el comentario "Work log" del issue |
 | 3. Publish | Smoke de staging verde | Prueba en staging solo lo marcado "Only verifiable in staging" y promueve a producción | Comentario "Staging verification"; aprobación de `prod` (llega con el ticket 3, #7) |
 
 ## Steps
@@ -85,6 +85,6 @@ Ventana de observación en Release: un verifier programado revisa Sentry, métri
 
 ## Commands
 
-Un solo script con subcomandos (llega con el ticket 5, #9): `pnpm work` (ayuda), `status`, `resume`, `start #n`, `inbox`, `verify #n`, `pr`, `close`. No hay comandos para mover tarjetas a mano: `start`, `pr` y `close` las mueven hasta Review y el workflow de deploy las mueve a Staging, Release y Done. Hasta entonces se hace a mano.
+Un solo script con subcomandos ([work](../procedures/work.md)): `pnpm work` (ayuda), `status`, `resume`, `start #n`, `inbox`, `verify #n`, `pr`, `close`. No hay comandos para mover tarjetas a mano: `start`, `pr` y `close` las mueven hasta Review y el workflow de deploy las mueve a Staging, Release y Done.
 
 Ramas, PRs y fixes: [branching](branching.md). Entrada y salida de un ticket: [definition of ready](definition-of-ready.md), [definition of done](definition-of-done.md).

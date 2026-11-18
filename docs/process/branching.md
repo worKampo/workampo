@@ -17,11 +17,11 @@ feature|bugfix|hotfix/<issue>-<slug>  <- desde master
 
 - Formato `<tipo>/<issue>-<slug>`, validado en CI con `^(feature|bugfix|hotfix)/\d+-[a-z0-9-]+$`; el número debe ser un issue abierto.
 - Ejemplo: `feature/15-invite-by-email`.
-- Se crea con `gh issue develop` (queda enlazada en *Development*); `pnpm work start #n` lo hará (llega con el ticket 5, #9).
+- La crea `pnpm work start <n>` con `gh issue develop` (queda enlazada en *Development*) ([work](../procedures/work.md)).
 
 ## Pull requests
 
-- Solo hay CI en PRs (`on: pull_request`); empieza con `pnpm work pr` (llega con el ticket 5, #9).
+- Solo hay CI en PRs (`on: pull_request`); empieza con `pnpm work pr` ([work](../procedures/work.md)).
 - Título conventional commit; cuerpo con `Ticket #N` (y `PRD #N` si tiene padre); mismos labels `type:` y `area:` que el ticket.
 - Commits con conventional commit y trailer `Refs: #<ticket>` (y `PRD: #N`, `Task: Tn`). Nunca `Closes #N`: el ticket lo cierra el orchestrator tras la ventana de observación limpia.
 - Autor con el email *noreply* de la cuenta del proyecto.

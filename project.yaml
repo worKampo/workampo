@@ -68,3 +68,7 @@ secrets:
     lives: GitHub Environment secrets `stg` and `prod`
   - name: Sentry DSN (SENTRY_DSN)
     lives: Not a secret (it only lets a client send events); GitHub Environment variable, passed by the deploy script with --var
+  - name: Sentry read token (SENTRY_READ_TOKEN), Sentry Internal Integration with Issue & Event Read
+    lives: GitHub repository secret; used by the observation window (docs/runbooks/deploy.md)
+  - name: UptimeRobot read-only API key (UPTIMEROBOT_READ_KEY)
+    lives: GitHub repository secret; used by the observation window (docs/runbooks/deploy.md)

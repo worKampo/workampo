@@ -13,4 +13,4 @@ Esa condición incluye:
 - [ ] Momento 3: lo marcado "Only verifiable in staging" probado y producción aprobada.
 - [ ] Release: smoke de solo lectura y ventana de observación limpia (Sentry, métricas, SLOs).
 
-Entonces la tarjeta pasa a Done y `pnpm work close` cierra el issue sin preguntar (llega con el ticket 5, #9). Si la ventana no sale limpia: [ADR-0039](../adr/0039-operations-and-incidents.md).
+Entonces el workflow de la ventana de observación cierra el issue; si necesita a la persona, ella lo cierra con `pnpm work close <n>` ([deploy](../runbooks/deploy.md#release-observation-window), [work](../procedures/work.md)). Si la ventana no sale limpia: [ADR-0039](../adr/0039-operations-and-incidents.md).

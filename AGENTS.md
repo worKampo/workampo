@@ -32,6 +32,14 @@ worKampo: a multi-tenant SaaS base on Cloudflare (Workers, D1, KV). Profile with
 | `pnpm install`                    | Install; also installs the git hooks                                                                                                                                                                                                  |
 | `pnpm check`                      | Typecheck, lint, tests, architecture rules, unused code, `project.yaml` and the paths named by this file. The only definition of done of a task or a wave; a ticket's is the [Definition of Done](docs/process/definition-of-done.md) |
 | `pnpm --filter @workampo/api dev` | API locally with `wrangler dev`                                                                                                                                                                                                       |
+| `pnpm work`                       | Ticket cycle: `status`, `inbox`, `resume`, `start`, `pr`, `close`; numbers as `15` or `#15` ([work](docs/procedures/work.md))                                                                                                         |
+| `pnpm work verify <n>`            | The person's local check: worktree of the branch, fresh seeded database, app on port 8787 ([work](docs/procedures/work.md#verify))                                                                                                    |
+| `pnpm plan:check`, `plan:sync`    | Validate `.work/tasks.md`; write it as the issue checklist ([planning](docs/procedures/planning.md))                                                                                                                                  |
+| `pnpm specs:ids`, `test:new`      | Assign `@id`s to examples; scaffold an integration test ([living specs](docs/procedures/living-specs.md), [testing](docs/procedures/testing.md))                                                                                      |
+| `pnpm debt`                       | List `paid-plan(...)` marks                                                                                                                                                                                                           |
+| `pnpm check:pr`                   | Traceability checks of a PR; CI runs it on every PR ([traceability](docs/procedures/traceability.md#ci-checks))                                                                                                                       |
+| `pnpm e2e`                        | Playwright suites of the apps against a local `wrangler dev` ([testing](docs/procedures/testing.md#acceptance-scenarios))                                                                                                             |
+| `pnpm db:seed`, `db:backfill`     | Local seed; batched backfills ([seeds](docs/procedures/seeds.md), [backfills](docs/procedures/backfills.md))                                                                                                                          |
 
 Pre-commit runs gitleaks and `pnpm check`. Never skip it, except the documented `it.fails` first wave ([docs/process/cycle.md](docs/process/cycle.md)).
 
@@ -42,11 +50,11 @@ Pre-commit runs gitleaks and `pnpm check`. Never skip it, except the documented 
 - Behaviour lives in the living specs of [docs/domains/](docs/domains/README.md); terms in [`docs/glossary.md`](docs/glossary.md).
 - Code: [docs/process/code-conventions.md](docs/process/code-conventions.md). Reviews: [`docs/process/review.md`](docs/process/review.md).
 - Every decision and its why: [docs/adr/README.md](docs/adr/README.md). `D53` in older text means ADR-0053. Read the relevant ADR before changing anything; a new decision is a new ADR, only with the person's approval.
-- Traceability formats (branch names, trailers, PR body): [docs/procedures/traceability.md](docs/procedures/traceability.md).
+- Traceability formats (branch names, trailers, PR body): [docs/procedures/traceability.md](docs/procedures/traceability.md). Tools: [work](docs/procedures/work.md), [planning](docs/procedures/planning.md), [living specs](docs/procedures/living-specs.md), [testing](docs/procedures/testing.md); critical zones that force `size:L`: [critical-paths](docs/procedures/critical-paths.md).
 
 ## 6. GitHub identity
 
-- Agents act on GitHub only as the App `workampo-agents`: `GH_TOKEN=$(node scripts/github/app-token.mjs) gh …`. Push with `git push "https://x-access-token:$(node scripts/github/app-token.mjs)@github.com/worKampo/workampo.git" <branch>`; never store that URL as a remote.
+- Agents act on GitHub only as the App `workampo-agents`: `GH_TOKEN=$(node scripts/github/app-token.mjs) gh …`. Push with the token in an HTTP header, never in the URL: `T=$(node scripts/github/app-token.mjs); git -c http.https://github.com/.extraheader="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$T" | base64 -w0)" push https://github.com/worKampo/workampo.git <branch>`. `-c` is visible in the process list too, so scripts pass it through `GIT_CONFIG_*` instead (`pnpm work` does).
 - Never the person's `gh` login or SSH key. Never read `~/.workampo/` (the App key; denied in `.claude/settings.json`).
 - Agents cannot merge, approve, push to `master` or approve deployments: the rulesets require the person ([ADR-0041](docs/adr/0041-agent-boundaries.md)).
 - Commit author is the project's noreply address, set by git per folder; never change git identity.
