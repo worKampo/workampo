@@ -11,7 +11,13 @@
     "check:ci": "turbo run typecheck lint test --affected --cache-dir=.turbo/cache && biome check . && depcruise apps packages && knip && pnpm check:repo",
     "check:repo": "node scripts/project/check.mjs && node scripts/agents/check-paths.mjs && node --test \"scripts/**/*.test.mjs\"",
     "prepare": "git config core.hooksPath .git/hooks && lefthook install --force",
-    "deploy": "node scripts/deploy/deploy.mjs"
+    "deploy": "node scripts/deploy/deploy.mjs",
+    "work": "node scripts/work/work.mjs",
+    "plan:check": "node scripts/plan/check.mjs",
+    "plan:sync": "node scripts/plan/sync.mjs",
+    "specs:ids": "node scripts/specs/ids.mjs",
+    "test:new": "node scripts/test-new/new.mjs",
+    "debt": "node scripts/debt/debt.mjs"
   },
   "devDependencies": {
     "@biomejs/biome": "2.6.7",
