@@ -168,6 +168,8 @@ test('HEAD at the tip of master deploys without asking turbo about later commits
   assert.deepEqual(await deploy({ env: 'prod', all: true }, io), { workers: WORKERS, from: '' })
   assert.ok(calls.some((c) => c.args[0] === 'ls-remote'))
   assert.ok(!calls.some((c) => ['fetch', 'merge-base'].includes(c.args[0])))
+  // With --all nothing asks turbo; a later-commit query would also show up here.
+  assert.ok(!calls.some((c) => c.command === 'turbo'))
   assert.equal(deploysOf(calls).length, 2)
 })
 
