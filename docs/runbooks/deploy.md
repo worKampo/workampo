@@ -96,4 +96,33 @@ Then:
 
 ## Release observation window
 
-After the prod deploy a verifier reviews new Sentry errors, Worker metrics and the SLOs; a clean window lets the ticket close ([ADR-0020](../adr/0020-ticket-lifecycle.md)). ADR-0020 sends the length of the window to this runbook: **24 hours** from the prod deploy (decided by the person on 2026-11-17; revisit in the monthly review once there is real traffic). Until ticket 5 automates the check, the orchestrator reviews Sentry, `/health` and the monitor when the 24 hours are up and posts the result on the issue. Contract migrations also wait one window ([ADR-0033](../adr/0033-expand-contract-migrations.md)).
+After the prod deploy a verifier reviews new Sentry errors, Worker metrics and the SLOs; a clean window lets the ticket close ([ADR-0020](../adr/0020-ticket-lifecycle.md)). ADR-0020 sends the length of the window to this runbook: **24 hours** from the prod deploy (decided by the person on 2026-11-17; revisit in the monthly review once there is real traffic). Contract migrations also wait one window ([ADR-0033](../adr/0033-expand-contract-migrations.md)).
+
+### How it is checked
+
+[`.github/workflows/observation-window.yml`](../../.github/workflows/observation-window.yml) runs every hour (minute 17) and by hand, with `node scripts/observation/check.mjs`. It is a deterministic script, not an AI agent.
+
+1. Reads the GitHub deployments of the `prod` Environment. A deploy is due when its success status is at least 24 hours old.
+2. Its tickets are the `Refs: #N` trailers of the commits between the previous prod deploy and this one. It skips a closed ticket and a ticket that already has a comment with `<!-- observation-window:<sha> -->` by the workflow, the agents' App or the project account.
+3. Three signals:
+   - Sentry: issues of the organization whose first release is that SHA, in the `prod` environment. None is clean.
+   - UptimeRobot: the monitor of the prod `/health`. Clean if it is up and its 1-day uptime is at least 99.9%.
+   - `/health` serves that SHA. If prod already serves a newer deploy, the window is judged on Sentry and UptimeRobot only.
+4. Clean: comment "Observation window clean" and close the ticket as completed. Otherwise: comment "Observation window: needs the person" with the findings and leave it open; the person closes it with `pnpm work close <n>`.
+
+A missing secret leaves its signal "not checked", and the window is not clean. Sentry issues are listed by id and link only: their titles can carry user data and the issue is public.
+
+To see the decisions without writing: `GH_TOKEN=$(node scripts/github/app-token.mjs) node scripts/observation/check.mjs --dry-run`.
+
+GitHub disables a scheduled workflow after 60 days without activity in the repo. Any merge to `master` counts; re-enable it in the Actions tab if it was disabled.
+
+### Secrets
+
+Repository secrets (the scheduled job has no Environment), both read-only:
+
+| Secret | What |
+| --- | --- |
+| `SENTRY_READ_TOKEN` | Token of a Sentry Internal Integration with Issue & Event: Read only. The `deploy-workampo` organization token cannot read issues |
+| `UPTIMEROBOT_READ_KEY` | UptimeRobot's read-only API key |
+
+`SENTRY_ORG` is a repository variable, not a secret.
