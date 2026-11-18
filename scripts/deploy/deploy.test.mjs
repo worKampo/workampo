@@ -36,6 +36,8 @@ function fakeIo({
   subject = 'feat: x (#12)',
   env = {},
   tip = SHA,
+  affectedAfter = [],
+  onMaster = true,
 } = {}) {
   const calls = []
   const io = {
@@ -46,11 +48,14 @@ function fakeIo({
     deployedSha: async () => deployed,
     run: (command, args) => {
       calls.push({ command, args })
-      if (command === 'git' && args[0] === 'rev-parse')
-        return `${args[1] === 'FETCH_HEAD' ? tip : SHA}\n`
+      if (command === 'git' && args[0] === 'rev-parse') return `${SHA}\n`
+      if (command === 'git' && args[0] === 'ls-remote') return `${tip}\trefs/heads/master\n`
+      if (command === 'git' && args[0] === 'merge-base' && !onMaster) throw new Error('exit 1')
       if (command === 'git' && args[0] === 'log') return `${subject}\n`
-      if (command === 'turbo')
-        return JSON.stringify({ packages: { items: affected.map((name) => ({ name })) } })
+      if (command === 'turbo') {
+        const names = args.includes(`...[${SHA}...${tip}]`) ? affectedAfter : affected
+        return JSON.stringify({ packages: { items: names.map((name) => ({ name })) } })
+      }
       return ''
     },
   }
@@ -155,28 +160,63 @@ test('uploads source maps with release = SHA when the Sentry token is set', asyn
   assert.ok(order.lastIndexOf('sentry-cli') < order.indexOf('removeMaps'))
 })
 
-test('a run whose SHA is no longer the tip of master deploys nothing, on every path', async () => {
+const TIP = 'cccccccccccccccccccccccccccccccccccccccc'
+const deploysOf = (calls) => calls.filter((c) => c.command === 'wrangler' && c.args[0] === 'deploy')
+
+test('HEAD at the tip of master deploys without asking turbo about later commits', async () => {
+  const { io, calls } = fakeIo()
+  assert.deepEqual(await deploy({ env: 'prod', all: true }, io), { workers: WORKERS, from: '' })
+  assert.ok(calls.some((c) => c.args[0] === 'ls-remote'))
+  assert.ok(!calls.some((c) => ['fetch', 'merge-base'].includes(c.args[0])))
+  assert.equal(deploysOf(calls).length, 2)
+})
+
+test('later commits on master that affect no Worker do not make the run stale', async () => {
+  const { io, calls } = fakeIo({ tip: TIP, affectedAfter: [] })
+  assert.deepEqual(await deploy({ env: 'prod', all: false }, io), {
+    workers: WORKERS,
+    from: DEPLOYED,
+  })
+  assert.deepEqual(calls.find((c) => c.args[0] === 'fetch').args, ['fetch', 'origin', 'master'])
+  assert.ok(calls.some((c) => c.args[0] === 'cat-file' && c.args[2] === `${TIP}^{commit}`))
+  assert.ok(calls.some((c) => c.command === 'turbo' && c.args.includes(`...[${SHA}...${TIP}]`)))
+  assert.equal(deploysOf(calls).length, 2)
+})
+
+test('a later commit on master that affects a Worker makes the run stale, on every path', async () => {
   for (const [options, all] of [
     [{}, false],
     [{ deployed: null }, false],
     [{}, true],
   ]) {
-    const { io, calls } = fakeIo({ ...options, tip: DEPLOYED })
+    const { io, calls } = fakeIo({ ...options, tip: TIP, affectedAfter: ['@workampo/api'] })
     assert.deepEqual(await deploy({ env: 'prod', all }, io), { workers: [], from: '' })
-    assert.deepEqual(
-      calls.find((c) => c.args[0] === 'fetch'),
-      { command: 'git', args: ['fetch', 'origin', 'master'] },
-    )
-    assert.ok(!calls.some((c) => ['wrangler', 'turbo'].includes(c.command)))
+    assert.ok(!calls.some((c) => c.command === 'wrangler'))
   }
 })
 
-test('--allow-stale deploys a SHA that is not the tip of master', async () => {
-  const { io, calls } = fakeIo({ tip: DEPLOYED })
+test('a SHA that is not on master is stale', async () => {
+  const { io, calls } = fakeIo({ tip: TIP, onMaster: false })
+  assert.deepEqual(await deploy({ env: 'prod', all: true }, io), { workers: [], from: '' })
+  assert.ok(!calls.some((c) => c.command === 'wrangler'))
+})
+
+test('a master tip missing locally fails instead of guessing', async () => {
+  const { io } = fakeIo({ tip: TIP })
+  const run = io.run
+  io.run = (command, args) => {
+    if (args[0] === 'cat-file') throw new Error('missing')
+    return run(command, args)
+  }
+  await assert.rejects(deploy({ env: 'prod', all: true }, io), /not available locally/)
+})
+
+test('--allow-stale deploys even when a later commit affects a Worker', async () => {
+  const { io, calls } = fakeIo({ tip: TIP, affectedAfter: ['@workampo/api'] })
   assert.deepEqual(await deploy({ env: 'prod', all: true, allowStale: true }, io), {
     workers: WORKERS,
     from: '',
   })
-  assert.ok(!calls.some((c) => c.args[0] === 'fetch'))
+  assert.ok(!calls.some((c) => ['ls-remote', 'fetch'].includes(c.args[0])))
   assert.equal(calls.filter((c) => c.command === 'wrangler').length, 3)
 })

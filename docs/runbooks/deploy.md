@@ -17,7 +17,7 @@ On every push to `master`, [`.github/workflows/deploy.yml`](../../.github/workfl
 
 ### Manual, all Workers
 
-[`.github/workflows/deploy-all.yml`](../../.github/workflows/deploy-all.yml) is run by hand with an environment input and runs `node scripts/deploy/deploy.mjs <env> --all`: no diff, every Worker is deployed. Run it on `master`: the script refuses any SHA that is not the tip of `origin/master`.
+[`.github/workflows/deploy-all.yml`](../../.github/workflows/deploy-all.yml) is run by hand with an environment input and runs `node scripts/deploy/deploy.mjs <env> --all`: no diff, every Worker is deployed. Run it on `master`: the script refuses a stale SHA (see below).
 
 ### By hand
 
@@ -28,11 +28,13 @@ node scripts/deploy/deploy.mjs stg          # only the Workers affected since th
 node scripts/deploy/deploy.mjs prod --all   # every Worker, no diff
 ```
 
-Run it from the SHA you want to deploy; it must be the tip of `origin/master`, or the script deploys nothing. For a rare manual recovery from another SHA, add `--allow-stale`:
+Run it from the SHA you want to deploy, on `origin/master`. A SHA is stale, and the script deploys nothing, when it is not on `origin/master` or when a later commit on master affects a Worker; later commits that affect no Worker (docs only) do not block it. For a rare manual recovery, add `--allow-stale`:
 
 ```sh
 node scripts/deploy/deploy.mjs stg --all --allow-stale   # deploys HEAD even if master has moved on
 ```
+
+`--allow-stale` exists only in commits from this change on: an older SHA does not know it. To go back to an older version, follow [rollback.md](rollback.md) (Cloudflare dashboard or `wrangler rollback`) instead of redeploying an old SHA.
 
 Without an environment the script refuses; the top-level `wrangler.jsonc` config is `app-local` and never reaches a real Worker.
 
@@ -41,7 +43,7 @@ Without `SENTRY_AUTH_TOKEN` the deploy still works and logs that the source maps
 ## What the script does
 
 1. Parses the arguments: an explicit `stg` or `prod`, optionally `--all` and `--allow-stale`.
-2. Reads the HEAD SHA and runs `git fetch origin master`. If HEAD is not the tip of `origin/master`, a newer commit is on master and its own run deploys it: the script prints that, deploys nothing and ends with success and `deployed=false`, so an older run that starts late never overwrites a newer deploy. `--allow-stale` skips this check. Unless `--all`, it picks the Workers to deploy: it reads the SHA served by the environment's `/health` and asks Turborepo which Workers changed between that SHA and HEAD. Docs-only changes deploy nothing; a change in a shared package deploys every Worker that depends on it. `apps/api` declares `@workampo/db` as a dependency because wrangler reads its migrations, so a migrations-only change deploys the API (and migrates). If `/health` is unreachable, does not answer 200, or its SHA is not a known commit, every Worker is deployed.
+2. Reads the HEAD SHA and the tip of master with `git ls-remote origin refs/heads/master`. If they differ, it runs `git fetch origin master`, checks the tip is available locally and asks Turborepo which Workers the commits between HEAD and the tip affect. If HEAD is not on master or any Worker is affected, the run is stale: the newer commit's own run deploys it, so the script prints that, deploys nothing and ends with success and `deployed=false`; an older run that starts late never overwrites a newer deploy. If only commits that affect no Worker follow HEAD, it deploys as usual, so a docs-only merge does not strand a deploy waiting for approval. `--allow-stale` skips this check. Unless `--all`, it picks the Workers to deploy: it reads the SHA served by the environment's `/health` and asks Turborepo which Workers changed between that SHA and HEAD. Docs-only changes deploy nothing; a change in a shared package deploys every Worker that depends on it. `apps/api` declares `@workampo/db` as a dependency because wrangler reads its migrations, so a migrations-only change deploys the API (and migrates). If `/health` is unreachable, does not answer 200, or its SHA is not a known commit, every Worker is deployed.
 3. Builds the deploy message: `#<PR> <short sha>` (the PR number comes from the `(#N)` at the end of the commit subject), or just the short SHA.
 4. For each Worker:
    1. Applies D1 migrations to every database of `env.<env>.d1_databases` (`wrangler d1 migrations apply <db> --env <env> --remote`), before the new code ([ADR-0033](../adr/0033-expand-contract-migrations.md)). With no migrations it is a no-op.

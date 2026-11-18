@@ -205,7 +205,8 @@ async function readUptime(env, deploy) {
 // No credentials go to /health, so it may redirect.
 export async function readHealth(healthUrl) {
   const { body, error } = await fetchJson(healthUrl, { redirect: 'follow' })
-  return error ? { error } : { sha: body.sha }
+  if (error) return { error }
+  return typeof body?.sha === 'string' ? { sha: body.sha } : { error: 'no sha in the body' }
 }
 
 function run(command, args, { input } = {}) {

@@ -228,3 +228,18 @@ test('readHealth follows a redirect', async () => {
   assert.deepEqual(result, { sha: 'bbb' })
   assert.deepEqual(hits, ['/', '/other'])
 })
+
+test('readHealth reports a 200 body without a string sha instead of throwing', async () => {
+  for (const body of ['null', '{}', '{"sha":42}', '"ok"', 'not json']) {
+    const server = createServer((_, res) =>
+      res.writeHead(200, { 'Content-Type': 'application/json' }).end(body),
+    )
+    await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve))
+    try {
+      const result = await readHealth(`http://127.0.0.1:${server.address().port}/`)
+      assert.ok(result.error && !('sha' in result), `${body}: ${JSON.stringify(result)}`)
+    } finally {
+      server.close()
+    }
+  }
+})

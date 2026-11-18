@@ -56,14 +56,44 @@ async function selectWorkers(env, sha, io) {
     return { workers: WORKERS, from: '' }
   }
   io.log(`${env} serves ${deployed}; target is ${sha}.`)
+  return { workers: workersChanged(deployed, sha, io), from: deployed }
+}
+
+function workersChanged(from, to, io) {
   const listing = JSON.parse(
-    io.run('turbo', ['ls', '--filter', `...[${deployed}...${sha}]`, '--output', 'json']),
+    io.run('turbo', ['ls', '--filter', `...[${from}...${to}]`, '--output', 'json']),
   )
-  const workers = affectedWorkers(
+  return affectedWorkers(
     listing.packages.items.map((item) => item.name),
     WORKERS,
   )
-  return { workers, from: deployed }
+}
+
+// Runs of older pushes can start late: deploying one would roll back a newer Worker change on master.
+// Later commits that touch no Worker (docs only) never deploy anything, so they do not make a run stale.
+function staleReason(sha, io) {
+  // ls-remote, not FETCH_HEAD: another fetch in the job can overwrite FETCH_HEAD.
+  const tip = io.run('git', ['ls-remote', 'origin', 'refs/heads/master']).split(/\s/)[0]
+  if (!tip) throw new Error('origin has no master branch')
+  if (tip === sha) return null
+  io.run('git', ['fetch', 'origin', 'master'])
+  if (!isKnownCommit(tip, io)) throw new Error(`origin/master tip ${tip} is not available locally`)
+  if (!isAncestor(sha, tip, io)) return `${sha} is not on origin/master (at ${tip})`
+  const workers = workersChanged(sha, tip, io)
+  if (!workers.length) {
+    io.log(`origin/master is at ${tip}; the commits after ${sha} affect no Worker.`)
+    return null
+  }
+  return `origin/master is at ${tip} and changes ${workers.map((w) => w.package).join(', ')} after ${sha}: its own run deploys it`
+}
+
+function isAncestor(sha, tip, io) {
+  try {
+    io.run('git', ['merge-base', '--is-ancestor', sha, tip])
+    return true
+  } catch {
+    return false
+  }
 }
 
 function isKnownCommit(sha, io) {
@@ -123,16 +153,10 @@ function uploadSourceMaps(cwd, sha, io) {
 // `from` is the SHA the environment served before the deploy, or '' when unknown.
 export async function deploy({ env, all, allowStale = false }, io) {
   const sha = io.run('git', ['rev-parse', 'HEAD']).trim()
-  // Runs of older pushes can start late: only the tip of master may deploy, or it would roll back a newer one.
-  if (!allowStale) {
-    io.run('git', ['fetch', 'origin', 'master'])
-    const tip = io.run('git', ['rev-parse', 'FETCH_HEAD']).trim()
-    if (tip !== sha) {
-      io.log(
-        `origin/master is at ${tip}, not ${sha}: a newer commit is on master and its own run deploys it. Nothing deployed.`,
-      )
-      return { workers: [], from: '' }
-    }
+  const stale = allowStale ? null : staleReason(sha, io)
+  if (stale) {
+    io.log(`${stale}. Nothing deployed.`)
+    return { workers: [], from: '' }
   }
   const { workers, from } = all ? { workers: WORKERS, from: '' } : await selectWorkers(env, sha, io)
   if (!workers.length) {
