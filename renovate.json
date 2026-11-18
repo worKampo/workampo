@@ -11,5 +11,8 @@
   "timezone": "Europe/Madrid",
   "minimumReleaseAge": "3 days",
   "rangeStrategy": "pin",
-  "lockFileMaintenance": { "enabled": true }
+  "lockFileMaintenance": {
+    "enabled": true
+  },
+  "labels": ["type:chore", "area:platform"]
 }
