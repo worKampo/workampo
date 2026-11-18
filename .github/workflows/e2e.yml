@@ -28,6 +28,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
       # Packages without an e2e script show up in the dry run with the command <NONEXISTENT>.
       - id: affected
+        shell: bash # -eo pipefail: a failing turbo must not read as zero tasks
         run: |
           count=$(pnpm turbo run e2e --affected --dry=json | jq '[.tasks[] | select(.command != "<NONEXISTENT>")] | length')
           echo "Affected e2e tasks: $count"

@@ -44,6 +44,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
       - if: ${{ !cancelled() }}
+        # Fork PRs get a read-only token; the check result must not depend on the comment.
+        continue-on-error: true
         run: |
           [ -s "$RUNNER_TEMP/verification.md" ] || exit 0
           gh pr comment "$PR_NUMBER" --edit-last --body-file "$RUNNER_TEMP/verification.md" \

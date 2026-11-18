@@ -145,9 +145,14 @@ export function buildComment(deploy, signals) {
   ].join('\n')
 }
 
-async function fetchJson(url, init) {
+export async function fetchJson(url, init) {
   try {
-    const response = await fetch(url, { ...init, signal: AbortSignal.timeout(TIMEOUT_MS) })
+    // redirect: 'error' keeps the API key of a POST body from ever reaching another origin.
+    const response = await fetch(url, {
+      ...init,
+      redirect: 'error',
+      signal: AbortSignal.timeout(TIMEOUT_MS),
+    })
     if (!response.ok) return { error: `HTTP ${response.status}` }
     return { body: await response.json() }
   } catch (error) {

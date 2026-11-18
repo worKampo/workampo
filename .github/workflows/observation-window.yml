@@ -5,6 +5,11 @@ on:
   schedule:
     - cron: "17 * * * *"
   workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Only print the decisions; comment and close nothing
+        type: boolean
+        default: true
 
 permissions: {}
 
@@ -21,10 +26,7 @@ jobs:
       issues: write
       deployments: read
     env:
-      SENTRY_READ_TOKEN: ${{ secrets.SENTRY_READ_TOKEN }}
       SENTRY_ORG: ${{ vars.SENTRY_ORG }}
-      UPTIMEROBOT_READ_KEY: ${{ secrets.UPTIMEROBOT_READ_KEY }}
-      GH_TOKEN: ${{ github.token }}
       GH_REPO: ${{ github.repository }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -37,4 +39,13 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: node scripts/observation/check.mjs
+      # Scheduled runs are never dry runs; the input reaches the script only through env.
+      - run: |
+          args=()
+          [ "$DRY_RUN" = true ] && args+=(--dry-run)
+          node scripts/observation/check.mjs "${args[@]}"
+        env:
+          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run }}
+          SENTRY_READ_TOKEN: ${{ secrets.SENTRY_READ_TOKEN }}
+          UPTIMEROBOT_READ_KEY: ${{ secrets.UPTIMEROBOT_READ_KEY }}
+          GH_TOKEN: ${{ github.token }}

@@ -28,7 +28,7 @@ pnpm db:seed --persist-to <dir>   # Playwright keeps its own local state
 
 Actions → `reset-stg` → Run workflow. No inputs: staging is its only target, and the workflow offers no way to choose production. The databases it wipes are those of `env.stg` in `apps/api/wrangler.jsonc`, so before the first drop the script refuses if any of their `database_id`s is also a top-level or `env.prod` one.
 
-1. Runs in the `stg` Environment and the `deploy-stg` concurrency group, so it never overlaps a deploy.
+1. Runs in the `stg` Environment and the `deploy-stg` concurrency group, so it never overlaps a deploy. A run that waits in the group is queued (`queue: max`, up to 100) and never cancelled by a newer one.
 2. For each staging database: drops every table (including `d1_migrations`), re-applies the migrations (schema and reference data), then applies the seed files.
 3. With no tables it drops nothing but still applies the migrations (a lone `d1_migrations` is dropped too: its records would skip the tables it lost), so rerunning the workflow after a failure between the drop and the migrations rebuilds the schema.
 

@@ -1,7 +1,9 @@
 import assert from 'node:assert/strict'
+import { createServer } from 'node:http'
 import { test } from 'node:test'
 import {
   buildComment,
+  fetchJson,
   healthSignal,
   judge,
   marker,
@@ -197,4 +199,17 @@ test('an UptimeRobot error never puts request data in the public comment', () =>
   assert.equal(signal.ok, false)
   assert.ok(!signal.text.includes(key))
   assert.match(signal.text, /invalid_parameter/)
+})
+
+test('fetchJson does not follow a redirect', async () => {
+  const server = createServer((req, res) => {
+    res.writeHead(302, { Location: '/other' }).end()
+  })
+  await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve))
+  try {
+    const result = await fetchJson(`http://127.0.0.1:${server.address().port}/`, { method: 'POST' })
+    assert.deepEqual(result, { error: 'request failed' })
+  } finally {
+    server.close()
+  }
 })
