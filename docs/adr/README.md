@@ -4,7 +4,8 @@ Every architectural and process decision of worKampo, one file per decision ([MA
 
 - **Numbering**: `ADR-NNNN` keeps the number of the former decision `DNN`. Older text, labels and comments that cite `D53` mean [ADR-0053](0053-code-conventions.md).
 - **Gaps**: 0046, 0055 and 0061 were deferred proposals and live as [notes](#notes).
-- **Changing a decision**: a new ADR that supersedes the old one (`status: superseded by ADR-NNNN`); accepted ADRs are not rewritten, except to link the living document that now holds their operational detail.
+- **Changing a decision**: a new ADR that supersedes the old one (`status: superseded by ADR-NNNN`). Accepted ADRs are not rewritten.
+- **Small adjustments** (a file moves, a pending check is resolved, a detail is decided within the decision): a dated note in an `## Updates` section of the ADR, approved by the person. If the adjustment reverses or replaces what the ADR decided, it is a new ADR instead (decided by the person on 2026-11-18).
 - **Product vision, language policy, global non-functional requirements and roadmap**: [vision](../product/vision.md).
 
 ## Product and scope
