@@ -1,8 +1,8 @@
 // Ticket cycle commands (ADR-0052): node scripts/work/work.mjs [command] [args]
 // gh and git run as child processes with argument arrays; tokens only travel through the environment.
 import { execFileSync } from 'node:child_process'
-import { existsSync, readFileSync } from 'node:fs'
-import { join } from 'node:path'
+import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
 import { createInterface } from 'node:readline/promises'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { parse } from 'yaml'
@@ -11,14 +11,24 @@ const ROOT = fileURLToPath(new URL('../../', import.meta.url))
 const BRANCH_TICKET = /^(?:feature|bugfix|hotfix)\/(\d+)-/
 const ACTIVE_COLUMNS = ['Define', 'Build', 'Review']
 const EMPTY_VALUES = ['', '—', '-']
-const COMMANDS = ['help', 'status', 'inbox', 'resume']
+const COMMANDS = ['help', 'status', 'inbox', 'resume', 'start', 'pr', 'close']
+const VALUE_OPTIONS = { '--title': 'title', '--body-file': 'bodyFile', '--learning': 'learning' }
 const PROGRESS_FILE = '.work/PROGRESS.md'
+const PLAN_FILE = '.work/plan.md'
+const TASKS_FILE = '.work/tasks.md'
+const SPECS_DIR = 'docs/domains'
+const SLUG_MAX = 40
 
 export const HELP = `Usage: pnpm work <command> [args]
 
   status [n…] [--json]    What is in progress; with numbers, the detail of those tickets
   inbox [--json]          Only what waits for the person, with links
   resume [n] [--dry-run]  Switch to the ticket's branch and print where to continue
+  start <n> [--dry-run]   Create the ticket's branch and .work/PROGRESS.md, move the card
+  pr [--title "<title>"] [--body-file <summary.md>] [--dry-run]
+                          On a ticket branch: pnpm check, @wip to @issue, remove .work/, push, open the PR
+  close <n> [--learning "<text>"] [--dry-run]
+                          Close the issue as completed and move the card to Done
 
 Issue numbers are written 15 or #15.`
 
@@ -35,15 +45,26 @@ export function parseArgs(argv) {
   const command = ['-h', '--help'].includes(first) ? 'help' : first
   if (!COMMANDS.includes(command)) throw new Error(`Unknown command "${command}".\n\n${HELP}`)
   const args = { command, numbers: [], json: false, dryRun: false }
-  for (const arg of rest) {
-    if (arg === '--json') args.json = true
+  for (let i = 0; i < rest.length; i++) {
+    const arg = rest[i]
+    if (VALUE_OPTIONS[arg]) {
+      const value = rest[++i]
+      if (value === undefined) throw new Error(`${arg} needs a value.`)
+      args[VALUE_OPTIONS[arg]] = value
+    } else if (arg === '--json') args.json = true
     else if (arg === '--dry-run') args.dryRun = true
     else if (arg.startsWith('-')) throw new Error(`Unknown option "${arg}".\n\n${HELP}`)
     else args.numbers.push(parseIssueNumber(arg))
   }
   if (command === 'resume' && args.numbers.length > 1)
     throw new Error('resume takes at most one issue number.')
-  if (command === 'inbox' && args.numbers.length) throw new Error('inbox takes no issue numbers.')
+  if (['inbox', 'pr'].includes(command) && args.numbers.length)
+    throw new Error(`${command} takes no issue numbers.`)
+  if (['start', 'close'].includes(command) && args.numbers.length !== 1)
+    throw new Error(`${command} takes one issue number.`)
+  const allowed = { pr: ['title', 'bodyFile'], close: ['learning'] }[command] ?? []
+  for (const [option, key] of Object.entries(VALUE_OPTIONS))
+    if (key in args && !allowed.includes(key)) throw new Error(`${command} takes no ${option}.`)
   return args
 }
 
@@ -66,9 +87,50 @@ export function nextStep(progressText) {
   return progressText ? (parseProgress(progressText).next ?? null) : null
 }
 
-export function latestProgress(comments = []) {
-  const bodies = comments.map((comment) => comment.body ?? '')
-  return bodies.findLast((body) => /^\s*#{1,6}\s*Progress\s*$/m.test(body.split('\n')[0])) ?? null
+export function commentAuthor(comment) {
+  return comment.user?.login ?? null
+}
+
+// Anyone can comment on the public repo: only comments by the App or the project account are read,
+// so a stranger's comment cannot feed instructions to an agent. The type is checked because
+// anyone can register the App's bare name as a user; only the REST API tells users from bots.
+export function trustedAuthors(config) {
+  return [
+    { login: config.github.account, type: 'User' },
+    { login: `${config.github.agentsApp.name}[bot]`, type: 'Bot' },
+  ]
+}
+
+// REST serves the comments of issues and PRs alike; `gh ... --json comments` hides the author type.
+export function readComments(io, repository, number) {
+  const lines = io.run('gh', [
+    'api',
+    `repos/${repository}/issues/${number}/comments`,
+    '--paginate',
+    '--jq',
+    '.[]',
+  ])
+  return lines
+    .split(/\r?\n/)
+    .filter(Boolean)
+    .map((line) => JSON.parse(line))
+}
+
+function isHeadedBy(comment, heading, authors) {
+  const firstLine = (comment.body ?? '').split('\n')[0]
+  const { login, type } = comment.user ?? {}
+  return authors.some((a) => a.login === login && a.type === type) && heading.test(firstLine)
+}
+
+const PROGRESS_HEADING = /^\s*#{1,6}\s*Progress\s*$/
+const PLAN_HEADING = /^\s*#{1,6}\s*Plan\s*$/
+
+export function latestProgress(comments, authors) {
+  return (comments ?? []).findLast((c) => isHeadedBy(c, PROGRESS_HEADING, authors)) ?? null
+}
+
+function progressSource(comment, where) {
+  return `From the "Progress" comment by ${commentAuthor(comment)} on ${where}`
 }
 
 export function isSet(value) {
@@ -123,8 +185,15 @@ export function buildTicket(number, data) {
   const pr = data.prs.find((p) => ticketFromBranch(p.headRefName) === number)
   const branch = data.branches.get(number)
   const item = data.board?.find((i) => boardIssueNumber(i, data.repository) === number)
-  const progressText =
-    (pr && latestProgress(pr.comments)) ?? branch?.progress ?? latestProgress(issue?.comments)
+  const prComment = pr && latestProgress(pr.comments, data.authors)
+  const issueComment = latestProgress(issue?.comments, data.authors)
+  const [progressText, source] = prComment
+    ? [prComment.body, progressSource(prComment, `PR #${pr.number}`)]
+    : branch?.progress
+      ? [branch.progress, PROGRESS_FILE]
+      : issueComment
+        ? [issueComment.body, progressSource(issueComment, `issue #${number}`)]
+        : [null, null]
   const progress = progressText ? parseProgress(progressText) : {}
   return {
     number,
@@ -143,6 +212,7 @@ export function buildTicket(number, data) {
       ? { number: pr.number, url: pr.url, isDraft: pr.isDraft, ci: ciSummary(pr.statusCheckRollup) }
       : null,
     progress: progressText,
+    progressSource: source,
   }
 }
 
@@ -293,7 +363,7 @@ export function collect(config, io) {
     '--limit',
     '500',
     '--json',
-    'number,title,url,labels,body,comments',
+    'number,title,url,labels,body',
   ])
   const prs = ghJson(io, [
     'pr',
@@ -305,7 +375,7 @@ export function collect(config, io) {
     '--limit',
     '200',
     '--json',
-    'number,title,url,headRefName,isDraft,reviews,comments,statusCheckRollup',
+    'number,title,url,headRefName,isDraft,reviews,statusCheckRollup',
   ])
   let board = null
   try {
@@ -326,29 +396,38 @@ export function collect(config, io) {
       'Board not read (gh needs the project scope: gh auth refresh -s project); using issues, PRs and branches only.',
     )
   }
-  return { repository, issues, prs, board, branches: readBranches(io) }
+  // One request per open issue and PR; fine at this project's size.
+  for (const item of [...issues, ...prs]) item.comments = readComments(io, repository, item.number)
+  return {
+    repository,
+    authors: trustedAuthors(config),
+    issues,
+    prs,
+    board,
+    branches: readBranches(io),
+  }
 }
 
 function ensureIssue(number, data, io) {
   if (data.issues.some((issue) => issue.number === number)) return
   try {
-    data.issues.push(
-      ghJson(io, [
-        'issue',
-        'view',
-        String(number),
-        '--repo',
-        data.repository,
-        '--json',
-        'number,title,url,labels,body,comments',
-      ]),
-    )
+    const issue = ghJson(io, [
+      'issue',
+      'view',
+      String(number),
+      '--repo',
+      data.repository,
+      '--json',
+      'number,title,url,labels,body',
+    ])
+    issue.comments = readComments(io, data.repository, number)
+    data.issues.push(issue)
   } catch {
     throw new Error(`Issue #${number} not found in ${data.repository}.`)
   }
 }
 
-export function help(io) {
+export function help(io, config) {
   const lines = [HELP]
   const branch = tryRun(io, 'git', ['branch', '--show-current'])?.trim()
   const number = ticketFromBranch(branch)
@@ -356,15 +435,24 @@ export function help(io) {
     let progress = io.exists(join(ROOT, PROGRESS_FILE))
       ? io.readFile(join(ROOT, PROGRESS_FILE))
       : null
+    let source = ''
     if (!progress) {
-      const pr = tryRun(io, 'gh', ['pr', 'view', branch, '--json', 'comments'])
-      progress = pr ? latestProgress(JSON.parse(pr).comments) : null
+      let comment = null
+      try {
+        const { number: pr } = JSON.parse(io.run('gh', ['pr', 'view', branch, '--json', 'number']))
+        comment = latestProgress(
+          readComments(io, config.github.repository, pr),
+          trustedAuthors(config),
+        )
+      } catch {}
+      progress = comment?.body ?? null
+      if (comment) source = ` (${progressSource(comment, `the PR of ${branch}`)})`
     }
     const next = nextStep(progress)
     lines.push(
       '',
       next
-        ? `Ticket #${number} · next: ${next}`
+        ? `Ticket #${number} · next: ${next}${source}`
         : `Ticket #${number}: no .work/PROGRESS.md or "Progress" comment with a Next line.`,
     )
   }
@@ -403,7 +491,7 @@ function refHas(io, branch, file) {
 }
 
 export function resumeSummary(ticket, extraFiles) {
-  const where = ticket.pr ? `"Progress" comment of PR #${ticket.pr.number}` : PROGRESS_FILE
+  const where = ticket.progressSource ?? PROGRESS_FILE
   const progress = ticket.progress
     ? ticket.progress
         .trim()
@@ -449,12 +537,369 @@ export async function resume(args, config, io) {
   io.log(resumeSummary(ticket, extraFiles))
 }
 
-function run(command, args) {
+export function slugify(title) {
+  const slug = title
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
+  const short = slug.length <= SLUG_MAX ? slug : slug.slice(0, SLUG_MAX + 1).replace(/-[^-]*$/, '')
+  return short.slice(0, SLUG_MAX) || 'ticket'
+}
+
+const hasLabel = (issue, name) => (issue.labels ?? []).some((label) => label.name === name)
+
+export function branchName(issue) {
+  const prefix = hasLabel(issue, 'type:bug') ? 'bugfix' : 'feature'
+  return `${prefix}/${issue.number}-${slugify(issue.title)}`
+}
+
+export function progressText({ number, slug, branch, parent, size, updated }) {
+  const step = size === 'S' ? 'Build › Implement' : 'Define › Discover'
+  const next =
+    size === 'S'
+      ? "implement the issue's checklist (docs/process/cycle.md)"
+      : 'Discover: research the intent, then Specify (docs/process/cycle.md)'
+  return `# Progress
+
+${parent ? `PRD #${parent} · ` : ''}Ticket #${number} ${slug} · Branch: ${branch}
+Step: ${step}
+Done in this step: —
+In progress: —
+Next: ${next}
+Waiting for human: —
+Open questions: —
+Updated: ${updated}
+`
+}
+
+export function trailers(number, parent) {
+  return [`Refs: #${number}`, parent && `PRD: #${parent}`].filter(Boolean).join('\n')
+}
+
+export function tagIssue(text, number) {
+  return text.replaceAll(`@wip(#${number})`, `@issue(#${number})`)
+}
+
+export function prTitle(issue, title) {
+  if (title) return title
+  const type = hasLabel(issue, 'type:feature')
+    ? 'feat'
+    : hasLabel(issue, 'type:bug')
+      ? 'fix'
+      : 'chore'
+  const subject = issue.title.trim().replace(/\.$/, '')
+  return `${type}: ${subject[0].toLowerCase()}${subject.slice(1)}`
+}
+
+export function prLabels(issue) {
+  return (issue.labels ?? [])
+    .map((label) => label.name)
+    .filter((name) => /^(type|area|size):/.test(name))
+}
+
+export function prBody({ number, parent, summary }) {
+  return `${parent ? `PRD #${parent}\n` : ''}Ticket #${number}
+
+## Summary
+
+${summary?.trim() || '<!-- Filled by the agent: pnpm work pr --body-file <summary.md> -->'}
+`
+}
+
+export function progressComment(progress, tasks) {
+  const table = (tasks ?? '').split(/\r?\n/).filter((line) => line.startsWith('|'))
+  return `${progress.trim()}${table.length ? `\n\n## Tasks\n\n${table.join('\n')}` : ''}\n`
+}
+
+export function closeComment(learning) {
+  return ['Closed as completed by `pnpm work close`.', learning && `Proposed learning: ${learning}`]
+    .filter(Boolean)
+    .join('\n\n')
+}
+
+const removalMessage = (number) => `chore: remove ticket ${number} temporaries before the PR`
+
+function shown(arg) {
+  return /[\s"']/.test(arg) ? JSON.stringify(arg) : arg
+}
+
+function actor(args, io) {
+  return (command, commandArgs, options) => {
+    if (!args.dryRun) return io.run(command, commandArgs, options)
+    io.log(`Would run: ${[command, ...commandArgs].map(shown).join(' ')}`)
+    if (options?.input) io.log(options.input)
+    return ''
+  }
+}
+
+function viewIssue(number, fields, config, io) {
+  return ghJson(io, [
+    'issue',
+    'view',
+    String(number),
+    '--repo',
+    config.github.repository,
+    '--json',
+    fields,
+  ])
+}
+
+function parentOf(issue, config, io) {
+  const fromApi = tryRun(io, 'gh', [
+    'api',
+    `repos/${config.github.repository}/issues/${issue.number}/parent`,
+    '--jq',
+    '.number',
+  ])?.trim()
+  if (fromApi) return Number(fromApi)
+  const fromBody = (issue.body ?? '').match(/^PRD #(\d+)/m)
+  return fromBody ? Number(fromBody[1]) : null
+}
+
+// The App token goes only into the push URL, never into a remote, a log or an error message.
+function push(branch, args, config, io) {
+  const token = io.env.GH_TOKEN
+  const target = token
+    ? [
+        `https://x-access-token:${args.dryRun ? '<GH_TOKEN>' : token}@github.com/${config.github.repository}.git`,
+        branch,
+      ]
+    : ['-u', 'origin', branch]
   try {
-    return execFileSync(command, args, {
+    actor(args, io)('git', ['push', ...target])
+  } catch (error) {
+    throw new Error(token ? error.message.replaceAll(token, '***') : error.message)
+  }
+}
+
+export function moveCard(issueUrl, column, args, config, io) {
+  if (args.dryRun) return io.log(`Would move the board card to ${column}.`)
+  const project = config.github.board.match(/\/projects\/(\d+)/)[1]
+  const owner = ['--owner', config.github.organization, '--format', 'json']
+  try {
+    const projectId = ghJson(io, ['project', 'view', project, ...owner]).id
+    const status = ghJson(io, ['project', 'field-list', project, ...owner]).fields.find(
+      (field) => field.name === 'Status',
+    )
+    const option = status.options.find((o) => o.name === column)
+    // item-add returns the existing item when the issue is already on the board.
+    const item = ghJson(io, ['project', 'item-add', project, ...owner, '--url', issueUrl])
+    io.run('gh', [
+      'project',
+      'item-edit',
+      '--id',
+      item.id,
+      '--project-id',
+      projectId,
+      '--field-id',
+      status.id,
+      '--single-select-option-id',
+      option.id,
+    ])
+    io.log(`Board card moved to ${column}.`)
+  } catch {
+    io.warn(
+      `Board not updated (gh needs the project scope: gh auth refresh -s project). Set the card to ${column} by hand: ${config.github.board}`,
+    )
+  }
+}
+
+export function start(args, config, io) {
+  assertIdentity(config, io)
+  const [number] = args.numbers
+  const act = actor(args, io)
+  const issue = viewIssue(number, 'number,title,url,labels,body,state', config, io)
+  if (issue.state !== 'OPEN') throw new Error(`#${number} is closed.`)
+  const size = sizeOf(issue.labels)
+  if (size === '?')
+    throw new Error(
+      `#${number} has no size: label: the person confirms size:S, size:M or size:L first (ADR-0052).`,
+    )
+  const parent = parentOf(issue, config, io)
+  const existing = readBranches(io).get(number)?.branch
+  const branch = existing ?? branchName(issue)
+  const current = io.run('git', ['branch', '--show-current']).trim()
+  if (current !== branch) {
+    if (io.run('git', ['status', '--porcelain']).trim())
+      throw new Error('There are uncommitted changes: commit or stash them before starting.')
+    if (existing) act('git', ['switch', branch])
+    else
+      act('gh', [
+        'issue',
+        'develop',
+        String(number),
+        '--repo',
+        config.github.repository,
+        '--name',
+        branch,
+        '--base',
+        'master',
+        '--checkout',
+      ])
+  }
+  if (refHas(io, branch, PROGRESS_FILE)) io.log(`${PROGRESS_FILE} is already on ${branch}.`)
+  else {
+    const text = progressText({
+      number,
+      slug: branch.replace(/^[a-z]+\/\d+-/, ''),
+      branch,
+      parent,
+      size,
+      updated: io.now().toISOString().slice(0, 16).replace('T', ' '),
+    })
+    if (args.dryRun) io.log(`Would write ${PROGRESS_FILE}:\n${text}`)
+    else io.writeFile(join(ROOT, PROGRESS_FILE), text)
+    act('git', ['add', '--', PROGRESS_FILE])
+    act('git', ['commit', '-m', `chore: start ticket ${number}\n\n${trailers(number, parent)}`])
+  }
+  moveCard(issue.url, size === 'S' ? 'Build' : 'Define', args, config, io)
+  push(branch, args, config, io)
+  io.log(`#${number} started on ${branch}.`)
+}
+
+// Once removed, the temporaries are read back from the commit before the removal, so a re-run
+// after a failure still posts the "Plan" and "Progress" comments.
+function readTemporaries(number, io) {
+  const files = [PROGRESS_FILE, PLAN_FILE, TASKS_FILE]
+  const isInHead = files.some(
+    (file) => tryRun(io, 'git', ['cat-file', '-e', `HEAD:${file}`]) !== null,
+  )
+  const removal = isInHead
+    ? null
+    : tryRun(io, 'git', [
+        'log',
+        '-1',
+        '--format=%H',
+        '--fixed-strings',
+        '--grep',
+        removalMessage(number),
+      ])?.trim()
+  const ref = isInHead ? 'HEAD' : removal ? `${removal}^` : null
+  const read = (file) => (ref ? tryRun(io, 'git', ['show', `${ref}:${file}`]) : null)
+  return { isInHead, progress: read(PROGRESS_FILE), plan: read(PLAN_FILE), tasks: read(TASKS_FILE) }
+}
+
+function tagSpecs(number, args, io) {
+  const changed = []
+  for (const name of io.list(join(ROOT, SPECS_DIR)).filter((n) => n.endsWith('.md'))) {
+    const path = join(ROOT, SPECS_DIR, name)
+    const text = io.readFile(path)
+    const tagged = tagIssue(text, number)
+    if (tagged === text) continue
+    changed.push(`${SPECS_DIR}/${name}`)
+    if (args.dryRun)
+      io.log(`Would replace @wip(#${number}) with @issue(#${number}) in ${SPECS_DIR}/${name}`)
+    else io.writeFile(path, tagged)
+  }
+  return changed
+}
+
+export function pr(args, config, io) {
+  assertIdentity(config, io)
+  const repo = config.github.repository
+  const act = actor(args, io)
+  const branch = io.run('git', ['branch', '--show-current']).trim()
+  const number = ticketFromBranch(branch)
+  if (!number) throw new Error(`"${branch}" is not a ticket branch: pnpm work resume <n> first.`)
+  if (io.run('git', ['status', '--porcelain']).trim())
+    throw new Error('There are uncommitted changes: commit or stash them before the PR.')
+  const issue = viewIssue(number, 'number,title,url,labels,body', config, io)
+  const parent = parentOf(issue, config, io)
+  act('pnpm', ['check'], { isVisible: true })
+
+  const saved = readTemporaries(number, io)
+  const specs = tagSpecs(number, args, io)
+  if (saved.isInHead || specs.length) {
+    if (saved.isInHead) act('git', ['rm', '-r', '-q', '--', '.work'])
+    if (specs.length) act('git', ['add', '--', ...specs])
+    act('git', ['commit', '-m', `${removalMessage(number)}\n\n${trailers(number, parent)}`])
+  }
+  push(branch, args, config, io)
+
+  const [open] = ghJson(io, [
+    'pr',
+    'list',
+    '--repo',
+    repo,
+    '--head',
+    branch,
+    '--state',
+    'open',
+    '--json',
+    'url,number',
+  ])
+  if (open) io.log(`PR already open: ${open.url}`)
+  else {
+    const summary = args.bodyFile ? io.readFile(args.bodyFile) : null
+    const labels = prLabels(issue).flatMap((label) => ['--label', label])
+    const url = act(
+      'gh',
+      [
+        'pr',
+        'create',
+        '--repo',
+        repo,
+        '--base',
+        'master',
+        '--head',
+        branch,
+        '--title',
+        prTitle(issue, args.title),
+        '--body-file',
+        '-',
+        ...labels,
+      ],
+      { input: prBody({ number, parent, summary }) },
+    )
+    if (url) io.log(`PR opened: ${url.trim()}`)
+  }
+
+  const comments = open ? readComments(io, repo, open.number) : []
+  const authors = trustedAuthors(config)
+  const comment = (body) =>
+    act('gh', ['pr', 'comment', branch, '--repo', repo, '--body-file', '-'], { input: body })
+  if (saved.plan && !comments.some((c) => isHeadedBy(c, PLAN_HEADING, authors)))
+    comment(`# Plan\n\n${saved.plan.trim()}\n`)
+  if (saved.progress && !latestProgress(comments, authors))
+    comment(progressComment(saved.progress, saved.tasks))
+  moveCard(issue.url, 'Review', args, config, io)
+}
+
+export function close(args, config, io) {
+  assertIdentity(config, io)
+  const [number] = args.numbers
+  const issue = viewIssue(number, 'number,url,state', config, io)
+  if (issue.state === 'CLOSED') io.log(`#${number} is already closed.`)
+  else
+    actor(args, io)('gh', [
+      'issue',
+      'close',
+      String(number),
+      '--repo',
+      config.github.repository,
+      '--reason',
+      'completed',
+      '--comment',
+      closeComment(args.learning),
+    ])
+  moveCard(issue.url, 'Done', args, config, io)
+}
+
+// Started through `pnpm work`, npm_execpath is pnpm's own script: Node cannot spawn pnpm.cmd without a shell.
+function run(command, args, { input, isVisible = false } = {}) {
+  const [file, fileArgs] =
+    command === 'pnpm' && process.env.npm_execpath
+      ? [process.execPath, [process.env.npm_execpath, ...args]]
+      : [command, args]
+  const output = isVisible ? 'inherit' : 'pipe'
+  try {
+    return execFileSync(file, fileArgs, {
       cwd: ROOT,
       encoding: 'utf8',
-      stdio: ['ignore', 'pipe', 'pipe'],
+      input,
+      stdio: [input == null ? 'ignore' : 'pipe', output, output],
       maxBuffer: 64 * 1024 * 1024,
     })
   } catch (error) {
@@ -479,6 +924,12 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     env: process.env,
     exists: existsSync,
     readFile: (path) => readFileSync(path, 'utf8'),
+    writeFile: (path, text) => {
+      mkdirSync(dirname(path), { recursive: true })
+      writeFileSync(path, text)
+    },
+    list: readdirSync,
+    now: () => new Date(),
     log: console.log,
     warn: console.error,
     isInteractive: process.stdin.isTTY && process.stdout.isTTY,
@@ -486,7 +937,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   try {
     const args = parseArgs(process.argv.slice(2))
     const config = parse(readFileSync(join(ROOT, 'project.yaml'), 'utf8'))
-    const commands = { help: () => help(io), status, inbox, resume }
+    const commands = { help: () => help(io, config), status, inbox, resume, start, pr, close }
     await commands[args.command](args, config, io)
   } catch (error) {
     console.error(error.message)
