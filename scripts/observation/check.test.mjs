@@ -139,3 +139,12 @@ test('a marker from an untrusted author is ignored', () => {
   ]
   assert.equal(isJudged(comments, 'bbb', authors), false)
 })
+
+test('an UptimeRobot error never puts request data in the public comment', () => {
+  const key = ['ur', 'secret', 'value'].join('-')
+  const result = { response: { stat: 'fail', error: { type: 'invalid_parameter', value: key } } }
+  const signal = uptimeSignal(result, HEALTH)
+  assert.equal(signal.ok, false)
+  assert.ok(!signal.text.includes(key))
+  assert.match(signal.text, /invalid_parameter/)
+})

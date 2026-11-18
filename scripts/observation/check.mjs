@@ -73,8 +73,11 @@ export function sentrySignal(result, sha) {
 export function uptimeSignal(result, healthUrl) {
   if (result.missing) return notChecked(result.missing)
   if (result.error) return { ok: false, text: `could not be read: ${result.error}` }
-  if (result.response.stat !== 'ok')
-    return { ok: false, text: `could not be read: ${JSON.stringify(result.response.error ?? {})}` }
+  // UptimeRobot error objects can echo request fields (the API key among them): keep only a safe type.
+  if (result.response.stat !== 'ok') {
+    const type = String(result.response.error?.type ?? 'unknown').replace(/[^a-z_]/gi, '')
+    return { ok: false, text: `could not be read (UptimeRobot error type: ${type || 'unknown'})` }
+  }
   const target = healthUrl.replace(/\/+$/, '')
   const monitor = (result.response.monitors ?? []).find(
     (m) => (m.url ?? '').replace(/\/+$/, '') === target,
@@ -126,7 +129,8 @@ async function fetchJson(url, init) {
     if (!response.ok) return { error: `HTTP ${response.status}` }
     return { body: await response.json() }
   } catch (error) {
-    return { error: error.message }
+    // The comment is public: name the failure, never echo a message that could carry request data.
+    return { error: error.name === 'TimeoutError' ? 'timed out' : 'request failed' }
   }
 }
 
