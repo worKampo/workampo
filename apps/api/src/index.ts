@@ -15,6 +15,7 @@ app.get('/health', (c) =>
     status: 'ok',
     sha: deployedSha(c.env) ?? 'local',
     version: c.env.CF_VERSION_METADATA.id,
+    environment: c.env.ENVIRONMENT,
   }),
 )
 

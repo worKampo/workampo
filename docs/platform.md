@@ -31,7 +31,7 @@ Step by step: [deploy runbook](runbooks/deploy.md).
 - **Sentry**: organisation in the EU region (`https://de.sentry.io`), Free plan ([ADR-0063](adr/0063-eu-data-residency.md)). `release` is the commit SHA, `environment` is `stg` or `prod`. PII is off in the SDK and on the server. The DSN is the GitHub Environment variable `SENTRY_DSN` (not a secret: it only lets a client send events), passed with `--var` on every deploy. Source maps go only to Sentry ([ADR-0043](adr/0043-public-repo.md)).
 - **Logs**: Workers logs. The only request data added is `X-Client-Version`.
 - **Uptime**: UptimeRobot Free, one HTTP monitor per environment on `/health`, every 5 minutes, email alert ([ADR-0039](adr/0039-operations-and-incidents.md)). Created on 2026-11-17; a deliberate DOWN on a missing path proved the email alert.
-- **Deployed version**: `/health` returns `sha` and `version`.
+- **Deployed version**: `/health` returns `sha`, `version` and `environment` (`local`, `stg` or `prod`).
 
 ## SLOs
 

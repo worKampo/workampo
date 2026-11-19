@@ -6,7 +6,7 @@ afterEach(() => {
   vi.restoreAllMocks()
 })
 
-it('answers /health with status, sha and version', async () => {
+it('answers /health with status, sha, version and environment', async () => {
   const response = await exports.default.fetch('https://app.test/health')
 
   expect(response.status).toBe(200)
@@ -14,7 +14,16 @@ it('answers /health with status, sha and version', async () => {
     status: 'ok',
     sha: 'local',
     version: expect.any(String),
+    environment: 'local',
   })
+})
+
+it('answers /health with the deployed environment', async () => {
+  for (const environment of ['stg', 'prod'] as const) {
+    const response = await app.request('/health', {}, { ...env, ENVIRONMENT: environment })
+
+    expect(await response.json()).toMatchObject({ environment })
+  }
 })
 
 it('answers /health with GIT_SHA when the version has no tag', async () => {
