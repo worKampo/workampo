@@ -10,6 +10,7 @@ import {
   rmSync,
   writeFileSync,
 } from 'node:fs'
+import { homedir } from 'node:os'
 import { dirname, join, sep } from 'node:path'
 import { createInterface } from 'node:readline/promises'
 import { fileURLToPath, pathToFileURL } from 'node:url'
@@ -336,12 +337,19 @@ export function checkIdentity(config, io) {
       )
   } else {
     const login = tryRun(io, 'gh', ['api', 'user', '--jq', '.login'])?.trim()
+    const dir = io.env.GH_CONFIG_DIR
     if (login !== account)
       problems.push(
-        `gh is logged in as ${login || 'nobody'}, not ${account}. Fix: gh auth switch --user ${account} (or gh auth login)`,
+        `gh (config ${dir}) is logged in as ${login || 'nobody'}, not ${account}. Fix: log in as ${account} in that config, without switching the global gh account: GH_CONFIG_DIR=${dir} gh auth login -h github.com -s project (PowerShell: $env:GH_CONFIG_DIR="${dir}"; gh auth login -h github.com -s project) (docs/process/bootstrap.md)`,
       )
   }
   return problems
+}
+
+// The person's gh keeps its own config, so the machine's global gh account is never used or switched.
+export function personGhConfigDir(env, home) {
+  if (env.GH_TOKEN) return null
+  return env.GH_CONFIG_DIR || join(home, '.workampo', 'gh')
 }
 
 export function assertIdentity(config, io) {
@@ -1097,6 +1105,8 @@ async function prompt(question) {
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  const ghConfigDir = personGhConfigDir(process.env, homedir())
+  if (ghConfigDir) process.env.GH_CONFIG_DIR = ghConfigDir
   const io = {
     run,
     prompt,

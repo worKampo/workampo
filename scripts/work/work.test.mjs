@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { join } from 'node:path'
 import { test } from 'node:test'
 import {
   activeTickets,
@@ -14,6 +15,7 @@ import {
   openCommand,
   parseArgs,
   parseIssueNumber,
+  personGhConfigDir,
   pr,
   prBody,
   progressText,
@@ -252,16 +254,30 @@ test('identity: wrong email refuses with the fix', () => {
   assert.match(problem, /git config user\.email "1\+workampo-dev@users\.noreply\.github\.com"/)
 })
 
-test('identity: another gh account refuses with the fix', () => {
+test('identity: another gh account refuses with the login in the project gh config, never auth switch', () => {
   for (const login of ['other-user\n', new Error('not logged in')]) {
-    const io = fakeIo({
-      'git config user.email': CONFIG.github.commitEmail,
-      'gh api user': login,
-    })
+    const io = fakeIo(
+      {
+        'git config user.email': CONFIG.github.commitEmail,
+        'gh api user': login,
+      },
+      { env: { GH_CONFIG_DIR: '/home/p/.workampo/gh' } },
+    )
     const problems = checkIdentity(CONFIG, io)
     assert.equal(problems.length, 1)
-    assert.match(problems[0], /gh auth switch --user workampo-dev/)
+    assert.match(
+      problems[0],
+      /GH_CONFIG_DIR=\/home\/p\/\.workampo\/gh gh auth login -h github\.com -s project/,
+    )
+    assert.ok(!problems[0].includes('auth switch'))
   }
+})
+
+test('the person gh uses its own config dir; the App token or a set GH_CONFIG_DIR are kept', () => {
+  const home = '/home/p'
+  assert.equal(personGhConfigDir({}, home), join(home, '.workampo', 'gh'))
+  assert.equal(personGhConfigDir({ GH_CONFIG_DIR: '/custom/gh' }, home), '/custom/gh')
+  assert.equal(personGhConfigDir({ GH_TOKEN: 'x' }, home), null)
 })
 
 test('identity: GH_TOKEN must be an installation token of this repo, never the gh login', () => {
