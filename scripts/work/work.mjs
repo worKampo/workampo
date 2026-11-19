@@ -756,20 +756,18 @@ export function start(args, config, io) {
   if (current !== branch) {
     if (io.run('git', ['status', '--porcelain']).trim())
       throw new Error('There are uncommitted changes: commit or stash them before starting.')
+    const develop = ['issue', 'develop', String(number), '--repo', config.github.repository]
+    develop.push('--name', branch, '--base', 'master')
     if (existing) act('git', ['switch', branch])
-    else
-      act('gh', [
-        'issue',
-        'develop',
-        String(number),
-        '--repo',
-        config.github.repository,
-        '--name',
-        branch,
-        '--base',
-        'master',
-        '--checkout',
-      ])
+    else if (!io.env.GH_TOKEN) act('gh', [...develop, '--checkout'])
+    else {
+      // --checkout fetches through origin, which is the person's SSH remote: fetch over HTTPS
+      // with the App token instead. A re-run finds the branch already on GitHub.
+      const url = `https://github.com/${config.github.repository}.git`
+      if (!io.run('git', ['ls-remote', url, `refs/heads/${branch}`]).trim()) act('gh', develop)
+      act('git', ['fetch', url, `refs/heads/${branch}`], { env: pushEnv(io.env.GH_TOKEN) })
+      act('git', ['switch', '-c', branch, 'FETCH_HEAD'])
+    }
   }
   if (refHas(io, branch, PROGRESS_FILE)) io.log(`${PROGRESS_FILE} is already on ${branch}.`)
   else {
