@@ -346,11 +346,11 @@ export function checkIdentity(config, io) {
   return problems
 }
 
-// The same gh command for Git Bash and PowerShell, run against one config dir; quoted so backslashes and spaces survive.
+// The same gh command for Git Bash and for PowerShell or cmd, against one config dir. On Windows the variable
+// and gh run in one cmd process: a PowerShell $env: assignment did not reach gh in the person's terminal.
 export function ghCommand(dir, args) {
   const bash = `'${dir.replaceAll("'", "'\\''")}'`
-  const pwsh = `'${dir.replaceAll("'", "''")}'`
-  return `GH_CONFIG_DIR=${bash} gh ${args} (PowerShell: $old=$env:GH_CONFIG_DIR; $env:GH_CONFIG_DIR=${pwsh}; gh ${args}; $env:GH_CONFIG_DIR=$old) (docs/process/bootstrap.md)`
+  return `GH_CONFIG_DIR=${bash} gh ${args} (PowerShell or cmd: cmd /c "set GH_CONFIG_DIR=${dir}&& gh ${args}") (docs/process/bootstrap.md)`
 }
 
 function loginCommand(dir) {

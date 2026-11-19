@@ -288,14 +288,13 @@ test('a gh error without a login in the project config adds the login command', 
   assert.equal(withLoginHint(raw, { GH_TOKEN: 'x' }), raw)
 })
 
-test('gh commands quote the config dir for Git Bash and PowerShell and restore the old value', () => {
+test('gh commands set the config dir for Git Bash and, in one cmd process, for PowerShell', () => {
   const command = ghCommand("C:\\Users\\A B\\it's\\gh", 'auth login')
   assert.ok(command.includes("GH_CONFIG_DIR='C:\\Users\\A B\\it'\\''s\\gh' gh auth login"))
   assert.ok(
-    command.includes(
-      "$old=$env:GH_CONFIG_DIR; $env:GH_CONFIG_DIR='C:\\Users\\A B\\it''s\\gh'; gh auth login; $env:GH_CONFIG_DIR=$old",
-    ),
+    command.includes('cmd /c "set GH_CONFIG_DIR=C:\\Users\\A B\\it\'s\\gh&& gh auth login"'),
   )
+  assert.ok(!command.includes('$env:'))
 })
 
 test('the board hint names the project gh config for the person and the App permission for agents', () => {
