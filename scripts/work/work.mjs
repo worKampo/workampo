@@ -691,19 +691,24 @@ export function pushEnv(token) {
   }
 }
 
+// A git call over HTTPS with the App token in its environment; its error never shows the token.
+function gitWithToken(gitArgs, token, run) {
+  const env = pushEnv(token)
+  try {
+    return run('git', gitArgs, { env })
+  } catch (error) {
+    const secrets = [token, env.GIT_CONFIG_VALUE_0.split(' ').at(-1)]
+    throw new Error(secrets.reduce((text, s) => text.replaceAll(s, '***'), error.message))
+  }
+}
+
 function push(branch, args, config, io) {
   const token = io.env.GH_TOKEN
   if (!token) return actor(args, io)('git', ['push', '-u', 'origin', branch])
   const url = `https://github.com/${config.github.repository}.git`
   if (args.dryRun)
     return io.log(`Would run: GIT_CONFIG_VALUE_0=<GH_TOKEN header> git push ${url} ${branch}`)
-  const env = pushEnv(token)
-  try {
-    io.run('git', ['push', url, branch], { env })
-  } catch (error) {
-    const secrets = [token, env.GIT_CONFIG_VALUE_0.split(' ').at(-1)]
-    throw new Error(secrets.reduce((text, s) => text.replaceAll(s, '***'), error.message))
-  }
+  gitWithToken(['push', url, branch], token, io.run)
 }
 
 export function moveCard(issueUrl, column, args, config, io) {
@@ -761,12 +766,19 @@ export function start(args, config, io) {
     if (existing) act('git', ['switch', branch])
     else if (!io.env.GH_TOKEN) act('gh', [...develop, '--checkout'])
     else {
-      // --checkout fetches through origin, which is the person's SSH remote: fetch over HTTPS
-      // with the App token instead. A re-run finds the branch already on GitHub.
+      // gh fetches through origin, the person's SSH remote, even without --checkout: once the
+      // branch is on GitHub that failure does not matter, and the App fetches it over HTTPS.
       const url = `https://github.com/${config.github.repository}.git`
-      if (!io.run('git', ['ls-remote', url, `refs/heads/${branch}`]).trim()) act('gh', develop)
-      act('git', ['fetch', url, `refs/heads/${branch}`], { env: pushEnv(io.env.GH_TOKEN) })
-      act('git', ['switch', '-c', branch, 'FETCH_HEAD'])
+      const isOnGitHub = () => io.run('git', ['ls-remote', url, `refs/heads/${branch}`]).trim()
+      if (!isOnGitHub())
+        try {
+          act('gh', develop)
+        } catch (error) {
+          if (!isOnGitHub()) throw error
+        }
+      const ref = `refs/heads/${branch}`
+      gitWithToken(['fetch', url, `${ref}:${ref}`], io.env.GH_TOKEN, act)
+      act('git', ['switch', branch])
     }
   }
   if (refHas(io, branch, PROGRESS_FILE)) io.log(`${PROGRESS_FILE} is already on ${branch}.`)

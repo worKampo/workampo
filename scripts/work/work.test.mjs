@@ -544,8 +544,8 @@ test('start creates the linked branch, writes and commits PROGRESS.md, moves the
   start({ numbers: [15] }, CONFIG, io)
   assert.deepEqual(writeCalls(io), [
     `gh issue develop 15 --repo worKampo/workampo --name ${BRANCH_15} --base master`,
-    `git fetch https://github.com/worKampo/workampo.git refs/heads/${BRANCH_15}`,
-    `git switch -c ${BRANCH_15} FETCH_HEAD`,
+    `git fetch https://github.com/worKampo/workampo.git refs/heads/${BRANCH_15}:refs/heads/${BRANCH_15}`,
+    `git switch ${BRANCH_15}`,
     'git add -- .work/PROGRESS.md',
     'git commit -m chore: start ticket 15\n\nRefs: #15\nPRD: #12',
     'gh project item-add 1 --owner worKampo --format json --url https://github.com/worKampo/workampo/issues/15',
@@ -562,7 +562,26 @@ test('start creates the linked branch, writes and commits PROGRESS.md, moves the
   )
   start({ numbers: [15] }, CONFIG, rerun)
   assert.ok(!writeCalls(rerun).some((c) => c.startsWith('gh issue develop')))
-  assert.ok(writeCalls(rerun).includes(`git switch -c ${BRANCH_15} FETCH_HEAD`))
+  assert.ok(writeCalls(rerun).includes(`git switch ${BRANCH_15}`))
+
+  // gh fetches through origin after creating the branch: that failure alone is not fatal.
+  let created = false
+  const sshFailure = startIo(
+    {
+      'gh issue develop': () => ((created = true), new Error('Permission denied (publickey)')),
+      'git ls-remote': () => (created ? `abc\trefs/heads/${BRANCH_15}\n` : ''),
+    },
+    { env: { GH_TOKEN: TOKEN } },
+  )
+  start({ numbers: [15] }, CONFIG, sshFailure)
+  assert.ok(writeCalls(sshFailure).includes(`git switch ${BRANCH_15}`))
+
+  const notCreated = startIo(
+    { 'gh issue develop': new Error('HTTP 403'), 'git ls-remote': '' },
+    { env: { GH_TOKEN: TOKEN } },
+  )
+  assert.throws(() => start({ numbers: [15] }, CONFIG, notCreated), /HTTP 403/)
+  assert.ok(!writeCalls(notCreated).some((c) => c.startsWith('git fetch')))
 
   const [progress] = Object.values(io.writes)
   assert.ok(Object.keys(io.writes)[0].endsWith('.work/PROGRESS.md'))
