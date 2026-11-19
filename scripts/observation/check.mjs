@@ -177,15 +177,21 @@ export function uptimeRange(deploy) {
   return `${Math.floor(start / 1000)}_${Math.floor(end / 1000)}`
 }
 
-async function readSentry(env, deploy) {
+export async function readSentry(env, deploy, get = fetchJson) {
   if (!env.SENTRY_READ_TOKEN) return { missing: 'SENTRY_READ_TOKEN' }
   if (!env.SENTRY_ORG) return { missing: 'SENTRY_ORG' }
   const query = sentryQuery(deploy)
-  const { body, error } = await fetchJson(
-    `https://de.sentry.io/api/0/organizations/${encodeURIComponent(env.SENTRY_ORG)}/issues/?${query}`,
-    { headers: { Authorization: `Bearer ${env.SENTRY_READ_TOKEN}` } },
-  )
-  return error ? { error } : { issues: body }
+  const issues = () =>
+    get(
+      `https://de.sentry.io/api/0/organizations/${encodeURIComponent(env.SENTRY_ORG)}/issues/?${query}`,
+      { headers: { Authorization: `Bearer ${env.SENTRY_READ_TOKEN}` } },
+    )
+  const { body, error } = await issues()
+  if (error !== 'HTTP 404') return error ? { error } : { issues: body }
+  // Sentry 404s an environment that has never received an event. If the same query works
+  // without it, prod has sent no event at all, so it has no new issue either.
+  query.delete('environment')
+  return (await issues()).error ? { error } : { issues: [] }
 }
 
 async function readUptime(env, deploy) {

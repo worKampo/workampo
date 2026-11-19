@@ -10,6 +10,7 @@ import {
   observationAuthors,
   pendingDeploys,
   readHealth,
+  readSentry,
   sentryQuery,
   sentrySignal,
   successTime,
@@ -242,4 +243,24 @@ test('readHealth reports a 200 body without a string sha instead of throwing', a
       server.close()
     }
   }
+})
+
+test('a prod environment with no events in Sentry has no new issues; a 404 without it is an error', async () => {
+  const env = { SENTRY_READ_TOKEN: 't', SENTRY_ORG: 'o' }
+  const fake = (...responses) => {
+    const urls = []
+    return { urls, get: async (url) => (urls.push(url), responses.shift()) }
+  }
+
+  const noEnv = fake({ error: 'HTTP 404' }, { body: [{ shortId: 'X-1' }] })
+  assert.deepEqual(await readSentry(env, deploy, noEnv.get), { issues: [] })
+  assert.ok(noEnv.urls[0].includes('environment=prod'))
+  assert.ok(!noEnv.urls[1].includes('environment='))
+
+  const badOrg = fake({ error: 'HTTP 404' }, { error: 'HTTP 404' })
+  assert.deepEqual(await readSentry(env, deploy, badOrg.get), { error: 'HTTP 404' })
+
+  const down = fake({ error: 'HTTP 500' })
+  assert.deepEqual(await readSentry(env, deploy, down.get), { error: 'HTTP 500' })
+  assert.equal(down.urls.length, 1)
 })
