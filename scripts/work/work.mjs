@@ -802,20 +802,23 @@ export function start(args, config, io) {
     // Never gh issue develop: GitHub closes an issue whose linked branch is merged, before the
     // observation window that closes a ticket (ADR-0020).
     if (existing) act('git', ['switch', branch])
-    else if (!io.env.GH_TOKEN) {
-      act('git', ['fetch', 'origin', 'master'])
-      act('git', ['switch', '-c', branch, 'origin/master'])
-    } else {
+    else {
+      const token = io.env.GH_TOKEN
       // The App works over HTTPS: origin is the person's SSH remote.
-      const url = `https://github.com/${config.github.repository}.git`
+      const remote = token ? `https://github.com/${config.github.repository}.git` : 'origin'
+      // Explicit refspecs: a narrowed remote.origin.fetch would leave origin/* stale.
+      const fetch = (from, to) =>
+        token
+          ? gitWithToken(['fetch', remote, `${from}:${to}`], token, act)
+          : act('git', ['fetch', remote, `${from}:${to}`])
       const ref = `refs/heads/${branch}`
-      if (io.run('git', ['ls-remote', url, ref]).trim()) {
-        gitWithToken(['fetch', url, `${ref}:${ref}`], io.env.GH_TOKEN, act)
+      if (io.run('git', ['ls-remote', remote, ref]).trim()) {
+        fetch(ref, `refs/remotes/origin/${branch}`)
         act('git', ['switch', branch])
       } else {
-        const master = 'refs/heads/master:refs/remotes/origin/master'
-        gitWithToken(['fetch', url, master], io.env.GH_TOKEN, act)
-        act('git', ['switch', '-c', branch, 'origin/master'])
+        fetch('refs/heads/master', 'refs/remotes/origin/master')
+        // --no-track: the ticket branch must never pull from master; the person's push sets its upstream.
+        act('git', ['switch', '--no-track', '-c', branch, 'origin/master'])
       }
     }
   }

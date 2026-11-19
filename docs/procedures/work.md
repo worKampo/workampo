@@ -10,7 +10,7 @@ Issue numbers are written `15` or `#15`; docs use the form without `#`. Commands
 | `pnpm work status [n…] [--json]` | What is in progress; with numbers, the detail of those tickets |
 | `pnpm work inbox [--json]` | Only what waits for the person: PRs to review, deployments to approve, tickets waiting on them |
 | `pnpm work resume [n]` | Switch to the ticket's branch and print the reading order of [progress](progress.md); refuses with uncommitted changes |
-| `pnpm work start <n>` | Refuses without a `size:` label. Creates the branch from an up-to-date `master` (`feature/<n>-<slug>`, or `bugfix/` for `type:bug`), never with `gh issue develop` ([ADR-0042](../adr/0042-traceability.md)), commits `.work/PROGRESS.md`, pushes, moves the card to Build (S) or Define (M, L) |
+| `pnpm work start <n>` | Refuses without a `size:` label. Creates the branch from an up-to-date `master` (`feature/<n>-<slug>`, or `bugfix/` for `type:bug`), never with `gh issue develop` ([ADR-0067](../adr/0067-ticket-branches-not-linked.md)), commits `.work/PROGRESS.md`, pushes, moves the card to Build (S) or Define (M, L) |
 | `pnpm work pr [--title "<t>"] [--body-file <f>]` | On a ticket branch: runs `pnpm check`, turns `@wip(#n)` into `@issue(#n)`, removes `.work/` in one commit, pushes, opens the PR (`PRD #`, `Ticket #`, `type:` `area:` `size:` labels), posts the "Plan" and "Progress" comments, moves the card to Review |
 | `pnpm work close <n> [--learning "<text>"]` | Closes the issue as completed with a comment (and the proposed learning), moves the card to Done. An unknown option fails; a learning that starts with `--` goes as `--learning=<text>` |
 | `pnpm work verify <n>` | Local check of moment 2 ([verify](#verify)) |

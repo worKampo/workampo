@@ -599,7 +599,7 @@ test('start branches from master without linking it to the issue, writes and com
   start({ numbers: [15] }, CONFIG, io)
   assert.deepEqual(writeCalls(io), [
     'git fetch https://github.com/worKampo/workampo.git refs/heads/master:refs/remotes/origin/master',
-    `git switch -c ${BRANCH_15} origin/master`,
+    `git switch --no-track -c ${BRANCH_15} origin/master`,
     'git add -- .work/PROGRESS.md',
     'git commit -m chore: start ticket 15\n\nRefs: #15\nPRD: #12',
     'gh project item-add 1 --owner worKampo --format json --url https://github.com/worKampo/workampo/issues/15',
@@ -616,7 +616,7 @@ test('start branches from master without linking it to the issue, writes and com
   )
   start({ numbers: [15] }, CONFIG, rerun)
   assert.deepEqual(writeCalls(rerun).slice(0, 2), [
-    `git fetch https://github.com/worKampo/workampo.git refs/heads/${BRANCH_15}:refs/heads/${BRANCH_15}`,
+    `git fetch https://github.com/worKampo/workampo.git refs/heads/${BRANCH_15}:refs/remotes/origin/${BRANCH_15}`,
     `git switch ${BRANCH_15}`,
   ])
   for (const run of [io, rerun])
@@ -653,8 +653,16 @@ test('start: S goes to Build, bugs to bugfix/, the parent comes from the sub-iss
   start({ numbers: [15] }, CONFIG, io)
   const writes = writeCalls(io)
   assert.deepEqual(writes.slice(0, 2), [
-    'git fetch origin master',
-    'git switch -c bugfix/15-invitar-por-email-a-los-miembros origin/master',
+    'git fetch origin refs/heads/master:refs/remotes/origin/master',
+    'git switch --no-track -c bugfix/15-invitar-por-email-a-los-miembros origin/master',
+  ])
+
+  // The person's re-run also reuses a branch pushed from elsewhere since the last fetch.
+  const rerun = startIo({ 'git ls-remote': `abc\trefs/heads/${BRANCH_15}\n` })
+  start({ numbers: [15] }, CONFIG, rerun)
+  assert.deepEqual(writeCalls(rerun).slice(0, 2), [
+    `git fetch origin refs/heads/${BRANCH_15}:refs/remotes/origin/${BRANCH_15}`,
+    `git switch ${BRANCH_15}`,
   ])
   assert.ok(!writes.some((c) => c.startsWith('gh issue develop')))
   assert.match(commitMessage(io), /Refs: #15\nPRD: #7$/)
@@ -711,7 +719,7 @@ test('start --dry-run prints every action, writes nothing and never prints the t
   assert.deepEqual(writeCalls(io), [])
   assert.deepEqual(io.writes, {})
   const out = io.output.join('\n')
-  assert.match(out, /Would run: git switch -c feature\/15-.* origin\/master\n/)
+  assert.match(out, /Would run: git switch --no-track -c feature\/15-.* origin\/master\n/)
   assert.ok(!out.includes('gh issue develop'))
   assert.match(out, /Would run: git fetch https:\/\/github\.com\/worKampo\/workampo\.git /)
   assert.match(out, /Would write \.work\/PROGRESS\.md:\n# Progress/)
