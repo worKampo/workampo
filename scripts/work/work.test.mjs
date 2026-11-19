@@ -4,11 +4,13 @@ import { test } from 'node:test'
 import {
   activeTickets,
   boardField,
+  boardFix,
   buildInbox,
   checkIdentity,
   ciSummary,
   close,
   closeComment,
+  ghCommand,
   help,
   latestProgress,
   nextStep,
@@ -30,8 +32,10 @@ import {
   taskCounts,
   ticketFromBranch,
   trustedAuthors,
+  usePersonGh,
   verificationList,
   verify,
+  withLoginHint,
 } from './work.mjs'
 
 const CONFIG = {
@@ -267,17 +271,53 @@ test('identity: another gh account refuses with the login in the project gh conf
     assert.equal(problems.length, 1)
     assert.match(
       problems[0],
-      /GH_CONFIG_DIR=\/home\/p\/\.workampo\/gh gh auth login -h github\.com -s project/,
+      /GH_CONFIG_DIR='\/home\/p\/\.workampo\/gh' gh auth login -h github\.com -s project/,
     )
     assert.ok(!problems[0].includes('auth switch'))
   }
 })
 
-test('the person gh uses its own config dir; the App token or a set GH_CONFIG_DIR are kept', () => {
+test('a gh error without a login in the project config adds the login command', () => {
+  const env = { GH_CONFIG_DIR: '/home/p/.workampo/gh' }
+  const raw = 'gh issue failed: To get started with GitHub CLI, please run:  gh auth login'
+  assert.match(
+    withLoginHint(raw, env),
+    /GH_CONFIG_DIR='\/home\/p\/\.workampo\/gh' gh auth login -h github\.com -s project/,
+  )
+  assert.equal(withLoginHint('gh pr failed: HTTP 404', env), 'gh pr failed: HTTP 404')
+  assert.equal(withLoginHint(raw, { GH_TOKEN: 'x' }), raw)
+})
+
+test('gh commands quote the config dir for Git Bash and PowerShell and restore the old value', () => {
+  const command = ghCommand("C:\\Users\\A B\\it's\\gh", 'auth login')
+  assert.ok(command.includes("GH_CONFIG_DIR='C:\\Users\\A B\\it'\\''s\\gh' gh auth login"))
+  assert.ok(
+    command.includes(
+      "$old=$env:GH_CONFIG_DIR; $env:GH_CONFIG_DIR='C:\\Users\\A B\\it''s\\gh'; gh auth login; $env:GH_CONFIG_DIR=$old",
+    ),
+  )
+})
+
+test('the board hint names the project gh config for the person and the App permission for agents', () => {
+  assert.match(
+    boardFix({ GH_CONFIG_DIR: '/p/gh' }),
+    /GH_CONFIG_DIR='\/p\/gh' gh auth refresh -s project/,
+  )
+  assert.match(boardFix({ GH_TOKEN: 'x' }), /App .*Projects.*Read and write/)
+})
+
+test('the person gh uses its own config dir and ignores GITHUB_TOKEN; the App token is kept', () => {
   const home = '/home/p'
   assert.equal(personGhConfigDir({}, home), join(home, '.workampo', 'gh'))
   assert.equal(personGhConfigDir({ GH_CONFIG_DIR: '/custom/gh' }, home), '/custom/gh')
   assert.equal(personGhConfigDir({ GH_TOKEN: 'x' }, home), null)
+
+  const person = { GITHUB_TOKEN: 'other-account' }
+  usePersonGh(person, home)
+  assert.deepEqual(person, { GH_CONFIG_DIR: join(home, '.workampo', 'gh') })
+  const agent = { GH_TOKEN: 'x', GITHUB_TOKEN: 'y' }
+  usePersonGh(agent, home)
+  assert.deepEqual(agent, { GH_TOKEN: 'x', GITHUB_TOKEN: 'y' })
 })
 
 test('identity: GH_TOKEN must be an installation token of this repo, never the gh login', () => {
