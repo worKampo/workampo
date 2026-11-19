@@ -49,3 +49,7 @@ Every piece of work (PRD, ticket, task, branch, PR, commit, spec, deployment, in
 ## Consequences
 
 See Decision.
+
+## Updates
+
+- 2026-11-19: the Branch and PR rows and the *Development* step of the navigation are superseded by [ADR-0067](0067-ticket-branches-not-linked.md): branches are no longer linked with `gh issue develop`.

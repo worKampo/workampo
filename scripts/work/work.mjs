@@ -799,24 +799,27 @@ export function start(args, config, io) {
   if (current !== branch) {
     if (io.run('git', ['status', '--porcelain']).trim())
       throw new Error('There are uncommitted changes: commit or stash them before starting.')
-    const develop = ['issue', 'develop', String(number), '--repo', config.github.repository]
-    develop.push('--name', branch, '--base', 'master')
+    // Never gh issue develop: GitHub closes an issue whose linked branch is merged, before the
+    // observation window that closes a ticket (ADR-0020).
     if (existing) act('git', ['switch', branch])
-    else if (!io.env.GH_TOKEN) act('gh', [...develop, '--checkout'])
     else {
-      // gh fetches through origin, the person's SSH remote, even without --checkout: once the
-      // branch is on GitHub that failure does not matter, and the App fetches it over HTTPS.
-      const url = `https://github.com/${config.github.repository}.git`
-      const isOnGitHub = () => io.run('git', ['ls-remote', url, `refs/heads/${branch}`]).trim()
-      if (!isOnGitHub())
-        try {
-          act('gh', develop)
-        } catch (error) {
-          if (!isOnGitHub()) throw error
-        }
+      const token = io.env.GH_TOKEN
+      // The App works over HTTPS: origin is the person's SSH remote.
+      const remote = token ? `https://github.com/${config.github.repository}.git` : 'origin'
+      // Explicit refspecs: a narrowed remote.origin.fetch would leave origin/* stale.
+      const fetch = (from, to) =>
+        token
+          ? gitWithToken(['fetch', remote, `${from}:${to}`], token, act)
+          : act('git', ['fetch', remote, `${from}:${to}`])
       const ref = `refs/heads/${branch}`
-      gitWithToken(['fetch', url, `${ref}:${ref}`], io.env.GH_TOKEN, act)
-      act('git', ['switch', branch])
+      if (io.run('git', ['ls-remote', remote, ref]).trim()) {
+        fetch(ref, `refs/remotes/origin/${branch}`)
+        act('git', ['switch', branch])
+      } else {
+        fetch('refs/heads/master', 'refs/remotes/origin/master')
+        // --no-track: the ticket branch must never pull from master; the person's push sets its upstream.
+        act('git', ['switch', '--no-track', '-c', branch, 'origin/master'])
+      }
     }
   }
   if (refHas(io, branch, PROGRESS_FILE)) io.log(`${PROGRESS_FILE} is already on ${branch}.`)

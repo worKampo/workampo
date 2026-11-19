@@ -73,7 +73,7 @@ Every architectural and process decision of worKampo, one file per decision ([MA
 | [ADR-0039](0039-operations-and-incidents.md) | Operations and incidents | accepted |
 | [ADR-0040](0040-process-metrics-and-monthly-review.md) | Process metrics and monthly review | accepted |
 | [ADR-0041](0041-agent-boundaries.md) | Agent boundaries | accepted |
-| [ADR-0042](0042-traceability.md) | Traceability between pieces | accepted |
+| [ADR-0042](0042-traceability.md) | Traceability between pieces | accepted (Branch and PR rows superseded by ADR-0067) |
 | [ADR-0043](0043-public-repo.md) | Public repo | accepted |
 | [ADR-0044](0044-migrations-reference-data-seeds-and-backfills.md) | Migrations, reference data, seeds and backfills | accepted |
 | [ADR-0045](0045-project-profile.md) | Project profile (`project.yaml`) | accepted |
@@ -110,6 +110,7 @@ Every architectural and process decision of worKampo, one file per decision ([MA
 |---|---|---|
 | [ADR-0065](0065-zero-spend-and-free-tier-limits.md) | Zero spend and free-tier limits | accepted |
 | [ADR-0066](0066-design-system.md) | Design system: neutral chrome, ink accent, IBM Plex Sans | accepted |
+| [ADR-0067](0067-ticket-branches-not-linked.md) | Ticket branches are not linked to the issue | accepted |
 
 ## Notes
 
