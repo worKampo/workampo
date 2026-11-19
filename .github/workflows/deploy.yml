@@ -1,0 +1,106 @@
+name: deploy
+
+# Staging after every merge; production with the same SHA once the person approves the prod Environment (ADR-0013, ADR-0023).
+on:
+  push:
+    branches: [master]
+
+permissions: {}
+
+jobs:
+  stg:
+    # One group per environment: two deploys never migrate the same databases at once, a queued one
+    # waits instead of cancelling, and a prod job waiting for approval does not hold back staging.
+    concurrency:
+      group: deploy-stg
+      cancel-in-progress: false
+      queue: max
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment:
+      name: stg
+      url: https://app-stg.workampo.workers.dev
+    permissions:
+      contents: read
+      issues: write
+    outputs:
+      deployed: ${{ steps.deploy.outputs.deployed }}
+    env:
+      CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+      SENTRY_ORG: ${{ vars.SENTRY_ORG }}
+      SENTRY_PROJECT: ${{ vars.SENTRY_PROJECT }}
+      SENTRY_DSN: ${{ vars.SENTRY_DSN }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0 # the diff against the deployed SHA needs history
+          persist-credentials: false
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - id: deploy
+        run: node scripts/deploy/deploy.mjs stg
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+      - if: steps.deploy.outputs.deployed == 'true'
+        run: node scripts/smoke/smoke.mjs https://app-stg.workampo.workers.dev "$GITHUB_SHA"
+      - if: steps.deploy.outputs.deployed == 'true'
+        run: node scripts/smoke/verification-comment.mjs stg https://app-stg.workampo.workers.dev "$GITHUB_SHA" "$FROM_SHA"
+        # A failed comment must not block production.
+        continue-on-error: true
+        env:
+          FROM_SHA: ${{ steps.deploy.outputs.from }}
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+
+  prod:
+    needs: stg
+    # Nothing new in staging means nothing to approve; a lagging prod catches up on the next deploy.
+    if: needs.stg.outputs.deployed == 'true'
+    concurrency:
+      group: deploy-prod
+      cancel-in-progress: false
+      queue: max
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment:
+      name: prod
+      url: https://app.workampo.workers.dev
+    permissions:
+      contents: read
+      issues: write
+    env:
+      CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+      SENTRY_ORG: ${{ vars.SENTRY_ORG }}
+      SENTRY_PROJECT: ${{ vars.SENTRY_PROJECT }}
+      SENTRY_DSN: ${{ vars.SENTRY_DSN }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      # Same SHA as staging; production computes its own diff against what it serves (ADR-0060).
+      - id: deploy
+        run: node scripts/deploy/deploy.mjs prod
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+      - if: steps.deploy.outputs.deployed == 'true'
+        run: node scripts/smoke/smoke.mjs https://app.workampo.workers.dev "$GITHUB_SHA"
+      - if: steps.deploy.outputs.deployed == 'true'
+        run: node scripts/smoke/verification-comment.mjs prod https://app.workampo.workers.dev "$GITHUB_SHA" "$FROM_SHA"
+        continue-on-error: true
+        env:
+          FROM_SHA: ${{ steps.deploy.outputs.from }}
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}

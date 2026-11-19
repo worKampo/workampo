@@ -1,0 +1,6 @@
+{
+  "pattern": "**/*.tsx",
+  "ignore": ["**/node_modules/**", "**/dist/**"],
+  "gitignore": true,
+  "reporters": ["json"]
+}

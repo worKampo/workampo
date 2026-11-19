@@ -1,0 +1,51 @@
+name: observation-window
+
+# Judges the 24-hour observation window of prod deploys (docs/runbooks/deploy.md).
+on:
+  schedule:
+    - cron: "17 * * * *"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Only print the decisions; comment and close nothing
+        type: boolean
+        default: true
+
+permissions: {}
+
+concurrency:
+  group: observation-window
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      issues: write
+      deployments: read
+    env:
+      SENTRY_ORG: ${{ vars.SENTRY_ORG }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0 # the Refs trailers between two deployed SHAs need history
+          persist-credentials: false
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      # Scheduled runs are never dry runs; the input reaches the script only through env.
+      - run: |
+          args=()
+          [ "$DRY_RUN" = true ] && args+=(--dry-run)
+          node scripts/observation/check.mjs "${args[@]}"
+        env:
+          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run }}
+          SENTRY_READ_TOKEN: ${{ secrets.SENTRY_READ_TOKEN }}
+          UPTIMEROBOT_READ_KEY: ${{ secrets.UPTIMEROBOT_READ_KEY }}
+          GH_TOKEN: ${{ github.token }}
