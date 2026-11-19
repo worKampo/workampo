@@ -145,6 +145,9 @@ test('git grep without matches is empty', () => {
 
 test('a merge lists the files its resolution changed, not those the merged branch brought', () => {
   const dir = mkdtempSync(join(tmpdir(), 'merge-files-'))
+  // A git hook (pre-commit runs this test) exports GIT_DIR and GIT_INDEX_FILE: inherited, they
+  // point every call below at the real repository instead of the temporary one.
+  const env = Object.fromEntries(Object.entries(process.env).filter(([k]) => !k.startsWith('GIT_')))
   const git = (...args) =>
     execFileSync(
       'git',
@@ -159,7 +162,7 @@ test('a merge lists the files its resolution changed, not those the merged branc
         'commit.gpgSign=false',
         ...args,
       ],
-      { cwd: dir, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] },
+      { cwd: dir, env, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] },
     ).trim()
   const write = (file, text) => writeFileSync(join(dir, file), text)
   const commit = (message) => git('commit', '-q', '-a', '-m', message)
@@ -186,7 +189,7 @@ test('a merge lists the files its resolution changed, not those the merged branc
     commit('chore: merge master')
     const ctx = createContext({
       env: { BASE_SHA: base, HEAD_SHA: git('rev-parse', 'HEAD') },
-      run: (file, args) => defaultRun(file, args, { cwd: dir }),
+      run: (file, args) => defaultRun(file, args, { cwd: dir, env }),
     })
     const merge = ctx.commits().at(-1)
     assert.equal(merge.isMerge, true)
