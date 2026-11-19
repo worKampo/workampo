@@ -307,13 +307,13 @@ test('the board hint names the project gh config for the person and the App perm
 
 test('the person gh uses its own config dir and ignores GITHUB_TOKEN; the App token is kept', () => {
   const home = '/home/p'
-  assert.equal(personGhConfigDir({}, home), join(home, '.workampo', 'gh'))
+  assert.equal(personGhConfigDir({}, home), join(home, '.config', 'gh-workampo'))
   assert.equal(personGhConfigDir({ GH_CONFIG_DIR: '/custom/gh' }, home), '/custom/gh')
   assert.equal(personGhConfigDir({ GH_TOKEN: 'x' }, home), null)
 
   const person = { GITHUB_TOKEN: 'other-account' }
   usePersonGh(person, home)
-  assert.deepEqual(person, { GH_CONFIG_DIR: join(home, '.workampo', 'gh') })
+  assert.deepEqual(person, { GH_CONFIG_DIR: join(home, '.config', 'gh-workampo') })
   const agent = { GH_TOKEN: 'x', GITHUB_TOKEN: 'y' }
   usePersonGh(agent, home)
   assert.deepEqual(agent, { GH_TOKEN: 'x', GITHUB_TOKEN: 'y' })

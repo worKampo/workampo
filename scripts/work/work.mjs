@@ -347,7 +347,7 @@ export function checkIdentity(config, io) {
 }
 
 // The same gh command for Git Bash and for PowerShell or cmd, against one config dir. On Windows the variable
-// and gh run in one cmd process: a PowerShell $env: assignment did not reach gh in the person's terminal.
+// and gh.exe run in one cmd process: a gh shell function in the profile may set and remove GH_CONFIG_DIR itself.
 export function ghCommand(dir, args) {
   const bash = `'${dir.replaceAll("'", "'\\''")}'`
   return `GH_CONFIG_DIR=${bash} gh ${args} (PowerShell or cmd: cmd /c "set GH_CONFIG_DIR=${dir}&& gh ${args}") (docs/process/bootstrap.md)`
@@ -370,9 +370,10 @@ export function boardFix(env) {
 }
 
 // The person's gh keeps its own config, so the machine's global gh account is never used or switched.
+// Same folder as the bootstrap's gh shell functions, so both share one login.
 export function personGhConfigDir(env, home) {
   if (env.GH_TOKEN) return null
-  return env.GH_CONFIG_DIR || join(home, '.workampo', 'gh')
+  return env.GH_CONFIG_DIR || join(home, '.config', 'gh-workampo')
 }
 
 // gh prefers GITHUB_TOKEN over the stored login, so another account's token would win in the person's path.
