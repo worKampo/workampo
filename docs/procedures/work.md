@@ -20,7 +20,7 @@ Issue numbers are written `15` or `#15`; docs use the form without `#`. Commands
 Everything that writes refuses to run unless:
 
 - git's `user.email` is the project's noreply address ([bootstrap](../process/bootstrap.md)), and
-- `GH_TOKEN` is an installation token of the agents' App for this repo (agents), or, with no `GH_TOKEN`, `gh` is logged in as the project account (the person).
+- `GH_TOKEN` is an installation token of the agents' App for this repo (agents), or, with no `GH_TOKEN`, `gh` is logged in as the project account (the person). Without `GH_TOKEN`, `pnpm work` runs `gh` with its own config: the `GH_CONFIG_DIR` already set, or else `.config/gh-workampo` in the user's home as Node sees it (`%USERPROFILE%` on Windows), the folder of the bootstrap's `gh` shell functions, and it ignores `GITHUB_TOKEN`, which `gh` would prefer to that login. The machine's global `gh` account is never used nor switched. Without a login there, any command prints the exact login command for that folder; the one-time login is in [bootstrap](../process/bootstrap.md). The board warnings name the same folder for the person, and the App's Projects permission for the agents.
 
 The error names the command that fixes each problem. Pushes with a token go to `https://github.com/<repo>.git`, never to a remote; the token travels as an HTTP header in the environment of that one `git push` (`GIT_CONFIG_*`), never in its arguments, a log or an error.
 

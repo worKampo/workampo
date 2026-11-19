@@ -10,6 +10,7 @@ import {
   rmSync,
   writeFileSync,
 } from 'node:fs'
+import { homedir } from 'node:os'
 import { dirname, join, sep } from 'node:path'
 import { createInterface } from 'node:readline/promises'
 import { fileURLToPath, pathToFileURL } from 'node:url'
@@ -336,12 +337,51 @@ export function checkIdentity(config, io) {
       )
   } else {
     const login = tryRun(io, 'gh', ['api', 'user', '--jq', '.login'])?.trim()
+    const dir = personGhConfigDir(io.env, homedir())
     if (login !== account)
       problems.push(
-        `gh is logged in as ${login || 'nobody'}, not ${account}. Fix: gh auth switch --user ${account} (or gh auth login)`,
+        `gh (config ${dir}) is logged in as ${login || 'nobody'}, not ${account}. Fix: log in as ${account} in that config, without switching the global gh account: ${loginCommand(dir)}`,
       )
   }
   return problems
+}
+
+// The same gh command for Git Bash and for PowerShell or cmd, against one config dir. On Windows the variable
+// and gh.exe run in one cmd process: a gh shell function in the profile may set and remove GH_CONFIG_DIR itself.
+export function ghCommand(dir, args) {
+  const bash = `'${dir.replaceAll("'", "'\\''")}'`
+  return `GH_CONFIG_DIR=${bash} gh ${args} (PowerShell or cmd: cmd /c "set GH_CONFIG_DIR=${dir}&& gh ${args}") (docs/process/bootstrap.md)`
+}
+
+function loginCommand(dir) {
+  return ghCommand(dir, 'auth login -h github.com -s project')
+}
+
+// Read-only commands skip checkIdentity, so a config without a login surfaces as gh's own error.
+export function withLoginHint(message, env) {
+  if (env.GH_TOKEN || !message.includes('gh auth login')) return message
+  return `${message}\nThe project gh config has no login. Fix: ${loginCommand(personGhConfigDir(env, homedir()))}`
+}
+
+export function boardFix(env) {
+  return env.GH_TOKEN
+    ? "the agents' App needs the organization permission Projects: Read and write"
+    : `gh needs the project scope in its config: ${ghCommand(personGhConfigDir(env, homedir()), 'auth refresh -s project')}`
+}
+
+// The person's gh keeps its own config, so the machine's global gh account is never used or switched.
+// Same folder as the bootstrap's gh shell functions, so both share one login.
+export function personGhConfigDir(env, home) {
+  if (env.GH_TOKEN) return null
+  return env.GH_CONFIG_DIR || join(home, '.config', 'gh-workampo')
+}
+
+// gh prefers GITHUB_TOKEN over the stored login, so another account's token would win in the person's path.
+export function usePersonGh(env, home) {
+  const dir = personGhConfigDir(env, home)
+  if (!dir) return
+  env.GH_CONFIG_DIR = dir
+  delete env.GITHUB_TOKEN
 }
 
 export function assertIdentity(config, io) {
@@ -414,9 +454,7 @@ export function collect(config, io) {
       '500',
     ]).items
   } catch {
-    io.warn(
-      'Board not read (gh needs the project scope: gh auth refresh -s project); using issues, PRs and branches only.',
-    )
+    io.warn(`Board not read (${boardFix(io.env)}); using issues, PRs and branches only.`)
   }
   // One request per open issue and PR; fine at this project's size.
   for (const item of [...issues, ...prs]) item.comments = readComments(io, repository, item.number)
@@ -738,7 +776,7 @@ export function moveCard(issueUrl, column, args, config, io) {
     io.log(`Board card moved to ${column}.`)
   } catch {
     io.warn(
-      `Board not updated (gh needs the project scope: gh auth refresh -s project). Set the card to ${column} by hand: ${config.github.board}`,
+      `Board not updated (${boardFix(io.env)}). Set the card to ${column} by hand: ${config.github.board}`,
     )
   }
 }
@@ -1097,6 +1135,7 @@ async function prompt(question) {
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  usePersonGh(process.env, homedir())
   const io = {
     run,
     prompt,
@@ -1147,7 +1186,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     }
     await commands[args.command](args, config, io)
   } catch (error) {
-    console.error(error.message)
+    console.error(withLoginHint(error.message, process.env))
     process.exit(1)
   }
 }
