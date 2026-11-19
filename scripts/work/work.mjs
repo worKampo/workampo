@@ -799,24 +799,24 @@ export function start(args, config, io) {
   if (current !== branch) {
     if (io.run('git', ['status', '--porcelain']).trim())
       throw new Error('There are uncommitted changes: commit or stash them before starting.')
-    const develop = ['issue', 'develop', String(number), '--repo', config.github.repository]
-    develop.push('--name', branch, '--base', 'master')
+    // Never gh issue develop: GitHub closes an issue whose linked branch is merged, before the
+    // observation window that closes a ticket (ADR-0020).
     if (existing) act('git', ['switch', branch])
-    else if (!io.env.GH_TOKEN) act('gh', [...develop, '--checkout'])
-    else {
-      // gh fetches through origin, the person's SSH remote, even without --checkout: once the
-      // branch is on GitHub that failure does not matter, and the App fetches it over HTTPS.
+    else if (!io.env.GH_TOKEN) {
+      act('git', ['fetch', 'origin', 'master'])
+      act('git', ['switch', '-c', branch, 'origin/master'])
+    } else {
+      // The App works over HTTPS: origin is the person's SSH remote.
       const url = `https://github.com/${config.github.repository}.git`
-      const isOnGitHub = () => io.run('git', ['ls-remote', url, `refs/heads/${branch}`]).trim()
-      if (!isOnGitHub())
-        try {
-          act('gh', develop)
-        } catch (error) {
-          if (!isOnGitHub()) throw error
-        }
       const ref = `refs/heads/${branch}`
-      gitWithToken(['fetch', url, `${ref}:${ref}`], io.env.GH_TOKEN, act)
-      act('git', ['switch', branch])
+      if (io.run('git', ['ls-remote', url, ref]).trim()) {
+        gitWithToken(['fetch', url, `${ref}:${ref}`], io.env.GH_TOKEN, act)
+        act('git', ['switch', branch])
+      } else {
+        const master = 'refs/heads/master:refs/remotes/origin/master'
+        gitWithToken(['fetch', url, master], io.env.GH_TOKEN, act)
+        act('git', ['switch', '-c', branch, 'origin/master'])
+      }
     }
   }
   if (refHas(io, branch, PROGRESS_FILE)) io.log(`${PROGRESS_FILE} is already on ${branch}.`)

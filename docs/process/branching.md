@@ -17,7 +17,7 @@ feature|bugfix|hotfix/<issue>-<slug>  <- desde master
 
 - Formato `<tipo>/<issue>-<slug>`, validado en CI con `^(feature|bugfix|hotfix)/\d+-[a-z0-9-]+$`; el número debe ser un issue abierto.
 - Ejemplo: `feature/15-invite-by-email`.
-- La crea `pnpm work start <n>` con `gh issue develop` (queda enlazada en *Development*) ([work](../procedures/work.md)).
+- La crea `pnpm work start <n>` desde `master` al día ([work](../procedures/work.md)). Sin `gh issue develop`: una rama enlazada en *Development* hace que GitHub cierre la issue al mergear, antes de la ventana de observación ([ADR-0042](../adr/0042-traceability.md)).
 
 ## Pull requests
 

@@ -18,7 +18,7 @@ Every piece of work (PRD, ticket, task, branch, PR, commit, spec, deployment, in
 | Piece | How it is related | Example |
 |---|---|---|
 | Ticket ↔ PRD | Native GitHub sub-issue | `#15` child of `#12` |
-| Branch | Created with `gh issue develop` (it stays linked in the issue's *Development* section) and named with the ticket | `feature/15-invite-by-email` |
+| Branch | Created from `master` by `pnpm work start` and named with the ticket; never linked with `gh issue develop`, because GitHub closes an issue when its linked branch is merged, before the observation window ([ADR-0020](0020-ticket-lifecycle.md); changed on 2026-11-19 after #39 and #43 closed at their merge) | `feature/15-invite-by-email` |
 | Task commit | Conventional commit + trailers | `feat(members): add POST /invitations` · `Refs: #15` · `PRD: #12` · `Task: T3` |
 | PR | Conventional title; body with PRD and ticket (filled by `pnpm work pr`); "Plan" (if there is a `plan.md`) and "Verification" (CI) comments; same `type:` and `area:` labels as the ticket; linked to the issue by the branch | `PRD #12` · `Ticket #15` |
 | Commit on `master` (squash) | PR title + the PR number GitHub adds; body with trailers | `feat(members): invite members by email (#40)` · `Refs: #15` · `PRD: #12` |

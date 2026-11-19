@@ -14,7 +14,7 @@ Exact formats so every piece can be navigated in both directions. Why: [ADR-0042
 | Piece | Format |
 |---|---|
 | Ticket ↔ PRD | Native GitHub sub-issue |
-| Branch | Created with `gh issue develop`; name matches `^(feature\|bugfix\|hotfix)/\d+-[a-z0-9-]+$`, e.g. `feature/15-invite-by-email` |
+| Branch | Created from `master` by `pnpm work start`, never with `gh issue develop` ([ADR-0042](../adr/0042-traceability.md)); name matches `^(feature\|bugfix\|hotfix)/\d+-[a-z0-9-]+$`, e.g. `feature/15-invite-by-email` |
 | Task commit | Conventional commit + trailers `Refs: #15` · `PRD: #12` · `Task: T3`, e.g. `feat(members): add POST /invitations` |
 | Reopened acceptance commit | Also the trailer `Reopen: <comment-id>`, the id of the person's `/reopen-acceptance` comment on the issue ([testing](testing.md#acceptance-scenarios)) |
 | PR title | Conventional commit |

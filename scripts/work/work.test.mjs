@@ -594,13 +594,12 @@ test('start refuses an issue without size: or closed, before writing anything', 
   assert.deepEqual(writeCalls(wrongUser), [])
 })
 
-test('start creates the linked branch, writes and commits PROGRESS.md, moves the card, pushes with the App token', () => {
+test('start branches from master without linking it to the issue, writes and commits PROGRESS.md, moves the card, pushes with the App token', () => {
   const io = startIo({}, { env: { GH_TOKEN: TOKEN } })
   start({ numbers: [15] }, CONFIG, io)
   assert.deepEqual(writeCalls(io), [
-    `gh issue develop 15 --repo worKampo/workampo --name ${BRANCH_15} --base master`,
-    `git fetch https://github.com/worKampo/workampo.git refs/heads/${BRANCH_15}:refs/heads/${BRANCH_15}`,
-    `git switch ${BRANCH_15}`,
+    'git fetch https://github.com/worKampo/workampo.git refs/heads/master:refs/remotes/origin/master',
+    `git switch -c ${BRANCH_15} origin/master`,
     'git add -- .work/PROGRESS.md',
     'git commit -m chore: start ticket 15\n\nRefs: #15\nPRD: #12',
     'gh project item-add 1 --owner worKampo --format json --url https://github.com/worKampo/workampo/issues/15',
@@ -610,36 +609,18 @@ test('start creates the linked branch, writes and commits PROGRESS.md, moves the
   assert.deepEqual(io.envs, [pushEnv(TOKEN), pushEnv(TOKEN)])
   assert.ok(!io.calls.flat().some((arg) => arg.includes(TOKEN)))
 
-  // A re-run after a failed checkout finds the branch on GitHub and does not create it again.
+  // A re-run after a pushed but not checked out branch reuses it instead of creating another.
   const rerun = startIo(
     { 'git ls-remote': `abc\trefs/heads/${BRANCH_15}\n` },
     { env: { GH_TOKEN: TOKEN } },
   )
   start({ numbers: [15] }, CONFIG, rerun)
-  assert.ok(!writeCalls(rerun).some((c) => c.startsWith('gh issue develop')))
-  assert.ok(writeCalls(rerun).includes(`git switch ${BRANCH_15}`))
-
-  // gh fetches through origin after creating the branch: that failure alone is not fatal.
-  let created = false
-  const sshFailure = startIo(
-    {
-      'gh issue develop': () => {
-        created = true
-        return new Error('Permission denied (publickey)')
-      },
-      'git ls-remote': () => (created ? `abc\trefs/heads/${BRANCH_15}\n` : ''),
-    },
-    { env: { GH_TOKEN: TOKEN } },
-  )
-  start({ numbers: [15] }, CONFIG, sshFailure)
-  assert.ok(writeCalls(sshFailure).includes(`git switch ${BRANCH_15}`))
-
-  const notCreated = startIo(
-    { 'gh issue develop': new Error('HTTP 403'), 'git ls-remote': '' },
-    { env: { GH_TOKEN: TOKEN } },
-  )
-  assert.throws(() => start({ numbers: [15] }, CONFIG, notCreated), /HTTP 403/)
-  assert.ok(!writeCalls(notCreated).some((c) => c.startsWith('git fetch')))
+  assert.deepEqual(writeCalls(rerun).slice(0, 2), [
+    `git fetch https://github.com/worKampo/workampo.git refs/heads/${BRANCH_15}:refs/heads/${BRANCH_15}`,
+    `git switch ${BRANCH_15}`,
+  ])
+  for (const run of [io, rerun])
+    assert.ok(!writeCalls(run).some((c) => c.startsWith('gh issue develop')))
 
   const [progress] = Object.values(io.writes)
   assert.ok(Object.keys(io.writes)[0].endsWith('.work/PROGRESS.md'))
@@ -671,7 +652,11 @@ test('start: S goes to Build, bugs to bugfix/, the parent comes from the sub-iss
   })
   start({ numbers: [15] }, CONFIG, io)
   const writes = writeCalls(io)
-  assert.match(writes[0], /--name bugfix\/15-invitar-por-email-a-los-miembros /)
+  assert.deepEqual(writes.slice(0, 2), [
+    'git fetch origin master',
+    'git switch -c bugfix/15-invitar-por-email-a-los-miembros origin/master',
+  ])
+  assert.ok(!writes.some((c) => c.startsWith('gh issue develop')))
   assert.match(commitMessage(io), /Refs: #15\nPRD: #7$/)
   assert.match(Object.values(io.writes)[0], /^PRD #7 · Ticket #15 .*\nStep: Build › Implement$/m)
   assert.ok(
@@ -726,7 +711,8 @@ test('start --dry-run prints every action, writes nothing and never prints the t
   assert.deepEqual(writeCalls(io), [])
   assert.deepEqual(io.writes, {})
   const out = io.output.join('\n')
-  assert.match(out, /Would run: gh issue develop 15 .* --base master\n/)
+  assert.match(out, /Would run: git switch -c feature\/15-.* origin\/master\n/)
+  assert.ok(!out.includes('gh issue develop'))
   assert.match(out, /Would run: git fetch https:\/\/github\.com\/worKampo\/workampo\.git /)
   assert.match(out, /Would write \.work\/PROGRESS\.md:\n# Progress/)
   assert.match(out, /Would run: git commit -m "chore: start ticket 15/)
