@@ -161,7 +161,8 @@ export async function deploy({ env, all, allowStale = false }, io) {
   const { workers, from } = all ? { workers: WORKERS, from: '' } : await selectWorkers(env, sha, io)
   if (!workers.length) {
     io.log(`No Worker is affected since the deployed SHA: nothing to deploy to ${env}.`)
-    return { workers, from }
+    // `current`: the staleness check ran and passed, so nothing newer is left to deploy either.
+    return { workers, from, current: !allowStale }
   }
   const message = deployMessage(sha, io.run('git', ['log', '-1', '--format=%s']).trim())
   for (const worker of workers) {
@@ -169,6 +170,12 @@ export async function deploy({ env, all, allowStale = false }, io) {
     deployWorker(worker, env, sha, message, io)
   }
   return { workers, from }
+}
+
+// The workflow skips the smoke and the comment when nothing was deployed;
+// observe=none marks a current run with no release to observe.
+export function githubOutput({ workers, from, current }) {
+  return `deployed=${workers.length > 0}\nfrom=${from}\n${current ? 'observe=none\n' : ''}`
 }
 
 const require = createRequire(import.meta.url)
@@ -220,7 +227,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     console.error(error.message)
     process.exit(1)
   }
-  const { workers, from } = await deploy(args, {
+  const result = await deploy(args, {
     run,
     deployedSha,
     removeMaps,
@@ -228,7 +235,5 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     env: process.env,
     log: console.log,
   })
-  // The workflow skips the smoke and the comment when nothing was deployed.
-  if (process.env.GITHUB_OUTPUT)
-    appendFileSync(process.env.GITHUB_OUTPUT, `deployed=${workers.length > 0}\nfrom=${from}\n`)
+  if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT, githubOutput(result))
 }

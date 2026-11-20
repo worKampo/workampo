@@ -5,6 +5,7 @@ import {
   d1Databases,
   deploy,
   deployMessage,
+  githubOutput,
   parseArgs,
   WORKERS,
 } from './deploy.mjs'
@@ -98,7 +99,11 @@ test('lists the D1 databases of one environment from wrangler.jsonc', () => {
 
 test('docs-only diff deploys nothing', async () => {
   const { io, calls } = fakeIo({ affected: [] })
-  assert.deepEqual(await deploy({ env: 'stg', all: false }, io), { workers: [], from: DEPLOYED })
+  assert.deepEqual(await deploy({ env: 'stg', all: false }, io), {
+    workers: [],
+    from: DEPLOYED,
+    current: true,
+  })
   assert.equal(calls.filter((c) => c.command === 'wrangler').length, 0)
   const turbo = calls.find((c) => c.command === 'turbo')
   assert.ok(turbo.args.includes(`...[${DEPLOYED}...${SHA}]`))
@@ -223,21 +228,17 @@ test('--allow-stale deploys even when a later commit affects a Worker', async ()
   assert.equal(calls.filter((c) => c.command === 'wrangler').length, 3)
 })
 
-// node:test has no it.fails: this passes only while its body fails, like Vitest's (ADR-0020).
-// Ticket #46, T1: turn each `fails(` into `test(` once deploy.mjs writes the new output.
-function fails(name, fn) {
-  test(`fails: ${name}`, async (t) => {
-    await assert.rejects(async () => fn(t))
-  })
-}
+const githubOutputOf = async (options, io) => githubOutput(await deploy(options, io))
 
-// Dynamic, so the missing export fails these tests and not the whole file.
-const githubOutputOf = async (options, io) => {
-  const { deploy: run, githubOutput } = await import('./deploy.mjs')
-  return githubOutput(await run(options, io))
-}
+test('--allow-stale skips the staleness check, so it never outputs observe=none', async () => {
+  const { io } = fakeIo({ affected: [] })
+  assert.equal(
+    await githubOutputOf({ env: 'stg', all: false, allowStale: true }, io),
+    `deployed=false\nfrom=${DEPLOYED}\n`,
+  )
+})
 
-fails('E1: a current run with no Worker affected outputs observe=none', async () => {
+test('E1: a current run with no Worker affected outputs observe=none', async () => {
   const { io } = fakeIo({ affected: [] })
   assert.equal(
     await githubOutputOf({ env: 'stg', all: false }, io),
@@ -245,7 +246,7 @@ fails('E1: a current run with no Worker affected outputs observe=none', async ()
   )
 })
 
-fails('E1: later master commits that affect no Worker keep the run current', async () => {
+test('E1: later master commits that affect no Worker keep the run current', async () => {
   const { io } = fakeIo({ affected: [], tip: TIP, affectedAfter: [] })
   assert.equal(
     await githubOutputOf({ env: 'stg', all: false }, io),
@@ -253,7 +254,7 @@ fails('E1: later master commits that affect no Worker keep the run current', asy
   )
 })
 
-fails('E2: a run that deploys a Worker outputs nothing new', async () => {
+test('E2: a run that deploys a Worker outputs nothing new', async () => {
   for (const [options, all, from] of [
     [{}, false, DEPLOYED],
     [{ deployed: null }, false, ''],
@@ -264,7 +265,7 @@ fails('E2: a run that deploys a Worker outputs nothing new', async () => {
   }
 })
 
-fails('E4: a stale run outputs nothing new, even with no Worker affected', async () => {
+test('E4: a stale run outputs nothing new, even with no Worker affected', async () => {
   for (const options of [
     { affected: [], tip: TIP, affectedAfter: ['@workampo/api'] },
     { affected: [], tip: TIP, onMaster: false },
