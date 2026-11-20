@@ -29,6 +29,8 @@ export function parseArgs(argv) {
 // Returns the tickets that failed; a failure never closes a ticket.
 export async function closeUnobserved({ sha, from }, io) {
   const numbers = parseRefs(io.run('git', messagesLogArgs(sha, from)))
+  // Commits can land on master after `sha`: a Worker change of the ticket there is not observed yet.
+  const tip = io.masterTip()
   const body = `${TEXT}\n\n${marker(sha)}`
   return postComments(numbers, (number) => {
     const issue = io.issue(number)
@@ -36,7 +38,7 @@ export async function closeUnobserved({ sha, from }, io) {
     if (issue.pull_request) return io.log(`#${number}: a pull request, not a ticket.`)
     if (issue.state !== 'open') return io.log(`#${number}: already closed.`)
     // A Worker change of the ticket was released, so its observation window closes it.
-    if (io.ticketCommits(number, sha).some((commit) => io.affectsWorker(commit)))
+    if (io.ticketCommits(number, tip).some((commit) => io.affectsWorker(commit)))
       return io.log(`#${number}: a commit affected a Worker, it waits for its observation window.`)
     const marked = io
       .comments(number)
@@ -52,15 +54,15 @@ export async function closeUnobserved({ sha, from }, io) {
   })
 }
 
-// Commits up to `sha` naming the ticket; -F narrows, parseRefs decides, so no match is missed.
-function ticketCommits(number, sha) {
+// Commits up to `tip` naming the ticket; -F narrows, parseRefs decides, so no match is missed.
+function ticketCommits(number, tip) {
   const out = run('git', [
     'log',
     '-z',
     '--fixed-strings',
     `--grep=#${number}`,
     '--format=%H%n%B',
-    sha,
+    tip,
   ])
   return out
     .split('\0')
@@ -68,6 +70,14 @@ function ticketCommits(number, sha) {
     .map((record) => record.split('\n'))
     .filter(([, ...message]) => parseRefs(message.join('\n')).includes(number))
     .map(([commit]) => commit)
+}
+
+// Same reads as deploy's staleness check: ls-remote (public repo, no credentials), then fetch.
+function masterTip() {
+  const tip = run('git', ['ls-remote', 'origin', 'refs/heads/master']).split(/\s/)[0]
+  if (!FULL_SHA.test(tip)) throw new Error('origin has no master branch')
+  run('git', ['fetch', '--no-tags', 'origin', 'master'])
+  return tip
 }
 
 const gh = (args, input) =>
@@ -104,6 +114,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
       authors: observationAuthors(config),
       issue: (number) => JSON.parse(gh(['api', `repos/${repository}/issues/${number}`])),
       comments: (number) => readComments(ghIo, repository, number),
+      masterTip,
       ticketCommits,
       affectsWorker: (commit) => workersChanged(`${commit}^1`, commit, { run }).length > 0,
       comment: (number, body) =>

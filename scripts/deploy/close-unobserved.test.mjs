@@ -6,6 +6,8 @@ import { closeUnobserved, parseArgs } from './close-unobserved.mjs'
 const SHA = 'a1b2c3d4e5f60718293a4b5c6d7e8f9012345678'
 const FROM = 'ffffffffffffffffffffffffffffffffffffffff'
 const OLD = 'dddddddddddddddddddddddddddddddddddddddd'
+const TIP = 'eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee'
+const LATER = 'cccccccccccccccccccccccccccccccccccccccc'
 const TEXT = 'Sin Workers afectados: nada que observar'
 const MARKER = `<!-- no-workers:${SHA} -->`
 const OPEN = { state: 'open' }
@@ -14,7 +16,7 @@ const BOT = { login: 'github-actions[bot]', type: 'Bot' }
 const AUTHORS = [BOT]
 
 // issues: number -> { state }; comments: number -> [{ body }]; history: number -> SHAs on master
-// up to `sha` whose message has `Refs: #number` (defaults to the merge itself); workerCommits:
+// up to the master tip whose message has `Refs: #number` (defaults to the merge itself); workerCommits:
 // SHAs that affect a Worker; failing: { issue|comments|comment|close|affectsWorker: [numbers] }.
 function fakeIo({
   log = `docs: x (#60)\n\nRefs: #50\n`,
@@ -47,8 +49,12 @@ function fakeIo({
       failIf('comments', number)
       return comments[number] ?? []
     },
-    ticketCommits: (number, sha) => {
-      calls.push({ command: 'ticketCommits', number, sha })
+    masterTip: () => {
+      if (failing.masterTip) throw new Error('masterTip failed')
+      return TIP
+    },
+    ticketCommits: (number, tip) => {
+      calls.push({ command: 'ticketCommits', number, tip })
       return history[number] ?? [SHA]
     },
     affectsWorker: (commit) => {
@@ -129,10 +135,27 @@ test('E3: an earlier Worker commit on master keeps the ticket open; the rest clo
     workerCommits: [OLD],
   })
   assert.deepEqual(await closeUnobserved({ sha: SHA, from: FROM }, io), [])
-  // History is read up to the merge, not up to whatever master is now.
-  for (const c of calls.filter((c) => c.command === 'ticketCommits')) assert.equal(c.sha, SHA)
+  // History is read up to the tip of master, which can be past the merge.
+  for (const c of calls.filter((c) => c.command === 'ticketCommits')) assert.equal(c.tip, TIP)
   assert.deepEqual(commented(calls), [50])
   assert.deepEqual(closed(calls), [50])
+})
+
+test('E3: a later Worker commit on master naming the ticket keeps it open', async () => {
+  const { io, calls } = fakeIo({
+    issues: { 50: OPEN },
+    history: { 50: [LATER, SHA] },
+    workerCommits: [LATER],
+  })
+  assert.deepEqual(await closeUnobserved({ sha: SHA, from: FROM }, io), [])
+  assert.deepEqual(commented(calls), [])
+  assert.deepEqual(closed(calls), [])
+})
+
+test('E3: a master tip that cannot be fetched fails and closes nothing', async () => {
+  const { io, calls } = fakeIo({ failing: { masterTip: true } })
+  await assert.rejects(closeUnobserved({ sha: SHA, from: FROM }, io), /masterTip failed/)
+  assert.deepEqual(closed(calls), [])
 })
 
 test('E3: a failing Worker check keeps the ticket open and is reported', async () => {
