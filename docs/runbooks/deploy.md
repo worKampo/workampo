@@ -124,6 +124,14 @@ To see the decisions without writing: `GH_TOKEN=$(node scripts/github/app-token.
 
 GitHub disables a scheduled workflow after 60 days without activity in the repo. Any merge to `master` counts; re-enable it in the Actions tab if it was disabled.
 
+### Tickets without a release
+
+When the staging deploy of a merge ends green with no Worker affected (docs, process or tooling only), there is no release to observe. `deploy.mjs` then prints the output `observe=none` and the `stg` job runs `node scripts/deploy/close-unobserved.mjs`, which closes the tickets in the merge's `Refs:` trailers as completed with the comment "Sin Workers afectados: nada que observar" ([ADR-0068](../adr/0068-close-tickets-without-a-release.md)).
+
+- A ticket with any commit on `master` that affected a Worker is not closed this way: it waits for its observation window.
+- A stale run (a later commit on master changes a Worker) closes nothing: its commits travel with the later deploy and its window.
+- Tickets merged before this existed (#45) are closed by hand with `pnpm work close 45`.
+
 ### Secrets
 
 Repository secrets (the scheduled job has no Environment), both read-only:

@@ -7,7 +7,9 @@ const TITLES = { stg: 'Staging verification', prod: 'Release verification' }
 const USAGE = 'Usage: verification-comment.mjs <stg|prod> <url> <sha> [<from-sha>]'
 
 export function parseRefs(message) {
-  const refs = [...message.matchAll(/^Refs:\s*#(\d+)\s*$/gim)].map((match) => Number(match[1]))
+  const refs = [...message.matchAll(/^Refs:[ \t]*#([1-9]\d*)[ \t]*$/gim)].map((match) =>
+    Number(match[1]),
+  )
   return [...new Set(refs)]
 }
 

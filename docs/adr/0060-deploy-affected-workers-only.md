@@ -33,6 +33,10 @@ Deploying everything would change the version of every Worker on every deploymen
   - Rollback per Worker (`wrangler rollback`) with its runbook; a migration is not undone, it is fixed forward ([ADR-0033](0033-expand-contract-migrations.md)).
   - The "Staging verification" and "Release verification" comments say what was deployed and with which SHA.
 
+## Updates
+
+- 2026-11-20: a staging deploy with no Worker affected emits `observe=none` and closes the merge's tickets, which have no release to observe ([ADR-0068](0068-close-tickets-without-a-release.md)).
+
 ## Consequences
 
 See Decision.

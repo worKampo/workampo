@@ -105,6 +105,7 @@ The eleven named steps still exist for the agent. The table is the full path (L 
 ## Updates
 
 - 2026-11-18: `pnpm work` takes the issue number as `15` or `#15`; docs use the form without `#` (decided in issue #27).
+- 2026-11-20: for a ticket whose merges change no Worker, the rule that a ticket moves to Close only after a clean observation window is superseded by [ADR-0068](0068-close-tickets-without-a-release.md): it closes at the end of the staging deploy.
 
 ## Consequences
 

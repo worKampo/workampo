@@ -5,6 +5,7 @@ import {
   d1Databases,
   deploy,
   deployMessage,
+  githubOutput,
   parseArgs,
   WORKERS,
 } from './deploy.mjs'
@@ -98,7 +99,11 @@ test('lists the D1 databases of one environment from wrangler.jsonc', () => {
 
 test('docs-only diff deploys nothing', async () => {
   const { io, calls } = fakeIo({ affected: [] })
-  assert.deepEqual(await deploy({ env: 'stg', all: false }, io), { workers: [], from: DEPLOYED })
+  assert.deepEqual(await deploy({ env: 'stg', all: false }, io), {
+    workers: [],
+    from: DEPLOYED,
+    current: true,
+  })
   assert.equal(calls.filter((c) => c.command === 'wrangler').length, 0)
   const turbo = calls.find((c) => c.command === 'turbo')
   assert.ok(turbo.args.includes(`...[${DEPLOYED}...${SHA}]`))
@@ -112,6 +117,16 @@ test('unreachable /health and --all deploy everything without asking turbo', asy
     const { io, calls } = fakeIo(options)
     assert.deepEqual(await deploy({ env: 'stg', all }, io), { workers: WORKERS, from: '' })
     assert.equal(calls.filter((c) => c.command === 'turbo').length, 0)
+  }
+})
+
+test('a /health sha that is not a full lowercase SHA counts as no deployed SHA', async () => {
+  const bad = ['master~3', DEPLOYED.toUpperCase(), 'ffffff', 123, `${DEPLOYED}\n`, {}, '']
+  for (const deployed of bad) {
+    const { io, calls } = fakeIo({ deployed })
+    assert.deepEqual(await deploy({ env: 'stg', all: false }, io), { workers: WORKERS, from: '' })
+    assert.equal(calls.filter((c) => c.command === 'turbo').length, 0)
+    assert.equal(calls.filter((c) => c.args.includes('cat-file')).length, 0)
   }
 })
 
@@ -221,4 +236,51 @@ test('--allow-stale deploys even when a later commit affects a Worker', async ()
   })
   assert.ok(!calls.some((c) => ['ls-remote', 'fetch'].includes(c.args[0])))
   assert.equal(calls.filter((c) => c.command === 'wrangler').length, 3)
+})
+
+const githubOutputOf = async (options, io) => githubOutput(await deploy(options, io))
+
+test('--allow-stale skips the staleness check, so it never outputs observe=none', async () => {
+  const { io } = fakeIo({ affected: [] })
+  assert.equal(
+    await githubOutputOf({ env: 'stg', all: false, allowStale: true }, io),
+    `deployed=false\nfrom=${DEPLOYED}\n`,
+  )
+})
+
+test('E1: a current run with no Worker affected outputs observe=none', async () => {
+  const { io } = fakeIo({ affected: [] })
+  assert.equal(
+    await githubOutputOf({ env: 'stg', all: false }, io),
+    `deployed=false\nfrom=${DEPLOYED}\nobserve=none\n`,
+  )
+})
+
+test('E1: later master commits that affect no Worker keep the run current', async () => {
+  const { io } = fakeIo({ affected: [], tip: TIP, affectedAfter: [] })
+  assert.equal(
+    await githubOutputOf({ env: 'stg', all: false }, io),
+    `deployed=false\nfrom=${DEPLOYED}\nobserve=none\n`,
+  )
+})
+
+test('E2: a run that deploys a Worker outputs nothing new', async () => {
+  for (const [options, all, from] of [
+    [{}, false, DEPLOYED],
+    [{ deployed: null }, false, ''],
+    [{ affected: [] }, true, ''],
+  ]) {
+    const { io } = fakeIo(options)
+    assert.equal(await githubOutputOf({ env: 'stg', all }, io), `deployed=true\nfrom=${from}\n`)
+  }
+})
+
+test('E4: a stale run outputs nothing new, even with no Worker affected', async () => {
+  for (const options of [
+    { affected: [], tip: TIP, affectedAfter: ['@workampo/api'] },
+    { affected: [], tip: TIP, onMaster: false },
+  ]) {
+    const { io } = fakeIo(options)
+    assert.equal(await githubOutputOf({ env: 'stg', all: false }, io), 'deployed=false\nfrom=\n')
+  }
 })
