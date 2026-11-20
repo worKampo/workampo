@@ -8,6 +8,7 @@ test('the local rule wants Refs: #<ticket> as a line', () => {
   assert.equal(refsTicket({ raw: 'feat: x\n\nRefs: #9\n' }, 'always', '9')[0], true)
   assert.equal(refsTicket({ raw: 'feat: x\n\nRefs: #90\n' }, 'always', '9')[0], false)
   assert.equal(refsTicket({ raw: 'feat: x' }, 'always', '9')[0], false)
+  assert.equal(refsTicket({ raw: 'feat: x\n\nRefs: #09\n' }, 'always', '9')[0], false)
   assert.equal(refsTicket({ raw: 'feat: x' }, 'always', '')[0], true)
 })
 
