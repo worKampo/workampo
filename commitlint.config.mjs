@@ -1,10 +1,18 @@
 // Conventional commits plus `Refs: #<ticket>` in every commit (ADR-0042). `pnpm check:pr` sets TICKET.
+import { parseRefs } from './scripts/smoke/verification-comment.mjs'
+
 export function refsTicket(parsed, when = 'always', ticket = '') {
   if (!ticket) return [true]
-  const hasRefs = new RegExp(`^Refs: #${ticket}\\s*$`, 'm').test(parsed.raw ?? '')
+  const raw = parsed.raw ?? ''
+  const hasRefs = new RegExp(`^Refs: #${ticket}\\s*$`, 'm').test(raw)
+  // The squash body feeds close-unobserved, which closes every ticket named in a Refs trailer.
+  const extra = parseRefs(raw).filter((ref) => String(ref) !== ticket)
+  const valid = hasRefs && extra.length === 0
+  const found =
+    extra.length > 0 ? `; found other references: ${extra.map((r) => `#${r}`).join(', ')}` : ''
   return [
-    when === 'never' ? !hasRefs : hasRefs,
-    `every commit needs the trailer "Refs: #${ticket}"`,
+    when === 'never' ? !valid : valid,
+    `every commit needs the trailer "Refs: #${ticket}" and no other Refs${found}`,
   ]
 }
 

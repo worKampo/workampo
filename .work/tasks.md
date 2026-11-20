@@ -7,5 +7,6 @@
 | T5  | Verify F1, F4: close-unobserved trusts only bot or trusted markers, skips PRs | T2         | scripts/deploy/close-unobserved.mjs, scripts/deploy/close-unobserved.test.mjs                             | S    | standard | done   |
 | T6  | Verify F3: deploy.mjs accepts only a full SHA from /health                    | T1         | scripts/deploy/deploy.mjs, scripts/deploy/deploy.test.mjs                                                 | S    | standard | done   |
 | T7  | Verify F2: parseRefs does not match Refs: across lines                        | —          | scripts/smoke/verification-comment.mjs, scripts/smoke/smoke.test.mjs                                      | S    | standard | done   |
+| T8  | Verify F2: commitlint rejects any Refs: other than the branch ticket          | T7         | commitlint.config.mjs, scripts/checks/commits.test.mjs                                                    | S    | standard | done   |
 
-Waves: 1 → T1 [P] T3 · 2 → T2 · 3 → T4 · 4 → T5 [P] T6 [P] T7
+Waves: 1 → T1 [P] T3 · 2 → T2 · 3 → T4 · 4 → T5 [P] T6 [P] T7 · 5 → T8
