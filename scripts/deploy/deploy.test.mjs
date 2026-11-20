@@ -222,3 +222,54 @@ test('--allow-stale deploys even when a later commit affects a Worker', async ()
   assert.ok(!calls.some((c) => ['ls-remote', 'fetch'].includes(c.args[0])))
   assert.equal(calls.filter((c) => c.command === 'wrangler').length, 3)
 })
+
+// node:test has no it.fails: this passes only while its body fails, like Vitest's (ADR-0020).
+// Ticket #46, T1: turn each `fails(` into `test(` once deploy.mjs writes the new output.
+function fails(name, fn) {
+  test(`fails: ${name}`, async (t) => {
+    await assert.rejects(async () => fn(t))
+  })
+}
+
+// Dynamic, so the missing export fails these tests and not the whole file.
+const githubOutputOf = async (options, io) => {
+  const { deploy: run, githubOutput } = await import('./deploy.mjs')
+  return githubOutput(await run(options, io))
+}
+
+fails('E1: a current run with no Worker affected outputs observe=none', async () => {
+  const { io } = fakeIo({ affected: [] })
+  assert.equal(
+    await githubOutputOf({ env: 'stg', all: false }, io),
+    `deployed=false\nfrom=${DEPLOYED}\nobserve=none\n`,
+  )
+})
+
+fails('E1: later master commits that affect no Worker keep the run current', async () => {
+  const { io } = fakeIo({ affected: [], tip: TIP, affectedAfter: [] })
+  assert.equal(
+    await githubOutputOf({ env: 'stg', all: false }, io),
+    `deployed=false\nfrom=${DEPLOYED}\nobserve=none\n`,
+  )
+})
+
+fails('E2: a run that deploys a Worker outputs nothing new', async () => {
+  for (const [options, all, from] of [
+    [{}, false, DEPLOYED],
+    [{ deployed: null }, false, ''],
+    [{ affected: [] }, true, ''],
+  ]) {
+    const { io } = fakeIo(options)
+    assert.equal(await githubOutputOf({ env: 'stg', all }, io), `deployed=true\nfrom=${from}\n`)
+  }
+})
+
+fails('E4: a stale run outputs nothing new, even with no Worker affected', async () => {
+  for (const options of [
+    { affected: [], tip: TIP, affectedAfter: ['@workampo/api'] },
+    { affected: [], tip: TIP, onMaster: false },
+  ]) {
+    const { io } = fakeIo(options)
+    assert.equal(await githubOutputOf({ env: 'stg', all: false }, io), 'deployed=false\nfrom=\n')
+  }
+})
