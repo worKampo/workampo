@@ -142,3 +142,21 @@ Repository secrets (the scheduled job has no Environment), both read-only:
 | `UPTIMEROBOT_READ_KEY` | UptimeRobot's read-only API key |
 
 `SENTRY_ORG` is a repository variable, not a secret.
+
+## Board App
+
+Workflows that close a ticket move its card to Done with `BOARD_TOKEN`, an installation token of the board-only App `workampo-board` minted in the job ([ADR-0069](../adr/0069-board-app-in-ci.md)). Without it the ticket still closes and the job warns that the card is left by hand.
+
+| Name | Kind | What |
+| --- | --- | --- |
+| `BOARD_APP_ID` | Repository variable | ID of `workampo-board` |
+| `BOARD_APP_PRIVATE_KEY` | Repository secret | Its private key (.pem). Read only by `deploy.yml` and `observation-window.yml` |
+
+Set up once:
+
+1. Organization settings → Developer settings → GitHub Apps → New GitHub App: name `workampo-board`, no webhook, Organization permissions → Projects: Read and write, nothing else; only on this account.
+2. Install it on the organization (no repository access needed).
+3. Generate a private key and keep a copy in the password manager ([ADR-0064](../adr/0064-local-secrets.md)).
+4. `gh variable set BOARD_APP_ID` with its App ID, and `gh secret set BOARD_APP_PRIVATE_KEY < key.pem` from the folder of the downloaded key; then delete that file.
+
+Rotate the key once a year or at any doubt: generate a new one, set the secret again, delete the old key in the App settings.

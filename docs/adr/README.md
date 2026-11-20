@@ -112,6 +112,7 @@ Every architectural and process decision of worKampo, one file per decision ([MA
 | [ADR-0066](0066-design-system.md) | Design system: neutral chrome, ink accent, IBM Plex Sans | accepted |
 | [ADR-0067](0067-ticket-branches-not-linked.md) | Ticket branches are not linked to the issue | accepted |
 | [ADR-0068](0068-close-tickets-without-a-release.md) | Close tickets whose merge deploys no Worker | accepted |
+| [ADR-0069](0069-board-app-in-ci.md) | A board-only GitHub App moves cards from CI | accepted |
 
 ## Notes
 
