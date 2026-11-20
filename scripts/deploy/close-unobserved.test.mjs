@@ -1,19 +1,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { messagesLogArgs } from '../smoke/verification-comment.mjs'
-
-// node:test has no it.fails: this passes only while its body fails, like Vitest's (ADR-0020).
-// Ticket #46, T2: turn each `fails(` into `test(` once close-unobserved.mjs exists.
-function fails(name, fn) {
-  test(`fails: ${name}`, async (t) => {
-    await assert.rejects(async () => fn(t))
-  })
-}
-
-// Dynamic and through a variable, so a missing module fails each test instead of the whole file
-// and knip does not report it unresolved. Becomes a static import once the module exists.
-const MODULE = './close-unobserved.mjs'
-const load = () => import(MODULE)
+import { closeUnobserved, parseArgs } from './close-unobserved.mjs'
 
 const SHA = 'a1b2c3d4e5f60718293a4b5c6d7e8f9012345678'
 const FROM = 'ffffffffffffffffffffffffffffffffffffffff'
@@ -49,7 +37,7 @@ function fakeIo({
     issue: (number) => {
       calls.push({ command: 'issue', number })
       failIf('issue', number)
-      return issues[number] ?? OPEN
+      return { html_url: `https://github.com/o/r/issues/${number}`, ...(issues[number] ?? OPEN) }
     },
     comments: (number) => {
       calls.push({ command: 'comments', number })
@@ -74,6 +62,9 @@ function fakeIo({
       calls.push({ command: 'close', number, reason })
       failIf('close', number)
     },
+    moveToDone: (number, url) => {
+      calls.push({ command: 'moveToDone', number, url })
+    },
   }
   return { io, calls }
 }
@@ -82,8 +73,7 @@ const commented = (calls) => calls.filter((c) => c.command === 'comment').map((c
 const closed = (calls) => calls.filter((c) => c.command === 'close').map((c) => c.number)
 const sorted = (numbers) => [...numbers].sort((a, b) => a - b)
 
-fails('E1: a docs-only merge comments and closes its ticket as completed', async () => {
-  const { closeUnobserved } = await load()
+test('E1: a docs-only merge comments and closes its ticket as completed', async () => {
   const { io, calls } = fakeIo()
   assert.deepEqual(await closeUnobserved({ sha: SHA, from: FROM }, io), [])
 
@@ -100,8 +90,7 @@ fails('E1: a docs-only merge comments and closes its ticket as completed', async
   assert.ok(calls.indexOf(comment) < calls.findIndex((c) => c.command === 'close'))
 })
 
-fails('E1: tickets come from every commit of from..sha', async () => {
-  const { closeUnobserved } = await load()
+test('E1: tickets come from every commit of from..sha', async () => {
   const { io, calls } = fakeIo({
     log: 'docs: a\n\nRefs: #50\n\ndocs: b\n\nRefs: #51\nRefs: #52\n',
     issues: { 50: OPEN, 51: OPEN, 52: OPEN },
@@ -111,16 +100,14 @@ fails('E1: tickets come from every commit of from..sha', async () => {
   assert.deepEqual(sorted(closed(calls)), [50, 51, 52])
 })
 
-fails('E1: with no previous SHA only the merge commit is read', async () => {
-  const { closeUnobserved } = await load()
+test('E1: with no previous SHA only the merge commit is read', async () => {
   const { io, calls } = fakeIo()
   await closeUnobserved({ sha: SHA, from: '' }, io)
   assert.deepEqual(calls.find((c) => c.command === 'git').args, messagesLogArgs(SHA, ''))
   assert.deepEqual(closed(calls), [50])
 })
 
-fails('E2: a ticket whose commit in the range affects a Worker stays open', async () => {
-  const { closeUnobserved } = await load()
+test('E2: a ticket whose commit in the range affects a Worker stays open', async () => {
   const { io, calls } = fakeIo({
     issues: { 51: OPEN },
     log: 'feat: x\n\nRefs: #51\n',
@@ -131,8 +118,7 @@ fails('E2: a ticket whose commit in the range affects a Worker stays open', asyn
   assert.deepEqual(closed(calls), [])
 })
 
-fails('E3: an earlier Worker commit on master keeps the ticket open; the rest close', async () => {
-  const { closeUnobserved } = await load()
+test('E3: an earlier Worker commit on master keeps the ticket open; the rest close', async () => {
   const { io, calls } = fakeIo({
     log: 'docs: x\n\nRefs: #50\nRefs: #52\n',
     issues: { 50: OPEN, 52: OPEN },
@@ -146,8 +132,7 @@ fails('E3: an earlier Worker commit on master keeps the ticket open; the rest cl
   assert.deepEqual(closed(calls), [50])
 })
 
-fails('E3: a failing Worker check keeps the ticket open and is reported', async () => {
-  const { closeUnobserved } = await load()
+test('E3: a failing Worker check keeps the ticket open and is reported', async () => {
   const { io, calls } = fakeIo({
     log: 'docs: x\n\nRefs: #50\nRefs: #52\n',
     issues: { 50: OPEN, 52: OPEN },
@@ -158,27 +143,21 @@ fails('E3: a failing Worker check keeps the ticket open and is reported', async 
   assert.deepEqual(closed(calls), [50])
 })
 
-fails('E5: an already-closed ticket gets no comment and no close', async () => {
-  const { closeUnobserved } = await load()
+test('E5: an already-closed ticket gets no comment and no close', async () => {
   const { io, calls } = fakeIo({ log: 'docs: x\n\nRefs: #54\n', issues: { 54: CLOSED } })
   assert.deepEqual(await closeUnobserved({ sha: SHA, from: FROM }, io), [])
   assert.deepEqual(commented(calls), [])
   assert.deepEqual(closed(calls), [])
 })
 
-fails(
-  'idempotent: the marker already on an open ticket closes it without a second comment',
-  async () => {
-    const { closeUnobserved } = await load()
-    const { io, calls } = fakeIo({ comments: { 50: [{ body: `${TEXT}\n\n${MARKER}` }] } })
-    assert.deepEqual(await closeUnobserved({ sha: SHA, from: FROM }, io), [])
-    assert.deepEqual(commented(calls), [])
-    assert.deepEqual(closed(calls), [50])
-  },
-)
+test('idempotent: the marker already on an open ticket closes it without a second comment', async () => {
+  const { io, calls } = fakeIo({ comments: { 50: [{ body: `${TEXT}\n\n${MARKER}` }] } })
+  assert.deepEqual(await closeUnobserved({ sha: SHA, from: FROM }, io), [])
+  assert.deepEqual(commented(calls), [])
+  assert.deepEqual(closed(calls), [50])
+})
 
-fails('idempotent: a second run after a full success does nothing', async () => {
-  const { closeUnobserved } = await load()
+test('idempotent: a second run after a full success does nothing', async () => {
   const { io, calls } = fakeIo({
     issues: { 50: CLOSED },
     comments: { 50: [{ body: `${TEXT}\n\n${MARKER}` }] },
@@ -188,8 +167,7 @@ fails('idempotent: a second run after a full success does nothing', async () => 
   assert.deepEqual(closed(calls), [])
 })
 
-fails('one failing ticket does not stop the rest and is returned', async () => {
-  const { closeUnobserved } = await load()
+test('one failing ticket does not stop the rest and is returned', async () => {
   const { io, calls } = fakeIo({
     log: 'docs: x\n\nRefs: #3\nRefs: #5\nRefs: #8\nRefs: #9\nRefs: #11\n',
     issues: { 3: OPEN, 5: OPEN, 8: OPEN, 9: OPEN, 11: OPEN },
@@ -200,8 +178,7 @@ fails('one failing ticket does not stop the rest and is returned', async () => {
   assert.deepEqual(sorted(closed(calls)), [3, 8])
 })
 
-fails('a range missing from the history fails instead of closing part of it', async () => {
-  const { closeUnobserved } = await load()
+test('a range missing from the history fails instead of closing part of it', async () => {
   const { io, calls } = fakeIo()
   io.run = () => {
     throw new Error('bad revision')
@@ -210,8 +187,7 @@ fails('a range missing from the history fails instead of closing part of it', as
   assert.deepEqual(closed(calls), [])
 })
 
-fails('no Refs trailer touches no issue', async () => {
-  const { closeUnobserved } = await load()
+test('no Refs trailer touches no issue', async () => {
   const { io, calls } = fakeIo({ log: 'docs: typo (#60)\n\nno ticket here\n' })
   assert.deepEqual(await closeUnobserved({ sha: SHA, from: FROM }, io), [])
   assert.deepEqual(
@@ -220,16 +196,14 @@ fails('no Refs trailer touches no issue', async () => {
   )
 })
 
-fails('a ticket named by several commits gets one comment and one close', async () => {
-  const { closeUnobserved } = await load()
+test('a ticket named by several commits gets one comment and one close', async () => {
   const { io, calls } = fakeIo({ log: 'docs: a\n\nRefs: #50\n\ndocs: b\n\nRefs: #50\nRefs: #50\n' })
   assert.deepEqual(await closeUnobserved({ sha: SHA, from: FROM }, io), [])
   assert.deepEqual(commented(calls), [50])
   assert.deepEqual(closed(calls), [50])
 })
 
-fails('malformed or inline references close nothing', async () => {
-  const { closeUnobserved } = await load()
+test('malformed or inline references close nothing', async () => {
   const log = [
     'docs: see #50 and (#51)',
     '',
@@ -249,15 +223,13 @@ fails('malformed or inline references close nothing', async () => {
   )
 })
 
-fails('parseArgs takes a full SHA and an optional previous SHA', async () => {
-  const { parseArgs } = await load()
+test('parseArgs takes a full SHA and an optional previous SHA', async () => {
   assert.deepEqual(parseArgs([SHA]), { sha: SHA, from: '' })
   assert.deepEqual(parseArgs([SHA, FROM]), { sha: SHA, from: FROM })
   assert.deepEqual(parseArgs([SHA, '']), { sha: SHA, from: '' })
 })
 
-fails('parseArgs refuses anything that is not a full SHA, before it reaches git', async () => {
-  const { parseArgs } = await load()
+test('parseArgs refuses anything that is not a full SHA, before it reaches git', async () => {
   // `from` comes from the /health of a Worker: it must not become a git option.
   for (const argv of [
     [],
@@ -272,4 +244,24 @@ fails('parseArgs refuses anything that is not a full SHA, before it reaches git'
     [SHA, FROM, 'extra'],
   ])
     assert.throws(() => parseArgs(argv), /Usage/, JSON.stringify(argv))
+})
+
+test('a closed ticket moves its board card to Done; a skipped or failed one does not', async () => {
+  const { io, calls } = fakeIo({
+    log: 'docs: x\n\nRefs: #50\nRefs: #51\nRefs: #54\nRefs: #55\nRefs: #56\n',
+    issues: { 50: OPEN, 51: OPEN, 54: CLOSED, 55: OPEN, 56: OPEN },
+    history: { 50: [SHA], 51: [OLD], 54: [SHA], 55: [SHA], 56: [SHA] },
+    workerCommits: [OLD],
+    failing: { comment: [55], close: [56] },
+  })
+  assert.deepEqual(sorted(await closeUnobserved({ sha: SHA, from: FROM }, io)), [55, 56])
+  assert.deepEqual(
+    calls.filter((c) => c.command === 'moveToDone'),
+    [{ command: 'moveToDone', number: 50, url: 'https://github.com/o/r/issues/50' }],
+  )
+  // The card moves only after the close.
+  assert.ok(
+    calls.findIndex((c) => c.command === 'close' && c.number === 50) <
+      calls.findIndex((c) => c.command === 'moveToDone'),
+  )
 })

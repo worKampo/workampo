@@ -59,7 +59,7 @@ async function selectWorkers(env, sha, io) {
   return { workers: workersChanged(deployed, sha, io), from: deployed }
 }
 
-function workersChanged(from, to, io) {
+export function workersChanged(from, to, io) {
   const listing = JSON.parse(
     io.run('turbo', ['ls', '--filter', `...[${from}...${to}]`, '--output', 'json']),
   )
@@ -190,7 +190,7 @@ const BINARIES = {
   ],
 }
 
-function run(command, args, { cwd = ROOT, env = process.env } = {}) {
+export function run(command, args, { cwd = ROOT, env = process.env } = {}) {
   const [file, ...prefix] = BINARIES[command](cwd)
   const isCaptured = command === 'git' || command === 'turbo'
   return execFileSync(file, [...prefix, ...args], {
