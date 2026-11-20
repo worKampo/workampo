@@ -80,9 +80,10 @@ function masterTip() {
   return tip
 }
 
-const gh = (args, input) =>
+const gh = (args, input, env) =>
   execFileSync('gh', args, {
     cwd: ROOT,
+    env,
     encoding: 'utf8',
     input,
     stdio: [input == null ? 'ignore' : 'pipe', 'pipe', 'pipe'],
@@ -101,7 +102,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     const config = parse(readFileSync(join(ROOT, 'project.yaml'), 'utf8'))
     const { repository } = config.github
     const ghIo = {
-      run: (_, args) => gh(args),
+      run: (_, args, options) => gh(args, undefined, options?.env),
       log: console.log,
       warn: console.error,
       env: process.env,
@@ -121,7 +122,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
         gh(['issue', 'comment', String(number), '--repo', repository, '--body-file', '-'], body),
       close: (number, reason) =>
         gh(['issue', 'close', String(number), '--repo', repository, '--reason', reason]),
-      // moveCard only warns: github.token may lack the Projects permission, and the ticket is closed.
+      // moveCard only warns when the job has no BOARD_TOKEN: the ticket is closed anyway.
       moveToDone: (_, url) => moveCard(url, 'Done', { dryRun: false }, config, ghIo),
       log: console.log,
       warn: console.error,
