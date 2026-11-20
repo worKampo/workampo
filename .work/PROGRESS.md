@@ -1,10 +1,10 @@
 # Progress
 
 Ticket #46 cerrar-los-tickets-que-no-despliegan · Branch: feature/46-cerrar-los-tickets-que-no-despliegan
-Step: Define › Specify
-Done in this step: Discover; intent and examples on the issue; .work/plan.md
+Step: Build › Implement
+Done in this step: moment 1 approved by the person (intent and decisions 1 and 2, issue #46); .work/plan.md; .work/tasks.md synced to the issue checklist
 In progress: —
-Next: once the person approves the intent comment on #46, write .work/tasks.md (W1 deploy.mjs output, W2 close-unobserved.mjs, W3 docs) and implement
-Waiting for human: moment 1, approval of the intent and of decisions 1 and 2 (issue #46 comment)
+Next: wave 1, T1 (deploy.mjs output observe=none) and T3 (dated notes in ADR-0020 and ADR-0060, deploy runbook), as .work/tasks.md says; then wave 2, T2
+Waiting for human: —
 Open questions: —
-Updated: 2026-11-20 07:45
+Updated: 2026-11-20 08:05
