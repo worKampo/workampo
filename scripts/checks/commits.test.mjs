@@ -11,6 +11,10 @@ test('the local rule wants Refs: #<ticket> as a line', () => {
   assert.equal(refsTicket({ raw: 'feat: x' }, 'always', '')[0], true)
 })
 
+test('the local rule rejects a trailer the closer would not parse', () => {
+  assert.equal(refsTicket({ raw: 'feat: x\n\nRefs: #9 \n' }, 'always', '9')[0], false)
+})
+
 test('the local rule rejects a Refs trailer of another ticket and names it', () => {
   const [ok, message] = refsTicket({ raw: 'feat: x\n\nRefs: #9\nRefs: #12\n' }, 'always', '9')
   assert.equal(ok, false)
