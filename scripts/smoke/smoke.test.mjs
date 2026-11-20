@@ -15,6 +15,14 @@ test('parseRefs reads one, several or no Refs trailer', () => {
   assert.deepEqual(parseRefs('chore: bump deps\n\nno ticket here, see #5'), [])
 })
 
+test('parseRefs matches within one line only', () => {
+  assert.deepEqual(parseRefs('feat: x\n\nRefs:\n#12\n'), [])
+  assert.deepEqual(parseRefs('feat: x\n\nRefs: \n\n#12\n'), [])
+  assert.deepEqual(parseRefs('feat: x\n\nRefs: #12 \t \n'), [12])
+  assert.deepEqual(parseRefs('feat: x\n\nRefs:\t#12\n'), [12])
+  assert.deepEqual(parseRefs('feat: x\r\n\r\nRefs: #12\r\nRefs: #13\r\n'), [12, 13])
+})
+
 test('parseRefs deduplicates the trailers of several commits', () => {
   const log = 'feat: a\n\nRefs: #7\n\nfix: b\n\nRefs: #9\n\nfix: c\n\nRefs: #7\n'
   assert.deepEqual(parseRefs(log), [7, 9])
