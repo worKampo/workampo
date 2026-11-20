@@ -120,6 +120,16 @@ test('unreachable /health and --all deploy everything without asking turbo', asy
   }
 })
 
+test('a /health sha that is not a full lowercase SHA counts as no deployed SHA', async () => {
+  const bad = ['master~3', DEPLOYED.toUpperCase(), 'ffffff', 123, `${DEPLOYED}\n`, {}, '']
+  for (const deployed of bad) {
+    const { io, calls } = fakeIo({ deployed })
+    assert.deepEqual(await deploy({ env: 'stg', all: false }, io), { workers: WORKERS, from: '' })
+    assert.equal(calls.filter((c) => c.command === 'turbo').length, 0)
+    assert.equal(calls.filter((c) => c.args.includes('cat-file')).length, 0)
+  }
+})
+
 test('a real deploy migrates, builds, strips maps and deploys, always with --env', async () => {
   const { io, calls } = fakeIo()
   assert.deepEqual(await deploy({ env: 'prod', all: false }, io), {

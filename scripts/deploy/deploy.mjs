@@ -51,7 +51,12 @@ export function d1Databases(wranglerJsonc, env) {
 
 async function selectWorkers(env, sha, io) {
   const deployed = await io.deployedSha(env)
-  if (!deployed || !isKnownCommit(deployed, io)) {
+  // /health is untrusted input: a ref like master~3 would pass cat-file and reach the turbo range.
+  if (
+    typeof deployed !== 'string' ||
+    !/^[0-9a-f]{40}$/.test(deployed) ||
+    !isKnownCommit(deployed, io)
+  ) {
     io.log(`No deployed SHA known in ${env}: deploying every Worker.`)
     return { workers: WORKERS, from: '' }
   }
