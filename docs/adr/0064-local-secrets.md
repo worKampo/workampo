@@ -36,3 +36,7 @@ Secrets need a single place to live and as few of them as possible on disk. This
 
 - Ruled out: a corporate password manager; using the project's Gmail to sign up for the manager.
 - The "deny" rule on `~/.workampo/**` is only a configuration barrier, since agents share the Windows user; the bound on damage is the App's minimum permissions plus rotation.
+
+## Updates
+
+- 2026-11-20: the key of a second, board-only GitHub App lives in CI as a repository secret, so workflows can move cards; the agents' App key stays on the person's machine ([ADR-0069](0069-board-app-in-ci.md)).

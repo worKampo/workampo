@@ -215,9 +215,10 @@ export async function readHealth(healthUrl) {
   return typeof body?.sha === 'string' ? { sha: body.sha } : { error: 'no sha in the body' }
 }
 
-function run(command, args, { input } = {}) {
+function run(command, args, { input, env } = {}) {
   return execFileSync(command, args, {
     cwd: ROOT,
+    env,
     encoding: 'utf8',
     input,
     stdio: [input == null ? 'ignore' : 'pipe', 'pipe', 'pipe'],
@@ -276,7 +277,7 @@ async function main(argv, env) {
   const repository = config.github.repository
   const healthUrl = `${config.environments.prod.url}/health`
   const authors = observationAuthors(config)
-  const io = { run, log: console.log, warn: console.error }
+  const io = { run, log: console.log, warn: console.error, env }
   const now = new Date()
   let failures = 0
 

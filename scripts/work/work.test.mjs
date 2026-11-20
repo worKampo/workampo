@@ -13,6 +13,7 @@ import {
   ghCommand,
   help,
   latestProgress,
+  moveCard,
   nextStep,
   openCommand,
   parseArgs,
@@ -303,6 +304,27 @@ test('the board hint names the project gh config for the person and the App perm
     /GH_CONFIG_DIR='\/p\/gh' gh auth refresh -s project/,
   )
   assert.match(boardFix({ GH_TOKEN: 'x' }), /App .*Projects.*Read and write/)
+  assert.match(boardFix({ GH_TOKEN: 'x', GITHUB_ACTIONS: 'true' }), /no BOARD_TOKEN.*ADR-0069/)
+  assert.match(boardFix({ GH_TOKEN: 'x', BOARD_TOKEN: 'b' }), /board App .*Projects/)
+})
+
+test('moveCard uses BOARD_TOKEN for every board call when the job has one', () => {
+  const url = 'https://github.com/worKampo/workampo/issues/15'
+  const env = { GH_TOKEN: 'workflow-token', BOARD_TOKEN: 'board-token' }
+  const io = fakeIo(BOARD_API, { env })
+  moveCard(url, 'Done', {}, CONFIG, io)
+  assert.equal(io.calls.length, 4)
+  assert.equal(io.envs.length, 4)
+  assert.ok(io.envs.every((e) => e.GH_TOKEN === 'board-token'))
+  assert.deepEqual(io.warnings, [])
+
+  const without = fakeIo(BOARD_API, { env: { GH_TOKEN: 'workflow-token' } })
+  moveCard(url, 'Done', {}, CONFIG, without)
+  assert.deepEqual(without.envs, [])
+
+  const denied = fakeIo({ ...BOARD_API, 'gh project view': new Error('HTTP 403') }, { env })
+  moveCard(url, 'Done', {}, CONFIG, denied)
+  assert.match(denied.warnings[0], /board App .*Set the card to Done by hand/)
 })
 
 test('the person gh uses its own config dir and ignores GITHUB_TOKEN; the App token is kept', () => {

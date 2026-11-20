@@ -363,7 +363,10 @@ export function withLoginHint(message, env) {
   return `${message}\nThe project gh config has no login. Fix: ${loginCommand(personGhConfigDir(env, homedir()))}`
 }
 
-export function boardFix(env) {
+export function boardFix(env = {}) {
+  if (env.BOARD_TOKEN)
+    return 'the board App needs the organization permission Projects: Read and write'
+  if (env.GITHUB_ACTIONS) return 'the job has no BOARD_TOKEN from the board App (ADR-0069)'
   return env.GH_TOKEN
     ? "the agents' App needs the organization permission Projects: Read and write"
     : `gh needs the project scope in its config: ${ghCommand(personGhConfigDir(env, homedir()), 'auth refresh -s project')}`
@@ -749,19 +752,29 @@ function push(branch, args, config, io) {
   gitWithToken(['push', url, branch], token, io.run)
 }
 
+// Workflows close tickets with github.token, which cannot edit an organization board: the card
+// moves with BOARD_TOKEN, a token of the board-only App, when the job has one (ADR-0069).
+function boardIo(io) {
+  const token = io.env?.BOARD_TOKEN
+  if (!token) return io
+  const env = { ...io.env, GH_TOKEN: token }
+  return { ...io, run: (command, args, options) => io.run(command, args, { ...options, env }) }
+}
+
 export function moveCard(issueUrl, column, args, config, io) {
   if (args.dryRun) return io.log(`Would move the board card to ${column}.`)
   const project = config.github.board.match(/\/projects\/(\d+)/)[1]
   const owner = ['--owner', config.github.organization, '--format', 'json']
+  const board = boardIo(io)
   try {
-    const projectId = ghJson(io, ['project', 'view', project, ...owner]).id
-    const status = ghJson(io, ['project', 'field-list', project, ...owner]).fields.find(
+    const projectId = ghJson(board, ['project', 'view', project, ...owner]).id
+    const status = ghJson(board, ['project', 'field-list', project, ...owner]).fields.find(
       (field) => field.name === 'Status',
     )
     const option = status.options.find((o) => o.name === column)
     // item-add returns the existing item when the issue is already on the board.
-    const item = ghJson(io, ['project', 'item-add', project, ...owner, '--url', issueUrl])
-    io.run('gh', [
+    const item = ghJson(board, ['project', 'item-add', project, ...owner, '--url', issueUrl])
+    board.run('gh', [
       'project',
       'item-edit',
       '--id',

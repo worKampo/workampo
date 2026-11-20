@@ -72,3 +72,5 @@ secrets:
     lives: GitHub repository secret; used by the observation window (docs/runbooks/deploy.md)
   - name: UptimeRobot read-only API key (UPTIMEROBOT_READ_KEY)
     lives: GitHub repository secret; used by the observation window (docs/runbooks/deploy.md)
+  - name: Private key of the board-only GitHub App (BOARD_APP_PRIVATE_KEY)
+    lives: GitHub repository secret read by deploy.yml and observation-window.yml, copy in the password manager (ADR-0069)
