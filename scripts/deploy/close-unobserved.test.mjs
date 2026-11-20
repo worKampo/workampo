@@ -10,6 +10,8 @@ const TEXT = 'Sin Workers afectados: nada que observar'
 const MARKER = `<!-- no-workers:${SHA} -->`
 const OPEN = { state: 'open' }
 const CLOSED = { state: 'closed' }
+const BOT = { login: 'github-actions[bot]', type: 'Bot' }
+const AUTHORS = [BOT]
 
 // issues: number -> { state }; comments: number -> [{ body }]; history: number -> SHAs on master
 // up to `sha` whose message has `Refs: #number` (defaults to the merge itself); workerCommits:
@@ -27,6 +29,7 @@ function fakeIo({
     if ((failing[kind] ?? []).includes(key)) throw new Error(`${kind} failed`)
   }
   const io = {
+    authors: AUTHORS,
     log: () => {},
     warn: () => {},
     run: (command, args) => {
@@ -151,16 +154,39 @@ test('E5: an already-closed ticket gets no comment and no close', async () => {
 })
 
 test('idempotent: the marker already on an open ticket closes it without a second comment', async () => {
-  const { io, calls } = fakeIo({ comments: { 50: [{ body: `${TEXT}\n\n${MARKER}` }] } })
+  const { io, calls } = fakeIo({ comments: { 50: [{ user: BOT, body: `${TEXT}\n\n${MARKER}` }] } })
   assert.deepEqual(await closeUnobserved({ sha: SHA, from: FROM }, io), [])
   assert.deepEqual(commented(calls), [])
   assert.deepEqual(closed(calls), [50])
 })
 
+test('a marker from an untrusted author is ignored: the comment is posted, then the close', async () => {
+  const stranger = { user: { login: 'stranger', type: 'User' }, body: MARKER }
+  const spoofed = { user: { login: 'github-actions[bot]', type: 'User' }, body: MARKER }
+  const { io, calls } = fakeIo({ comments: { 50: [stranger, spoofed] } })
+  assert.deepEqual(await closeUnobserved({ sha: SHA, from: FROM }, io), [])
+  assert.deepEqual(commented(calls), [50])
+  assert.deepEqual(closed(calls), [50])
+  assert.ok(
+    calls.findIndex((c) => c.command === 'comment') < calls.findIndex((c) => c.command === 'close'),
+  )
+})
+
+test('F4: a pull request number is skipped before anything else, and is not a failure', async () => {
+  const { io, calls } = fakeIo({
+    log: 'docs: x\n\nRefs: #50\nRefs: #51\n',
+    issues: { 50: { state: 'open', pull_request: {} }, 51: OPEN },
+  })
+  assert.deepEqual(await closeUnobserved({ sha: SHA, from: FROM }, io), [])
+  const touching50 = calls.filter((c) => c.number === 50)
+  assert.deepEqual(touching50, [{ command: 'issue', number: 50 }])
+  assert.deepEqual(closed(calls), [51])
+})
+
 test('idempotent: a second run after a full success does nothing', async () => {
   const { io, calls } = fakeIo({
     issues: { 50: CLOSED },
-    comments: { 50: [{ body: `${TEXT}\n\n${MARKER}` }] },
+    comments: { 50: [{ user: BOT, body: `${TEXT}\n\n${MARKER}` }] },
   })
   assert.deepEqual(await closeUnobserved({ sha: SHA, from: FROM }, io), [])
   assert.deepEqual(commented(calls), [])

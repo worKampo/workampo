@@ -6,6 +6,7 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { parse } from 'yaml'
+import { observationAuthors } from '../observation/check.mjs'
 import { messagesLogArgs, parseRefs, postComments } from '../smoke/verification-comment.mjs'
 import { moveCard, readComments } from '../work/work.mjs'
 import { run, workersChanged } from './deploy.mjs'
@@ -31,12 +32,20 @@ export async function closeUnobserved({ sha, from }, io) {
   const body = `${TEXT}\n\n${marker(sha)}`
   return postComments(numbers, (number) => {
     const issue = io.issue(number)
+    // The issues endpoint also returns pull requests, which are not tickets.
+    if (issue.pull_request) return io.log(`#${number}: a pull request, not a ticket.`)
     if (issue.state !== 'open') return io.log(`#${number}: already closed.`)
     // A Worker change of the ticket was released, so its observation window closes it.
     if (io.ticketCommits(number, sha).some((commit) => io.affectsWorker(commit)))
       return io.log(`#${number}: a commit affected a Worker, it waits for its observation window.`)
-    if (!io.comments(number).some((c) => (c.body ?? '').includes(marker(sha))))
-      io.comment(number, body)
+    const marked = io
+      .comments(number)
+      .some(
+        (c) =>
+          (c.body ?? '').includes(marker(sha)) &&
+          io.authors.some((a) => a.login === c.user?.login && a.type === c.user?.type),
+      )
+    if (!marked) io.comment(number, body)
     io.close(number, 'completed')
     io.log(`#${number}: closed, no Worker affected.`)
     io.moveToDone(number, issue.html_url)
@@ -92,6 +101,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
       throw new Error('The checkout is shallow: check out the full history (fetch-depth: 0).')
     const failed = await closeUnobserved(args, {
       run,
+      authors: observationAuthors(config),
       issue: (number) => JSON.parse(gh(['api', `repos/${repository}/issues/${number}`])),
       comments: (number) => readComments(ghIo, repository, number),
       ticketCommits,
