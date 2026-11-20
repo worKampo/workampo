@@ -126,7 +126,7 @@ GitHub disables a scheduled workflow after 60 days without activity in the repo.
 
 ### Tickets without a release
 
-When the staging deploy of a merge ends green with no Worker affected (docs, process or tooling only), there is no release to observe. `deploy.mjs` then prints the output `observe=none` and the `stg` job runs `node scripts/deploy/close-unobserved.mjs`, which closes the tickets in the merge's `Refs:` trailers as completed with the comment "Sin Workers afectados: nada que observar" ([ADR-0020](../adr/0020-ticket-lifecycle.md), [ADR-0060](../adr/0060-deploy-affected-workers-only.md)).
+When the staging deploy of a merge ends green with no Worker affected (docs, process or tooling only), there is no release to observe. `deploy.mjs` then prints the output `observe=none` and the `stg` job runs `node scripts/deploy/close-unobserved.mjs`, which closes the tickets in the merge's `Refs:` trailers as completed with the comment "Sin Workers afectados: nada que observar" ([ADR-0068](../adr/0068-close-tickets-without-a-release.md)).
 
 - A ticket with any commit on `master` that affected a Worker is not closed this way: it waits for its observation window.
 - A stale run (a later commit on master changes a Worker) closes nothing: its commits travel with the later deploy and its window.

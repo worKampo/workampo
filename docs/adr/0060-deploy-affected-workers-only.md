@@ -35,7 +35,7 @@ Deploying everything would change the version of every Worker on every deploymen
 
 ## Updates
 
-- 2026-11-20: when the deploy of a merge finds no Worker affected, `deploy.mjs` emits the output `observe=none` (current run only; a stale run does not) and the `stg` job runs `scripts/deploy/close-unobserved.mjs`, which closes the merge's tickets because there is no release to observe. A ticket with any commit on `master` that affected a Worker is not closed this way. Approved by the person (issue #46); see [ADR-0020](0020-ticket-lifecycle.md).
+- 2026-11-20: a staging deploy with no Worker affected emits `observe=none` and closes the merge's tickets, which have no release to observe ([ADR-0068](0068-close-tickets-without-a-release.md)).
 
 ## Consequences
 

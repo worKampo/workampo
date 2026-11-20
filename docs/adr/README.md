@@ -51,7 +51,7 @@ Every architectural and process decision of worKampo, one file per decision ([MA
 
 | ADR | Title | Status |
 |---|---|---|
-| [ADR-0020](0020-ticket-lifecycle.md) | Ticket lifecycle | accepted |
+| [ADR-0020](0020-ticket-lifecycle.md) | Ticket lifecycle | accepted (closing of tickets with no Worker change superseded by ADR-0068) |
 | [ADR-0021](0021-orchestrator-and-subagents.md) | Orchestrator and subagents | accepted |
 | [ADR-0022](0022-model-and-effort-by-complexity.md) | Model and effort by complexity | accepted |
 | [ADR-0023](0023-branching-and-deployment.md) | Branching and deployment | accepted |
@@ -111,6 +111,7 @@ Every architectural and process decision of worKampo, one file per decision ([MA
 | [ADR-0065](0065-zero-spend-and-free-tier-limits.md) | Zero spend and free-tier limits | accepted |
 | [ADR-0066](0066-design-system.md) | Design system: neutral chrome, ink accent, IBM Plex Sans | accepted |
 | [ADR-0067](0067-ticket-branches-not-linked.md) | Ticket branches are not linked to the issue | accepted |
+| [ADR-0068](0068-close-tickets-without-a-release.md) | Close tickets whose merge deploys no Worker | accepted |
 
 ## Notes
 
