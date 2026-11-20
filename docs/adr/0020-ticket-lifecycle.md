@@ -105,6 +105,7 @@ The eleven named steps still exist for the agent. The table is the full path (L 
 ## Updates
 
 - 2026-11-18: `pnpm work` takes the issue number as `15` or `#15`; docs use the form without `#` (decided in issue #27).
+- 2026-11-20: a merge whose staging deploy ends green with no Worker affected has no release to observe, so the deploy workflow closes the tickets in its `Refs:` trailers as completed, with the comment "Sin Workers afectados: nada que observar". Exceptions: a ticket with any commit on `master` that affected a Worker keeps waiting for its observation window, and a stale run closes nothing (its commits travel with the later deploy and its window). Approved by the person (issue #46); see [ADR-0060](0060-deploy-affected-workers-only.md) and the [deploy runbook](../runbooks/deploy.md#tickets-without-a-release).
 
 ## Consequences
 
