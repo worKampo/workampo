@@ -149,7 +149,7 @@ Workflows that close a ticket move its card to Done with `BOARD_TOKEN`, an insta
 
 | Name | Kind | What |
 | --- | --- | --- |
-| `BOARD_APP_ID` | Repository variable | ID of `workampo-board` |
+| `BOARD_APP_CLIENT_ID` | Repository variable | Client ID of `workampo-board` (General page of the App) |
 | `BOARD_APP_PRIVATE_KEY` | Repository secret | Its private key (.pem). Read only by `deploy.yml` and `observation-window.yml` |
 
 Set up once:
@@ -157,6 +157,6 @@ Set up once:
 1. Organization settings → Developer settings → GitHub Apps → New GitHub App: name `workampo-board`, no webhook, Organization permissions → Projects: Read and write, nothing else; only on this account.
 2. Install it on the organization (no repository access needed).
 3. Generate a private key and keep a copy in the password manager ([ADR-0064](../adr/0064-local-secrets.md)).
-4. `gh variable set BOARD_APP_ID` with its App ID, and `gh secret set BOARD_APP_PRIVATE_KEY < key.pem` from the folder of the downloaded key; then delete that file.
+4. `gh variable set BOARD_APP_CLIENT_ID` with its client ID, and `gh secret set BOARD_APP_PRIVATE_KEY < key.pem` from the folder of the downloaded key; then delete that file.
 
 Rotate the key once a year or at any doubt: generate a new one, set the secret again, delete the old key in the App settings.

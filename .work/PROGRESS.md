@@ -1,10 +1,10 @@
 # Progress
 
 Ticket #50 mover-las-tarjetas-del-tablero-desde-los · Branch: feature/50-mover-las-tarjetas-del-tablero-desde-los
-Step: Define › Specify
-Done in this step: Discover (ADR-0064; moveCard in close-unobserved.mjs and observation/check.mjs); intent, examples and security options on the issue
-In progress: —
-Next: once the person picks the App (A or B) and where its key lives, write .work/plan.md and .work/tasks.md
-Waiting for human: moment 1, intent and security decision (issue #50 comment)
-Open questions: which App signs the board token (recommended: B, a board-only App); key as a repo secret read only by deploy.yml and observation-window.yml
-Updated: 2026-11-20 13:25
+Step: Build › Implement
+Done in this step: moment 1 approved (option B, board-only App); T1 moveCard with BOARD_TOKEN; T2 env passed by close-unobserved.mjs and observation/check.mjs; T3 ADR-0069, ADR-0064 note, project.yaml, deploy runbook
+In progress: T4, the workflow steps are in the working tree, uncommitted
+Next: after the person pushes T4, run pnpm work pr 50 (the App pushes last)
+Waiting for human: commit and push .github/workflows/deploy.yml and observation-window.yml (T4); create the workampo-board App, its variable and secret (deploy runbook, "Board App")
+Open questions: —
+Updated: 2026-11-20 14:20

@@ -15,7 +15,7 @@ Workflows close tickets ([ADR-0068](0068-close-tickets-without-a-release.md) at 
 Decided by the person in issue #50 (2026-11-20, moment 1, option B).
 
 - **A second GitHub App only for the board** (`workampo-board`): one organization permission, Projects: Read and write; no repository permission, no webhook. If its key leaks, only the board can be changed.
-- **Its key in CI**: repository secret `BOARD_APP_PRIVATE_KEY`, and its App ID in the repository variable `BOARD_APP_ID`. Only `deploy.yml` and `observation-window.yml` read them, and both run only from `master` (push and schedule); the agents' App cannot change workflows. No protected Environment: with a board-only App it adds little, and the hourly observation job would create a deployment each run.
+- **Its key in CI**: repository secret `BOARD_APP_PRIVATE_KEY`, and its client ID in the repository variable `BOARD_APP_CLIENT_ID`. Only `deploy.yml` and `observation-window.yml` read them, and both run only from `master` (push and schedule); the agents' App cannot change workflows. No protected Environment: with a board-only App it adds little, and the hourly observation job would create a deployment each run.
 - **Token per job**: the step that closes tickets first mints an installation token with `actions/create-github-app-token`, scoped to `permission-organization-projects: write`, and passes it as `BOARD_TOKEN`. Closing and commenting stay with `github.token`; `pnpm work`'s `moveCard` uses `BOARD_TOKEN` only for the board calls.
 - **Without the secret** the ticket still closes and the job warns that the card is left by hand.
 - The agents' App key stays where ADR-0064 puts it; it never goes to CI.
