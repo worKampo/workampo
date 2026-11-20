@@ -56,6 +56,12 @@ jobs:
           FROM_SHA: ${{ steps.deploy.outputs.from }}
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
+      # No Worker affected: no release to observe, so its tickets close here (ADR-0020).
+      - if: steps.deploy.outputs.observe == 'none'
+        run: node scripts/deploy/close-unobserved.mjs "$GITHUB_SHA" "$FROM_SHA"
+        env:
+          FROM_SHA: ${{ steps.deploy.outputs.from }}
+          GH_TOKEN: ${{ github.token }}
 
   prod:
     needs: stg
