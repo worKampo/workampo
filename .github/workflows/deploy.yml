@@ -56,12 +56,24 @@ jobs:
           FROM_SHA: ${{ steps.deploy.outputs.from }}
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
+      # Board-only App: its token can only move cards; github.token cannot (ADR-0069).
+      - id: board
+        if: steps.deploy.outputs.observe == 'none' && vars.BOARD_APP_CLIENT_ID != ''
+        # A failed token leaves the card by hand; it must not fail the deploy or the window.
+        continue-on-error: true
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          client-id: ${{ vars.BOARD_APP_CLIENT_ID }}
+          private-key: ${{ secrets.BOARD_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          permission-organization-projects: write
       # No Worker affected: no release to observe, so its tickets close here (ADR-0020).
       - if: steps.deploy.outputs.observe == 'none'
         run: node scripts/deploy/close-unobserved.mjs "$GITHUB_SHA" "$FROM_SHA"
         env:
           FROM_SHA: ${{ steps.deploy.outputs.from }}
           GH_TOKEN: ${{ github.token }}
+          BOARD_TOKEN: ${{ steps.board.outputs.token }}
 
   prod:
     needs: stg

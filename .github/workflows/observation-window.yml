@@ -39,6 +39,17 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      # Board-only App: its token can only move cards; github.token cannot (ADR-0069).
+      - id: board
+        if: vars.BOARD_APP_CLIENT_ID != ''
+        # A failed token leaves the card by hand; it must not fail the deploy or the window.
+        continue-on-error: true
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          client-id: ${{ vars.BOARD_APP_CLIENT_ID }}
+          private-key: ${{ secrets.BOARD_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          permission-organization-projects: write
       # Scheduled runs are never dry runs; the input reaches the script only through env.
       - run: |
           args=()
@@ -49,3 +60,4 @@ jobs:
           SENTRY_READ_TOKEN: ${{ secrets.SENTRY_READ_TOKEN }}
           UPTIMEROBOT_READ_KEY: ${{ secrets.UPTIMEROBOT_READ_KEY }}
           GH_TOKEN: ${{ github.token }}
+          BOARD_TOKEN: ${{ steps.board.outputs.token }}
