@@ -24,7 +24,7 @@ Every architectural and process decision of worKampo, one file per decision ([MA
 | [ADR-0005](0005-dual-resolve-tenant.md) | Dual `resolveTenant()` by configuration | accepted |
 | [ADR-0006](0006-same-origin-route-map.md) | Route map on the same origin | accepted |
 | [ADR-0007](0007-central-login.md) | Central login | accepted |
-| [ADR-0008](0008-own-session-in-d1-host-only-cookie.md) | Own session in D1, host-only cookie | accepted (WorkOS as identity provider superseded by ADR-0071) |
+| [ADR-0008](0008-own-session-in-d1-host-only-cookie.md) | Own session in D1, host-only cookie | accepted |
 | [ADR-0009](0009-catalog-flags-and-sessions-in-d1.md) | Catalog, flags and sessions only in D1 | accepted |
 | [ADR-0010](0010-shard-1-from-v1.md) | `DB_SHARD_1` from v1 | accepted |
 
@@ -101,7 +101,7 @@ Every architectural and process decision of worKampo, one file per decision ([MA
 | [ADR-0059](0059-web-client-version.md) | Web client version | accepted |
 | [ADR-0060](0060-deploy-affected-workers-only.md) | Deploy affected Workers only | accepted |
 | [ADR-0062](0062-files.md) | Files: R2, images and PDFs | accepted |
-| [ADR-0063](0063-eu-data-residency.md) | EU data residency | accepted (WorkOS and Brevo rows superseded by ADR-0071) |
+| [ADR-0063](0063-eu-data-residency.md) | EU data residency | accepted (WorkOS check and Brevo row superseded by ADR-0071) |
 | [ADR-0064](0064-local-secrets.md) | Local secrets | accepted |
 
 ## Cost and design
@@ -114,7 +114,7 @@ Every architectural and process decision of worKampo, one file per decision ([MA
 | [ADR-0068](0068-close-tickets-without-a-release.md) | Close tickets whose merge deploys no Worker | accepted |
 | [ADR-0069](0069-board-app-in-ci.md) | A board-only GitHub App moves cards from CI | accepted |
 | [ADR-0070](0070-colour-commercial-emphasis-and-marketing.md) | Colour for business moments and free rein on marketing pages | accepted |
-| [ADR-0071](0071-own-login-and-eu-email.md) | Own login, EU email behind an outbox, and a domain before real recipients | accepted |
+| [ADR-0071](0071-identity-and-email-providers.md) | Identity and email providers as plug-ins; WorkOS for the MVP | accepted |
 
 ## Notes
 
