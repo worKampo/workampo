@@ -81,16 +81,19 @@ test('Renovate is linted without the Refs rule', () => {
 
 test('a closing keyword fails in any commit, fixups and merges included', () => {
   const log = [
-    '\x1ea1 fixup! fix: x\x1ffixup! fix: x\n\nFixes #12\nRefs: #9\n',
-    '\x1eb2 feat: y\x1ffeat: y\n\nRefs: #9\n',
-  ].join('')
+    'a1\nfixup! fix: x\n\nFixes #12\nRefs: #9\n',
+    'b2\nfeat: y\n\nRefs: #9\n',
+    // Control characters inside a message neither split it nor hide a reference.
+    'c3\nfix: z\n\n\x1f\x1eResolves #13\nRefs: #9\n',
+  ].join('\0')
   assert.deepEqual(closingErrors(log), [
     'commit "a1 fixup! fix: x" closes #12: GitHub would close it at the merge; write "ticket N" instead',
+    'commit "c3 fix: z" closes #13: GitHub would close it at the merge; write "ticket N" instead',
   ])
   const ctx = context({
     env: { HEAD_REF: 'feature/9-x' },
     routes: [
-      [/^git log --format=%x1e%h/, log],
+      [/^git log -z/, log],
       [/^git log/, logOf([{ sha: 'h1' }])],
       [/commitlint/, ''],
     ],

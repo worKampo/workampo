@@ -21,23 +21,24 @@ export function summarize(output) {
 
 // Read here, not as a commitlint rule: commitlint skips merges, fixup! and squash! commits
 // before any rule runs, and GitHub still reads them in the squash commit.
+// `git log -z` ends each commit with NUL, which a commit message can never contain.
 export function closingErrors(log) {
   return log
-    .split('')
+    .split('\0')
     .filter((entry) => entry.trim())
     .flatMap((entry) => {
-      const [subject, body] = entry.split('')
-      const refs = closingRefs(body)
+      const [hash, subject = ''] = entry.split('\n')
+      const refs = closingRefs(entry)
       if (!refs.length) return []
       return [
-        `commit "${subject.trim()}" closes ${refs.map((r) => `#${r}`).join(', ')}: ${CLOSING_HINT}`,
+        `commit "${hash} ${subject.trim()}" closes ${refs.map((r) => `#${r}`).join(', ')}: ${CLOSING_HINT}`,
       ]
     })
 }
 
 export function check(ctx) {
   const range = `${ctx.env.BASE_SHA}..${ctx.env.HEAD_SHA}`
-  const closing = closingErrors(ctx.run('git', ['log', '--format=%x1e%h %s%x1f%B', range]))
+  const closing = closingErrors(ctx.run('git', ['log', '-z', '--format=%h%n%B', range]))
   const ticket = ctx.isRenovate() ? '' : String(ctx.ticket ?? '')
   try {
     ctx.run(process.execPath, [CLI, '--from', ctx.env.BASE_SHA, '--to', ctx.env.HEAD_SHA], {
