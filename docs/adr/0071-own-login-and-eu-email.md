@@ -23,11 +23,16 @@ Decided by the person in issue 65 (2026-11-21).
 1. **Own login, no identity provider.** The session stays as ADR-0008 sets it (random id in `DB_GLOBAL`, `__Host-` cookie), following Lucia's session pattern (a small file in our code, not a library). Two ways in:
    - **One-time code by email**: random, stored only as a hash, single use, short expiry; attempts limited per email and per IP; the same answer whether the account exists or not; the session rotates on sign-in; a sign-in link, if added, opens a confirmation page before it is redeemed (mail scanners open links).
    - **"Continue with Google"** through OpenID Connect with `oauth4webapi` (certified client), with `state`, `nonce` and PKCE, and only the `openid email profile` scopes.
-   It lives behind `_shared/auth/` ([ADR-0053](0053-code-conventions.md)). It is a critical zone: the tickets that build it are `size:L`.
-2. **Email behind `_shared/email/`**, with templates in our code (React Email or jsx-email), in Spanish and English, and two adapters:
+   It is a critical zone: the tickets that build it are `size:L`.
+2. **Every provider behind an interface, our own login included** (the person, 2026-11-21), so that changing provider is a new adapter and one line of configuration ([ADR-0053](0053-code-conventions.md)):
+   - `_shared/auth/` defines an identity interface: start a sign-in, complete it, and return a verified identity (provider, subject, email, name). **Our own login (email code and Google) is one implementation of it**, as WorkOS, Logto or any other could be later. The session (ADR-0008), users, companies and roles stay outside every provider.
+   - `_shared/email/` defines a sender interface that receives an already rendered message. The templates (subject and body per language) are rendered outside the sender, so changing provider never touches them.
+   - Which implementation runs is chosen per environment in one place. No code outside `_shared/auth/` and `_shared/email/` imports a provider; dependency-cruiser enforces it, as ADR-0053 already does for provider packages.
+   - One contract test suite per interface runs against every implementation, the fakes included.
+3. **Email**: templates in our code (React Email or jsx-email), in Spanish and English, and sender implementations:
    - **Outbox** in local and staging: it does not send; it stores each email in that environment's database, and a staging-only page `/__dev/outbox` shows them, codes and links included. It never exists in production, like `/__debug/error`, and the production build fails if it includes it. Staging holds test data only.
    - **AhaSend** in production, with **Lettermint** as fallback; the switch is a change of adapter.
-3. **A domain before real recipients.** Buying the domain (about 10 € a year, ADR-0014) is the only cost of this decision and the person's explicit spend. Until then the product can be built and tested end to end by the person: Google sign-in works in Google's testing mode on `*.workers.dev`, and every email lands in the outbox. Emails to other people (invitations, sign-ups) wait for the domain; then AhaSend is configured with SPF, DKIM and DMARC and Google brand verification is requested.
+4. **A domain before real recipients.** Buying the domain (about 10 € a year, ADR-0014) is the only cost of this decision and the person's explicit spend. Until then the product can be built and tested end to end by the person: Google sign-in works in Google's testing mode on `*.workers.dev`, and every email lands in the outbox. Emails to other people (invitations, sign-ups) wait for the domain; then AhaSend is configured with SPF, DKIM and DMARC and Google brand verification is requested.
 
 This supersedes:
 
@@ -38,7 +43,7 @@ This supersedes:
 
 ## Consequences
 
-- No user data leaves the EU for sign-in; zero monthly spend; no lock-in to an identity provider.
+- No user data leaves the EU for sign-in; zero monthly spend; no lock-in: moving to a managed provider later (for example if one offers an EU region) is a new implementation of the identity interface, and users keep their accounts because the session and the user records are ours.
 - We own the security of the sign-in flows: they get a threat model and the security reviewer ([ADR-0032](0032-security-reviewer.md)) on every change.
 - PRD 10 is unblocked. Its estimate grows: the spike puts the sign-in core at 6 to 9 days.
 - The privacy policy ([ADR-0027](0027-legal-and-data-protection.md)) lists AhaSend and, for whoever signs in with Google, Google; WorkOS and Brevo leave it.
