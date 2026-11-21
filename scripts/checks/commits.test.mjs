@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { refsTicket } from '../../commitlint.config.mjs'
+import { noClosingKeyword, refsTicket } from '../../commitlint.config.mjs'
 import { check, summarize } from './commits.mjs'
 import { context, logOf, RENOVATE } from './test-support.mjs'
 
@@ -77,4 +77,11 @@ test('Renovate is linted without the Refs rule', () => {
   const bot = { sha: 'r1', email: RENOVATE, name: 'renovate[bot]' }
   const { ticket } = commitlint('renovate/all-minor', [bot], () => '')
   assert.equal(ticket, '')
+})
+
+test('the local rule rejects a closing keyword before an issue number', () => {
+  assert.equal(noClosingKeyword({ raw: 'fix: x\n\nRefs: #9\n' })[0], true)
+  const [valid, message] = noClosingKeyword({ raw: 'fix: x\n\nFixes #12\nRefs: #9\n' })
+  assert.equal(valid, false)
+  assert.match(message, /closes #12/)
 })

@@ -1,4 +1,7 @@
-// `Ticket #N`, `PRD #M` when the ticket has a parent, and `type:` / `area:` labels (ADR-0042).
+// `Ticket #N`, `PRD #M` when the ticket has a parent, `type:` / `area:` labels (ADR-0042), and no
+// GitHub closing keyword before an issue number.
+import { CLOSING_HINT, closingRefs } from '../lib/closing-keywords.mjs'
+
 export const name = 'PR body and labels'
 
 export function bodyErrors({ body, labels, ticket, parent }) {
@@ -7,6 +10,8 @@ export function bodyErrors({ body, labels, ticket, parent }) {
     errors.push(`the body needs "Ticket #${ticket}"`)
   if (parent && !new RegExp(`\\bPRD #${parent}\\b`).test(body))
     errors.push(`the body needs "PRD #${parent}" (parent of #${ticket})`)
+  for (const ref of closingRefs(body))
+    errors.push(`the body closes #${ref} with a closing keyword: ${CLOSING_HINT}`)
   for (const prefix of ['type:', 'area:'])
     if (!labels.some((label) => label.startsWith(prefix)))
       errors.push(`the PR needs a ${prefix} label`)
