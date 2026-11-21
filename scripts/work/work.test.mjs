@@ -37,6 +37,7 @@ import {
   verificationList,
   verify,
   withLoginHint,
+  withoutCredentials,
 } from './work.mjs'
 
 const CONFIG = {
@@ -1078,6 +1079,7 @@ function verifyIo({
     sleep: async () => {},
     spawnDetached: (command, args, options) => {
       io.spawned.push([command, ...args, options.cwd])
+      io.spawnedEnv = options.env
       return 4242
     },
   })
@@ -1193,4 +1195,25 @@ test('verify: the list comes only from trusted authors, the "Work log" first', (
   assert.equal(openCommand('darwin', 'http://x')[0], 'open')
   assert.equal(stopHint('win32', 7), 'taskkill /PID 7 /T /F')
   assert.throws(() => parseArgs(['verify']), /one issue number/)
+})
+
+test('verify: the branch install, seed and app run without credentials', async () => {
+  const io = verifyIo()
+  Object.assign(io.env, {
+    GH_TOKEN: 'g',
+    BOARD_TOKEN: 'b',
+    CLOUDFLARE_API_TOKEN: 'c',
+    PATH: '/bin',
+  })
+  await verify({ numbers: [9] }, CONFIG, io)
+  const blank = { GH_TOKEN: '', BOARD_TOKEN: '', CLOUDFLARE_API_TOKEN: '' }
+  assert.ok(io.envs.length >= 3)
+  for (const env of [...io.envs, io.spawnedEnv]) assert.deepEqual(env, blank)
+  assert.deepEqual(
+    withoutCredentials({ GITHUB_TOKEN: 'x', SENTRY_AUTH_TOKEN: 'y', HOME: '/h', NODE_ENV: 'test' }),
+    {
+      GITHUB_TOKEN: '',
+      SENTRY_AUTH_TOKEN: '',
+    },
+  )
 })
