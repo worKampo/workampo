@@ -75,7 +75,7 @@ The worKampo logo marks the platform, never a customer company: inside a company
 | `logo-color.svg` | Platform header and sidebar, next to the name "worKampo" in IBM Plex Sans: landing, sign in, company picker, create company, system pages, backoffice. Transparent, with the K cut out, so it works on light and dark |
 | `logo-color-16.png`, `logo-color-32.png` | Favicon |
 | `logo-icon-light-180.png`, `-192.png`, `-512.png` | App icon (iOS, Android, PWA) and GitHub avatars |
-| `logo-mono-black.svg`, `logo-mono-white.svg` | The "Made with worKampo" mark in the footer of a company's public page, light and dark |
+| `logo-mono-black.svg`, `logo-mono-white.svg` | The "Made with worKampo" mark in the footer of a company's public page, light and dark. Their shape, inlined in ink, is the logo mark of empty states, the app loader and system pages ([components](components.md#logo-mark-in-ink)) |
 
 The full kit, with every size and variant, lives outside the repo; add a file here only when a screen needs it.
 
