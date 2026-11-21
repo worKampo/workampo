@@ -96,12 +96,12 @@ Every screen specifies these states (D31 Specify):
 | Ready | Normal content |
 | Empty (first use) | Empty state explaining what will appear and the action to create the first item |
 | Empty (no results) | Empty state with Clear filters |
-| Loading | Skeleton of the real layout, after ~300 ms; no full-page spinners |
+| Loading | Skeleton of the real layout, after ~300 ms; no full-page spinners. The only exception is the app loader (components), while there is no layout yet |
 | Error | Negative banner (or the error page) saying what failed and what to do, with Retry; data already loaded stays visible |
 | No access | Explain that the user's role cannot see it and who can grant access; never a blank page |
 | Long data / unicode | Names truncate with ellipsis and full text in a tooltip or the detail; RTL and long words do not break the layout |
 
-**System pages** (centred card on `--chrome`, same layout as auth pages, with a link home): 404 Page not found, 403 No access, 500 Something went wrong, Maintenance (with expected end time when known). The 500 page shows the error reference id.
+**System pages** (centred card on `--chrome`, same layout as auth pages, with a link home; the logo mark in ink above the title, the code as a meta line "Error 404" under the text): 404 Page not found, 403 No access, 500 Something went wrong, Maintenance (with expected end time when known). The 500 page shows the error reference id.
 
 **Error reference**: 500 pages and unexpected-error banners show a short reference id ("Reference: 7F3K-92QD") with a copy button. The same id is in the server logs and Sentry so support can find the event; it contains no personal data.
 

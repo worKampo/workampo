@@ -1038,6 +1038,20 @@ async function waitUntilServing(url, io) {
   return false
 }
 
+// verify runs the branch's own install scripts, seed and app: none of them gets a credential.
+// Blank, not removed, because run() and spawnDetached() merge env over process.env.
+// shortcut: a deny list; an allow list would also cut the system variables pnpm and wrangler need on
+// Windows. Case-insensitive because Windows variable names are.
+const CREDENTIAL =
+  /^(GH|GITHUB|BOARD|CLOUDFLARE|SENTRY|UPTIMEROBOT)_|TOKEN|SECRET|PASSWORD|PASSWD|CREDENTIAL|PRIVATE|_AUTH|_KEY$/i
+export function withoutCredentials(env) {
+  return Object.fromEntries(
+    Object.keys(env)
+      .filter((key) => CREDENTIAL.test(key))
+      .map((key) => [key, '']),
+  )
+}
+
 export async function verify(args, config, io) {
   const [number] = args.numbers
   const repo = config.github.repository
@@ -1065,7 +1079,8 @@ export async function verify(args, config, io) {
   const apiDir = join(dir, 'apps', 'api')
   const wrangler = join(apiDir, WRANGLER)
   const persist = join(apiDir, VERIFY_PERSIST)
-  const visible = (cwd) => ({ cwd, isVisible: true })
+  const branchEnv = withoutCredentials(io.env)
+  const visible = (cwd) => ({ cwd, isVisible: true, env: branchEnv })
   act('pnpm', ['install'], visible(dir))
   if (args.dryRun) io.log(`Would remove ${persist}`)
   else io.remove(persist)
@@ -1085,7 +1100,7 @@ export async function verify(args, config, io) {
     io.log(`Would run: ${[openFile, ...openArgs].map(shown).join(' ')}`)
   } else {
     const log = join(apiDir, VERIFY_LOG)
-    const pid = io.spawnDetached('node', dev, { cwd: apiDir, log })
+    const pid = io.spawnDetached('node', dev, { cwd: apiDir, log, env: branchEnv })
     if (!(await waitUntilServing(health, io))) {
       const hint = stopHint(io.platform, pid)
       const [stop, ...stopArgs] = hint.split(' ')
@@ -1171,11 +1186,12 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
         () => false,
       ),
     sleep: (ms) => new Promise((done) => setTimeout(done, ms)),
-    spawnDetached: (command, commandArgs, { cwd, log }) => {
+    spawnDetached: (command, commandArgs, { cwd, log, env }) => {
       mkdirSync(dirname(log), { recursive: true })
       const out = openSync(log, 'a')
       const child = spawn(command, commandArgs, {
         cwd,
+        env: env && { ...process.env, ...env },
         detached: true,
         stdio: ['ignore', out, out],
       })

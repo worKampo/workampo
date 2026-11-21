@@ -88,8 +88,8 @@ Every architectural and process decision of worKampo, one file per decision ([MA
 | [ADR-0050](0050-enter-as-staff-impersonation.md) | "Enter as" (staff impersonation) | accepted |
 | [ADR-0051](0051-stripe-checkout-and-customer-portal.md) | Billing with Stripe Checkout and Customer Portal | accepted |
 | [ADR-0052](0052-living-specs-only-and-flow-by-size.md) | Only living specs in `master`, and flow by size | accepted |
-| [ADR-0053](0053-code-conventions.md) | Code conventions | accepted |
-| [ADR-0054](0054-roles-and-permissions.md) | Roles and permissions | accepted |
+| [ADR-0053](0053-code-conventions.md) | Code conventions | accepted (role in `members` superseded by ADR-0072) |
+| [ADR-0054](0054-roles-and-permissions.md) | Roles and permissions | accepted (roles in code only, one role per member for the whole company and the three-role matrix superseded by ADR-0072) |
 
 ## Delivery, tooling and data
 
@@ -101,7 +101,7 @@ Every architectural and process decision of worKampo, one file per decision ([MA
 | [ADR-0059](0059-web-client-version.md) | Web client version | accepted |
 | [ADR-0060](0060-deploy-affected-workers-only.md) | Deploy affected Workers only | accepted |
 | [ADR-0062](0062-files.md) | Files: R2, images and PDFs | accepted |
-| [ADR-0063](0063-eu-data-residency.md) | EU data residency | accepted |
+| [ADR-0063](0063-eu-data-residency.md) | EU data residency | accepted (WorkOS EU-region check superseded by ADR-0071) |
 | [ADR-0064](0064-local-secrets.md) | Local secrets | accepted |
 
 ## Cost and design
@@ -114,6 +114,8 @@ Every architectural and process decision of worKampo, one file per decision ([MA
 | [ADR-0068](0068-close-tickets-without-a-release.md) | Close tickets whose merge deploys no Worker | accepted |
 | [ADR-0069](0069-board-app-in-ci.md) | A board-only GitHub App moves cards from CI | accepted |
 | [ADR-0070](0070-colour-commercial-emphasis-and-marketing.md) | Colour for business moments and free rein on marketing pages | accepted |
+| [ADR-0071](0071-identity-providers.md) | Identity providers as plug-ins; WorkOS for the MVP | accepted |
+| [ADR-0072](0072-organization-units-and-scoped-roles.md) | Organization units in a tree and roles scoped to a branch | accepted |
 
 ## Notes
 
