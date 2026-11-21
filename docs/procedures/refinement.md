@@ -16,7 +16,11 @@ When the person asks ("refine issue 36", "refine the next three of the MVP"). In
 4. **Look for a split**: an MVP part and a Post-MVP part, several independent capabilities, or a scope that deserves its own PRD. Propose the split; nothing is dropped ([vision](../product/vision.md#mvp)).
 5. **Write what is missing** that the agent can write: a first Gherkin example, the "Done when" of a chore, the timebox of a spike. The person approves it with the size.
 6. **Post the "Refinement" comment** (format below) and ask the person only what is theirs: confirm the size, approve the example, choose between options.
-7. **On the person's answer**: set the `size:` label and the milestone, edit the issue body with what was approved, create the split issues if any, and move the card to Ready. If something is still missing, the card stays in Backlog and the comment says what.
+7. **On the person's answer**:
+   - Edit the issue body with what was approved, set the milestone and create the split issues if any.
+   - Set the `size:` label only when the person confirmed the size in so many words; an answer about the example alone does not confirm it.
+   - Move the card to Ready only when every Definition of Ready item is met, the size included. Otherwise it stays in Backlog and the comment says what is missing.
+   - If the person approves closing it: close the issue as not planned with the reason in the comment; the board moves the card to Done.
 
 The agent never confirms a size on its own: without the person's confirmation the ticket does not move to Ready.
 
@@ -34,7 +38,9 @@ One per refinement, in the issue, in Spanish:
 **Definition of Ready**
 - [x] Capacidad y valor
 - [ ] Al menos un ejemplo: propuesto abajo
+- [x] Slicing de su PRD aprobado: no aplica (sin PRD)
 - [x] Dependencias: ninguna
+- [ ] Tamaño confirmado por la persona: propuesto arriba
 - [x] Milestone MVP
 - [x] Label area:platform
 
