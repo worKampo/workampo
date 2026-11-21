@@ -87,4 +87,4 @@ Ventana de observación en Release: un verifier programado revisa Sentry, métri
 
 Un solo script con subcomandos ([work](../procedures/work.md)): `pnpm work` (ayuda), `status`, `resume`, `start <n>`, `inbox`, `verify <n>`, `pr`, `close <n>`. No hay comandos para mover tarjetas a mano: `start` y `pr` las mueven hasta Review, y `close` o el workflow de la ventana de observación las mueven a Done. Ningún script mueve todavía a Staging ni a Release: esas dos columnas se mueven a mano en el tablero.
 
-Ramas, PRs y fixes: [branching](branching.md). Entrada y salida de un ticket: [definition of ready](definition-of-ready.md), [definition of done](definition-of-done.md).
+Ramas, PRs y fixes: [branching](branching.md). Entrada y salida de un ticket: [refinement](../procedures/refinement.md), [definition of ready](definition-of-ready.md), [definition of done](definition-of-done.md).
