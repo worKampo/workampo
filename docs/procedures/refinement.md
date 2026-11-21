@@ -18,7 +18,7 @@ When the person asks ("refine issue 36", "refine the next three of the MVP"). In
 6. **Post the "Refinement" comment** (format below) and ask the person only what is theirs: confirm the size, approve the example, choose between options.
 7. **On the person's answer**:
    - Edit the issue body with what was approved, set the milestone and create the split issues if any.
-   - Set the `size:` label only when the person confirmed the size in so many words; an answer about the example alone does not confirm it.
+   - Set the `size:` label only when the person confirmed the size in so many words; an answer about the example alone does not confirm it. Remove any other `size:` label, so only the confirmed one remains (`pnpm work start` reads the first it finds).
    - Move the card to Ready only when every Definition of Ready item is met, the size included. Otherwise it stays in Backlog and the comment says what is missing.
    - If the person approves closing it: close the issue as not planned with the reason in the comment; the board moves the card to Done.
 
