@@ -35,29 +35,45 @@ Todos los PRDs y tickets los heredan.
 - **Fiabilidad**: SLOs de D39.
 - **Coste**: cero en desarrollo y beta; producción con tráfico real probablemente en Workers Paid (5 $/mes).
 
+## MVP
+
+Lo imprescindible para abrir a los primeros clientes. Vive en el milestone [MVP](https://github.com/worKampo/workampo/milestone/1) de GitHub: una issue con ese milestone entra; sin milestone, va después del MVP. Decidido por la persona el 2026-11-21 (#55).
+
+| PRD | En el MVP |
+|---|---|
+| **Access and first company** (PRD #10) | Entero |
+| **Team** (PRD #11) | Como mínimo, invitar y quitar miembros |
+| **Plans and billing** (PRD #13) | Entero |
+| **Marketing site, help and legal** (PRD #15) | Landing, precios y textos legales (RGPD, cookies) |
+| **Account deletion and data rights** (PRD #16) | Borrar la cuenta y exportar los datos |
+| **Backups and recovery** (PRD #17) | Entero |
+
+De plataforma entran los casos límite del despliegue (#36), las alertas de Sentry (#48) y el check de palabras de cierre con `verify` sin credenciales (#57). Fuera del MVP: Company public site (#12), Staff backoffice (#14), Global templates (#21), las mejoras del proceso y los spikes que ningún PRD del MVP necesita.
+
 ## Roadmap (Now / Next / Later)
 
 Sin fechas comprometidas; ordenado por valor y riesgo. Cada fila es un PRD, nombrado por su título. Al crear su issue (`[PRD] <título>`) se añade su enlace, p. ej. "Team (PRD #11)": el único identificador es el número de issue (D42).
 
 Columna "Dominios": specs vivas que toca el PRD (`access`, `companies`, `billing`, `public-site`); "(apoyo)" marca etiquetas que solo filtran el tablero (`platform`, `content`, `backoffice`), sin spec viva (D52).
 
+Hecho: **Working foundation** (PRD #4), cerrado el 2026-11-20.
+
 ### Now
 | PRD | Problema que resuelve | Dominios |
 |---|---|---|
-| **Working foundation** (PRD #4) | El ciclo no puede funcionar sin repo, CI, despliegue ni harness | `platform` (apoyo) |
 | **Access and first company** (PRD #10) | Nadie puede entrar ni tener una empresa | `access`, `companies` |
 
-### Next
+### Next (MVP)
 | PRD | Problema que resuelve | Dominios |
 |---|---|---|
 | **Team** (PRD #11) | Una empresa tiene un solo usuario | `companies`, `access` |
-| **Company public site** (PRD #12) | Las empresas no tienen presencia pública | `public-site` |
 | **Plans and billing** (PRD #13) | No hay ingresos ni diferencia entre planes | `billing` |
-
-### Later
-| PRD | Problema que resuelve | Dominios |
-|---|---|---|
-| **Staff backoffice** (PRD #14) | El equipo no puede ver ni gestionar empresas, dar soporte desde dentro ("Enter as", D50) ni ver la salud del sistema | `access`, `companies`, `backoffice` (apoyo) |
 | **Marketing site, help and legal** (PRD #15) | No hay escaparate, ayuda ni textos legales | `content` (apoyo) |
 | **Account deletion and data rights** (PRD #16) | No se puede borrar ni exportar lo de una empresa | `companies` |
 | **Backups and recovery** (PRD #17) | Solo hay 7 días de Time Travel. Obligatorio antes de abrir a clientes reales | `platform` (apoyo) |
+
+### Later (después del MVP)
+| PRD | Problema que resuelve | Dominios |
+|---|---|---|
+| **Company public site** (PRD #12) | Las empresas no tienen presencia pública | `public-site` |
+| **Staff backoffice** (PRD #14) | El equipo no puede ver ni gestionar empresas, dar soporte desde dentro ("Enter as", D50) ni ver la salud del sistema | `access`, `companies`, `backoffice` (apoyo) |
