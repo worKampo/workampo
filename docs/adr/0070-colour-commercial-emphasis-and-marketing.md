@@ -1,5 +1,5 @@
 ---
-status: proposed
+status: accepted
 date: 2026-11-21
 related: [54, 66]
 ---
@@ -12,7 +12,7 @@ related: [54, 66]
 
 ## Decision
 
-Decided by the person in issue #54 (2026-11-21).
+Decided by the person in issue #54 (2026-11-21); the canvas screens with the commercial emphasis approved the same day.
 
 - **The app stays monochrome.** Colour has three reasons: data, status or alarm (as in ADR-0066) and, new, a **business moment**.
 - **One commercial colour**, `--commercial`, the logo's sky: the end of a trial, "Upgrade", the recommended plan, a "New" badge. Not green or orange, which read as "OK" and "warning". At most one per screen, always as a fill, a band or a ring; a small badge alone is `--info`. Primary buttons, links, focus and selection stay ink.

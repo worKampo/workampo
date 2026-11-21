@@ -68,7 +68,7 @@ Mockups are HTML in the prototype (outside the repo); the approved screenshots g
 
 ## Brand
 
-The worKampo logo marks the platform, never a customer company: inside a company's app and on its public page the company's own logo leads. Its colours (sky `#4AACDF`, green `#42843C`, orange `#F2760A`) stay in the logo; the interface keeps ink as its only accent.
+The worKampo logo marks the platform, never a customer company: inside a company's app and on its public page the company's own logo leads. Its colours (sky `#4AACDF`, green `#42843C`, orange `#F2760A`) stay in the logo and on marketing pages; in the app only the sky, as `--commercial`, marks a business moment ([ADR-0070](../adr/0070-colour-commercial-emphasis-and-marketing.md)).
 
 | File in [brand/](brand/) | Where |
 |---|---|

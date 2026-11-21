@@ -113,7 +113,7 @@ Every architectural and process decision of worKampo, one file per decision ([MA
 | [ADR-0067](0067-ticket-branches-not-linked.md) | Ticket branches are not linked to the issue | accepted |
 | [ADR-0068](0068-close-tickets-without-a-release.md) | Close tickets whose merge deploys no Worker | accepted |
 | [ADR-0069](0069-board-app-in-ci.md) | A board-only GitHub App moves cards from CI | accepted |
-| [ADR-0070](0070-colour-commercial-emphasis-and-marketing.md) | Colour for business moments and free rein on marketing pages | proposed |
+| [ADR-0070](0070-colour-commercial-emphasis-and-marketing.md) | Colour for business moments and free rein on marketing pages | accepted |
 
 ## Notes
 
