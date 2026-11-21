@@ -50,7 +50,7 @@ Lo imprescindible para abrir a los primeros clientes. Vive en el milestone [MVP]
 | **Account deletion and data rights** (PRD #16) | Borrar la cuenta y exportar los datos |
 | **Backups and recovery** (PRD #17) | Entero |
 
-De plataforma entran los casos límite del despliegue (#36), las alertas de Sentry (#48) y el check de palabras de cierre con `verify` sin credenciales (#57). En Post-MVP: Company public site (#12), Staff backoffice (#14), Global templates (#21), las mejoras del proceso y los spikes que ningún PRD del MVP necesita.
+De plataforma entran los casos límite del despliegue y de la ventana de observación (#36), las alertas de Sentry (#48) y el check de palabras de cierre con `verify` sin credenciales (#57). En Post-MVP: Company public site (#12), Staff backoffice (#14), Global templates (#21), las mejoras del proceso (#18, #19, #20, #27, #32, #34), la guía de marca fuera del código (#60) y los spikes #22, #24 y #25. La lista viva es el milestone [Post-MVP](https://github.com/worKampo/workampo/milestone/2).
 
 ## Roadmap (Now / Next / Later)
 
