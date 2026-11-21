@@ -165,7 +165,7 @@ Colour in the app means data, status or a business moment. A business moment use
 The worKampo landing, pricing, the marketing site and help or changelog pages that sell. Sign in, create company and a company's public page are not marketing pages.
 
 - Free use of the logo palette (`--brand-sky`, `--brand-green`, `--brand-orange` and their tints), illustration and graphic resources, without overdoing it: **one accent per section**, and the primary button stays ink.
-- Fills with ink text. Sky and orange are never text on a light background; green only on white.
+- Text on a fill: ink on sky (7.43:1) and orange (6.63:1), white on green (4.57:1; ink on green is 4.13:1, below AA). Sky and orange are never text on a light background; green only on white.
 - **Light only**, WCAG 2.2 AA, and light pages: static HTML (Astro), no image or video that slows the first load.
 
 ## Public pages and auth
