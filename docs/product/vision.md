@@ -37,7 +37,7 @@ Todos los PRDs y tickets los heredan.
 
 ## MVP
 
-Lo imprescindible para que los primeros clientes prueben la herramienta, sin cobrar. Vive en el milestone [MVP](https://github.com/worKampo/workampo/milestone/1) de GitHub; lo planificado para después, en [Post-MVP](https://github.com/worKampo/workampo/milestone/2). Decidido por la persona el 2026-11-21 (#55).
+Lo imprescindible para que los primeros clientes prueben la herramienta. Vive en el milestone [MVP](https://github.com/worKampo/workampo/milestone/1) de GitHub; lo planificado para después, en [Post-MVP](https://github.com/worKampo/workampo/milestone/2). Decidido por la persona el 2026-11-21 (#55).
 
 **Ninguna idea se queda fuera del proyecto, solo fuera del MVP.** Todo lo nuevo (una idea, una issue, un hallazgo) se captura como issue y se clasifica en uno de los dos milestones. Si solo una parte es imprescindible, se parte: esa parte va al MVP y el resto a Post-MVP, enlazadas entre sí. Una issue sin milestone está sin clasificar (salvo el Dependency Dashboard de Renovate, #2).
 
@@ -45,11 +45,11 @@ Lo imprescindible para que los primeros clientes prueben la herramienta, sin cob
 |---|---|
 | **Access and first company** (PRD #10) | Entero |
 | **Team** (PRD #11) | Como mínimo, invitar y quitar miembros |
-| **Marketing site, help and legal** (PRD #15) | Landing y textos legales (RGPD, cookies); precios, cuando haya planes |
+| **Marketing site, help and legal** (PRD #15) | Landing y textos legales (RGPD, cookies) |
 | **Account deletion and data rights** (PRD #16) | Borrar la cuenta y exportar los datos |
 | **Backups and recovery** (PRD #17) | Entero |
 
-De plataforma entran los casos límite del despliegue y de la ventana de observación (#36), las alertas de Sentry (#48) y el check de palabras de cierre con `verify` sin credenciales (#57). En Post-MVP: Plans and billing (#13), porque las primeras etapas son para probar la herramienta, sin cobrar; Company public site (#12), Staff backoffice (#14), Global templates (#21), las mejoras del proceso (#18, #19, #20, #27, #32, #34), la guía de marca fuera del código (#60) y los spikes #22, #24 y #25. La lista viva es el milestone [Post-MVP](https://github.com/worKampo/workampo/milestone/2).
+De plataforma entran los casos límite del despliegue y de la ventana de observación (#36), las alertas de Sentry (#48) y el check de palabras de cierre con `verify` sin credenciales (#57). En Post-MVP: Plans and billing (#13), Company public site (#12), Staff backoffice (#14), Global templates (#21), las mejoras del proceso (#18, #19, #20, #27, #32, #34), la guía de marca fuera del código (#60) y los spikes #22, #24 y #25. La lista viva es el milestone [Post-MVP](https://github.com/worKampo/workampo/milestone/2).
 
 ## Roadmap (Now / Next / Later)
 
