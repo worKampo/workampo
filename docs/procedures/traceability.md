@@ -7,7 +7,7 @@ Exact formats so every piece can be navigated in both directions. Why: [ADR-0042
 - Universal identifier: the GitHub issue number. PRD `#12`, ticket `#15`, task `#15/T3`. No other numbering.
 - In text, **with a space**: `PRD #12`, `Ticket #15`. In trailers: `PRD: #12`, `Refs: #15`.
 - Issue titles: PRDs carry the prefix `[PRD] Team`; tickets do not.
-- **Never `Closes #n`** in commits or PRs: the ticket is closed in Close, after the observation window ([ADR-0020](../adr/0020-ticket-lifecycle.md)). Use `Refs:`.
+- **Never a closing keyword** (`close`, `fix`, `resolve` and their forms) before `#n` in commits, PR titles or PR bodies, not even in a sentence like "the stg run closes #54": GitHub closes the issue at the merge and its card stays put. The ticket is closed in Close, after the observation window ([ADR-0020](../adr/0020-ticket-lifecycle.md)) or by ADR-0068. Use `Refs:` and "ticket N". CI rejects it in commits and PR bodies.
 
 ## Formats by piece
 
@@ -45,8 +45,8 @@ Run in CI on every PR (`.github/workflows/traceability.yml`) by `pnpm check:pr`,
 | Check | Rule |
 |---|---|
 | Branch | Name matches the regex and the number is an open issue |
-| Commits | commitlint: conventional commit and `Refs: #<ticket of the branch>` in every commit, and no other `Refs:` (a merge with no Worker affected closes every ticket it names, #46) |
-| PR body and labels | `Ticket #N` (and `PRD #N` if the ticket has a parent); `type:` and `area:` labels |
+| Commits | commitlint: conventional commit and `Refs: #<ticket of the branch>` in every commit, no other `Refs:` (a merge with no Worker affected closes every ticket it names, #46), and no closing keyword before `#n` |
+| PR body and labels | `Ticket #N` (and `PRD #N` if the ticket has a parent); `type:` and `area:` labels; no closing keyword before `#n` |
 | Size | `size:` label on the issue; `size:L` if the diff touches a path of [critical-paths](critical-paths.md) |
 | Temporaries | No `@wip`, `.work/PROGRESS.md`, `.work/plan.md` or `.work/tasks.md` in what reaches `master` |
 | Examples | Every living-spec example has a test (by `@id`) and no test cites a missing example; CI then publishes the "Verification" comment |
