@@ -37,7 +37,9 @@ Todos los PRDs y tickets los heredan.
 
 ## MVP
 
-Lo imprescindible para abrir a los primeros clientes. Vive en el milestone [MVP](https://github.com/worKampo/workampo/milestone/1) de GitHub: una issue con ese milestone entra; sin milestone, va después del MVP. Decidido por la persona el 2026-11-21 (#55).
+Lo imprescindible para abrir a los primeros clientes. Vive en el milestone [MVP](https://github.com/worKampo/workampo/milestone/1) de GitHub; lo planificado para después, en [Post-MVP](https://github.com/worKampo/workampo/milestone/2). Decidido por la persona el 2026-11-21 (#55).
+
+**Ninguna idea se queda fuera del proyecto, solo fuera del MVP.** Todo lo nuevo (una idea, una issue, un hallazgo) se captura como issue y se clasifica en uno de los dos milestones. Si solo una parte es imprescindible, se parte: esa parte va al MVP y el resto a Post-MVP, enlazadas entre sí. Una issue sin milestone está sin clasificar (salvo el Dependency Dashboard de Renovate, #2).
 
 | PRD | En el MVP |
 |---|---|
@@ -48,7 +50,7 @@ Lo imprescindible para abrir a los primeros clientes. Vive en el milestone [MVP]
 | **Account deletion and data rights** (PRD #16) | Borrar la cuenta y exportar los datos |
 | **Backups and recovery** (PRD #17) | Entero |
 
-De plataforma entran los casos límite del despliegue (#36), las alertas de Sentry (#48) y el check de palabras de cierre con `verify` sin credenciales (#57). Fuera del MVP: Company public site (#12), Staff backoffice (#14), Global templates (#21), las mejoras del proceso y los spikes que ningún PRD del MVP necesita.
+De plataforma entran los casos límite del despliegue (#36), las alertas de Sentry (#48) y el check de palabras de cierre con `verify` sin credenciales (#57). En Post-MVP: Company public site (#12), Staff backoffice (#14), Global templates (#21), las mejoras del proceso y los spikes que ningún PRD del MVP necesita.
 
 ## Roadmap (Now / Next / Later)
 

@@ -47,6 +47,7 @@ Pre-commit runs gitleaks and `pnpm check`. Never skip it, except the documented 
 
 - Ticket lifecycle, the person's three moments and the mandatory stops: [docs/process/cycle.md](docs/process/cycle.md). Branches and merges: [docs/process/branching.md](docs/process/branching.md).
 - The orchestrator (the main session) follows [docs/agents/orchestrator.md](docs/agents/orchestrator.md); roles and levels: [docs/agents/](docs/agents/README.md) and [docs/agents/routing.md](docs/agents/routing.md).
+- Every new issue, idea or finding gets a milestone: `MVP` or `Post-MVP`; split it when only part of it is essential. Nothing is dropped, only planned after the MVP ([vision](docs/product/vision.md#mvp)).
 - Behaviour lives in the living specs of [docs/domains/](docs/domains/README.md); terms in [`docs/glossary.md`](docs/glossary.md).
 - Code: [docs/process/code-conventions.md](docs/process/code-conventions.md). Reviews: [`docs/process/review.md`](docs/process/review.md).
 - Every decision and its why: [docs/adr/README.md](docs/adr/README.md). `D53` in older text means ADR-0053. Read the relevant ADR before changing anything; a new decision is a new ADR, only with the person's approval.
