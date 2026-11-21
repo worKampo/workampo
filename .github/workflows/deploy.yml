@@ -91,6 +91,8 @@ jobs:
     permissions:
       contents: read
       issues: write
+      # Only to mark this run's own deployment when nothing was deployed (last step).
+      deployments: write
     env:
       CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
       SENTRY_ORG: ${{ vars.SENTRY_ORG }}
@@ -120,5 +122,24 @@ jobs:
         continue-on-error: true
         env:
           FROM_SHA: ${{ steps.deploy.outputs.from }}
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+      # The job records a prod deployment even when deploy.mjs deployed nothing (a stale run). The
+      # description must match NOTHING_DEPLOYED in scripts/observation/check.mjs, which then skips it.
+      # This run's deployment is found by its run id, not by position: deploy-all can record one for
+      # the same SHA. No continue-on-error: a failure fails the job, and a failed deployment opens no
+      # window either.
+      - if: steps.deploy.outcome == 'success' && steps.deploy.outputs.deployed != 'true'
+        run: |
+          id=''
+          for d in $(gh api "repos/$GH_REPO/deployments?environment=prod&sha=$GITHUB_SHA&per_page=10" --jq '.[].id'); do
+            if gh api "repos/$GH_REPO/deployments/$d/statuses" --jq '.[] | "\(.log_url) \(.target_url)"' | grep -q "/actions/runs/$GITHUB_RUN_ID/"; then
+              id=$d
+              break
+            fi
+          done
+          [ -n "$id" ] || { echo "::error::No prod deployment of run $GITHUB_RUN_ID for $GITHUB_SHA"; exit 1; }
+          gh api -X POST "repos/$GH_REPO/deployments/$id/statuses" -f state=inactive -f description='workampo: nothing deployed' --silent
+        env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
