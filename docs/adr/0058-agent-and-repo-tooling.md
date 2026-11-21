@@ -28,7 +28,7 @@ Agents need current documentation before using an external API. The repo is publ
 | `llms.txt` of Hono and Drizzle | Full documentation without an intermediary | All |
 | `gh` CLI | Issues, PRs and CI; uses less context than the GitHub MCP | All |
 
-  - WorkOS has official MCPs (issue 23), but none is adopted: its documentation comes through Context7, with its `llms.txt` and `.md` pages as the fallback. Its management MCP writes to the account and signs in as the person, so it stays out ([ADR-0041](0041-agent-boundaries.md)).
+  - WorkOS has official MCPs (issue 23), but none is adopted: its `llms.txt` and the `.md` version of each page are its official source, in the order above, with Context7 as the fallback. Its management MCP writes to the account and signs in as the person, so it stays out ([ADR-0041](0041-agent-boundaries.md)).
   - **Per role**: each MCP takes up context with the definition of its tools; they are configured in each role's definition (`.claude/agents/`, [ADR-0021](0021-orchestrator-and-subagents.md)).
   - **Read-only**: never an MCP that modifies resources, deploys or uses production keys ([ADR-0041](0041-agent-boundaries.md)). Stripe, only in test mode.
   - **Never secrets or customer data in queries** ([ADR-0043](0043-public-repo.md) list).
