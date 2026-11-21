@@ -66,10 +66,24 @@ Placeholders such as `[YOUR PRICE]` in the canvas are undecided content, not cop
 
 Mockups are HTML in the prototype (outside the repo); the approved screenshots go in the issue's UI section. During implementation, an adjustment within the pattern that does not change what the screen does is the agent's call (before/after screenshots in "Decisions made"); anything that contradicts the approved mockup stops the agent and goes back to the person.
 
+## Brand
+
+The worKampo logo marks the platform, never a customer company: inside a company's app and on its public page the company's own logo leads. Its colours (sky `#4AACDF`, green `#42843C`, orange `#F2760A`) stay in the logo; the interface keeps ink as its only accent.
+
+| File in [brand/](brand/) | Where |
+|---|---|
+| `logo-color.svg` | Platform header and sidebar, next to the name "worKampo" in IBM Plex Sans: landing, sign in, company picker, create company, system pages, backoffice. Transparent, with the K cut out, so it works on light and dark |
+| `logo-color-16.png`, `logo-color-32.png` | Favicon |
+| `logo-icon-light-180.png`, `-192.png`, `-512.png` | App icon (iOS, Android, PWA) and GitHub avatars |
+| `logo-mono-black.svg`, `logo-mono-white.svg` | The "Made with worKampo" mark in the footer of a company's public page, light and dark |
+
+The full kit, with every size and variant, lives outside the repo; add a file here only when a screen needs it.
+
 ## Files
 
 | File | Content |
 |---|---|
+| [brand/](brand/) | The worKampo logo files the product uses ([Brand](#brand)) |
 | [tokens.css](tokens.css) | Light and dark tokens, mapped to shadcn variables and Tailwind v4 utilities |
 | [components.md](components.md) | Each component: anatomy, sizes, variants, states, a11y, shadcn base |
 | [patterns.md](patterns.md) | Shell, navigation, lists, forms, overlays, destructive actions, screen states, staff session, responsive, dark mode |
