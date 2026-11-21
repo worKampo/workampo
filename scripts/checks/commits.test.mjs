@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { refsTicket } from '../../commitlint.config.mjs'
-import { check, summarize } from './commits.mjs'
+import { check, closingErrors, summarize } from './commits.mjs'
 import { context, logOf, RENOVATE } from './test-support.mjs'
 
 test('the local rule wants Refs: #<ticket> as a line', () => {
@@ -77,4 +77,26 @@ test('Renovate is linted without the Refs rule', () => {
   const bot = { sha: 'r1', email: RENOVATE, name: 'renovate[bot]' }
   const { ticket } = commitlint('renovate/all-minor', [bot], () => '')
   assert.equal(ticket, '')
+})
+
+test('a closing keyword fails in any commit, fixups and merges included', () => {
+  const log = [
+    'a1\nfixup! fix: x\n\nFixes #12\nRefs: #9\n',
+    'b2\nfeat: y\n\nRefs: #9\n',
+    // Control characters inside a message neither split it nor hide a reference.
+    'c3\nfix: z\n\n\x1f\x1eResolves #13\nRefs: #9\n',
+  ].join('\0')
+  assert.deepEqual(closingErrors(log), [
+    'commit "a1 fixup! fix: x" closes #12: GitHub would close it at the merge; write "ticket N" instead',
+    'commit "c3 fix: z" closes #13: GitHub would close it at the merge; write "ticket N" instead',
+  ])
+  const ctx = context({
+    env: { HEAD_REF: 'feature/9-x' },
+    routes: [
+      [/^git log -z/, log],
+      [/^git log/, logOf([{ sha: 'h1' }])],
+      [/commitlint/, ''],
+    ],
+  })
+  assert.deepEqual(check(ctx).errors, closingErrors(log))
 })
