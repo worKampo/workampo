@@ -48,3 +48,13 @@ test('Renovate only needs the labels', () => {
   assert.deepEqual(check(ctx(labels)).errors, [])
   assert.equal(check(ctx('')).errors.length, 2)
 })
+
+test('fails when the body closes an issue with a closing keyword', () => {
+  const ctx = context({
+    env: { PR_BODY: 'Ticket #9\n- [ ] After the merge the stg run closes #9', PR_LABELS: labels },
+    routes: routes(failure(1, 'HTTP 404')),
+  })
+  assert.deepEqual(check(ctx).errors, [
+    'the body closes #9 with a closing keyword: GitHub would close it at the merge; write "ticket N" instead',
+  ])
+})
