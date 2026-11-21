@@ -69,6 +69,22 @@
   --warn-bg: #FEF3C7;
   --warn-border: #F59E0B;
 
+  /* commercial emphasis: one per screen, always a fill, band or ring (ADR-0070) */
+  --commercial: #4AACDF;
+  --on-commercial: #111111;
+  --commercial-bg: rgba(74,172,223,.12);
+  --commercial-border: #3B8AB2;
+  --commercial-text: #307091;
+
+  /* brand palette of the logo: marketing pages only, which are light only (ADR-0070).
+     Text on a fill: ink on sky and orange, white on green. Sky and orange never as text on a light background. */
+  --brand-sky: #4AACDF;
+  --brand-green: #42843C;
+  --brand-orange: #F2760A;
+  --brand-sky-tint: rgba(74,172,223,.12);
+  --brand-green-tint: rgba(66,132,60,.12);
+  --brand-orange-tint: rgba(242,118,10,.12);
+
   /* charts */
   --c1: #0E7490;
   --c2: #3557C7;
@@ -173,6 +189,12 @@
   --warn-bg: rgba(245,158,11,.12);
   --warn-border: rgba(245,158,11,.45);
 
+  --commercial: #4AACDF;
+  --on-commercial: #111111;
+  --commercial-bg: rgba(74,172,223,.14);
+  --commercial-border: #4AACDF;
+  --commercial-text: #4AACDF;
+
   --c1: #5BC0D8;
   --c2: #7E9CF5;
   --c3: #4FC0B0;
@@ -234,6 +256,17 @@
   --color-warn-text: var(--warn-text);
   --color-warn-bg: var(--warn-bg);
   --color-warn-border: var(--warn-border);
+  --color-commercial: var(--commercial);
+  --color-on-commercial: var(--on-commercial);
+  --color-commercial-bg: var(--commercial-bg);
+  --color-commercial-border: var(--commercial-border);
+  --color-commercial-text: var(--commercial-text);
+  --color-brand-sky: var(--brand-sky);
+  --color-brand-green: var(--brand-green);
+  --color-brand-orange: var(--brand-orange);
+  --color-brand-sky-tint: var(--brand-sky-tint);
+  --color-brand-green-tint: var(--brand-green-tint);
+  --color-brand-orange-tint: var(--brand-orange-tint);
   --color-cmp: var(--cmp);
   --color-scrim: var(--scrim);
 
