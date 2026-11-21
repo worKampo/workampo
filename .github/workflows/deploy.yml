@@ -91,6 +91,8 @@ jobs:
     permissions:
       contents: read
       issues: write
+      # Only to mark this run's own deployment when nothing was deployed (last step).
+      deployments: write
     env:
       CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
       SENTRY_ORG: ${{ vars.SENTRY_ORG }}
@@ -120,5 +122,15 @@ jobs:
         continue-on-error: true
         env:
           FROM_SHA: ${{ steps.deploy.outputs.from }}
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+      # The job records a prod deployment even when deploy.mjs deployed nothing (a stale run). The
+      # description must match NOTHING_DEPLOYED in scripts/observation/check.mjs, which then skips it.
+      - if: steps.deploy.outcome == 'success' && steps.deploy.outputs.deployed != 'true'
+        run: |
+          id=$(gh api "repos/$GH_REPO/deployments?environment=prod&sha=$GITHUB_SHA&per_page=1" --jq '.[0].id')
+          gh api -X POST "repos/$GH_REPO/deployments/$id/statuses" -f state=inactive -f description='workampo: nothing deployed' --silent
+        continue-on-error: true
+        env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}

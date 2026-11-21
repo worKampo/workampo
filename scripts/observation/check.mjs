@@ -17,7 +17,12 @@ const TIMEOUT_MS = 15_000
 const MARKER_PREFIX = '<!-- observation-window:'
 export const marker = (sha) => `${MARKER_PREFIX}${sha} -->`
 
+// GitHub records a prod deployment for every run of the job; deploy.yml adds a status with this
+// description when deploy.mjs deployed nothing, so the window never opens for it.
+export const NOTHING_DEPLOYED = 'workampo: nothing deployed'
+
 export function successTime(statuses) {
+  if (statuses.some((s) => s.description === NOTHING_DEPLOYED)) return null
   const times = statuses.filter((s) => s.state === 'success').map((s) => s.created_at)
   return times.length ? times.sort()[0] : null
 }

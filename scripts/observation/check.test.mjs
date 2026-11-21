@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
 import { createServer } from 'node:http'
 import { test } from 'node:test'
 import {
@@ -7,6 +8,7 @@ import {
   healthSignal,
   judge,
   marker,
+  NOTHING_DEPLOYED,
   observationAuthors,
   pendingDeploys,
   readHealth,
@@ -44,6 +46,35 @@ function signalsFor({
     health: healthSignal(health, deploy, (sha) => sha === 'ccc'),
   }
 }
+
+test('a deployment marked as nothing deployed has no success time, so it opens no window', () => {
+  const statuses = [
+    { state: 'success', created_at: '2026-11-19T10:05:00Z' },
+    { state: 'inactive', description: NOTHING_DEPLOYED, created_at: '2026-11-19T10:04:00Z' },
+  ]
+  assert.equal(successTime(statuses), null)
+  const deploys = [
+    { sha: 'aaa', createdAt: '2026-11-18T09:00:00Z', deployedAt: '2026-11-18T09:05:00Z' },
+    { sha: 'zzz', createdAt: '2026-11-18T10:00:00Z', deployedAt: successTime(statuses) },
+    { sha: 'bbb', createdAt: '2026-11-18T11:00:00Z', deployedAt: '2026-11-18T11:05:00Z' },
+  ]
+  // The marked run is neither judged nor the "from" of the next release.
+  assert.deepEqual(
+    pendingDeploys(deploys, NOW).map(({ sha, from }) => ({ sha, from })),
+    [
+      { sha: 'aaa', from: null },
+      { sha: 'bbb', from: 'aaa' },
+    ],
+  )
+})
+
+test('deploy.yml marks a prod run that deployed nothing with the description the window skips', () => {
+  const workflow = readFileSync(
+    new URL('../../.github/workflows/deploy.yml', import.meta.url),
+    'utf8',
+  )
+  assert.ok(workflow.includes(`description='${NOTHING_DEPLOYED}'`))
+})
 
 test('successTime takes the first success status', () => {
   const statuses = [
