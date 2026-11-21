@@ -39,6 +39,8 @@ function fakeIo({
   tip = SHA,
   affectedAfter = [],
   onMaster = true,
+  shallow = false,
+  mergeBaseStatus = 1,
 } = {}) {
   const calls = []
   const io = {
@@ -49,9 +51,12 @@ function fakeIo({
     deployedSha: async () => deployed,
     run: (command, args) => {
       calls.push({ command, args })
+      if (command === 'git' && args[0] === 'rev-parse' && args[1] === '--verify') return `${tip}\n`
+      if (command === 'git' && args[0] === 'rev-parse' && args[1] === '--is-shallow-repository')
+        return `${shallow}\n`
       if (command === 'git' && args[0] === 'rev-parse') return `${SHA}\n`
-      if (command === 'git' && args[0] === 'ls-remote') return `${tip}\trefs/heads/master\n`
-      if (command === 'git' && args[0] === 'merge-base' && !onMaster) throw new Error('exit 1')
+      if (command === 'git' && args[0] === 'merge-base' && !onMaster)
+        throw Object.assign(new Error(`exit ${mergeBaseStatus}`), { status: mergeBaseStatus })
       if (command === 'git' && args[0] === 'log') return `${subject}\n`
       if (command === 'turbo') {
         const names = args.includes(`...[${SHA}...${tip}]`) ? affectedAfter : affected
@@ -181,8 +186,8 @@ const deploysOf = (calls) => calls.filter((c) => c.command === 'wrangler' && c.a
 test('HEAD at the tip of master deploys without asking turbo about later commits', async () => {
   const { io, calls } = fakeIo()
   assert.deepEqual(await deploy({ env: 'prod', all: true }, io), { workers: WORKERS, from: '' })
-  assert.ok(calls.some((c) => c.args[0] === 'ls-remote'))
-  assert.ok(!calls.some((c) => ['fetch', 'merge-base'].includes(c.args[0])))
+  assert.ok(calls.some((c) => c.args[0] === 'fetch'))
+  assert.ok(!calls.some((c) => ['ls-remote', 'merge-base'].includes(c.args[0])))
   // With --all nothing asks turbo; a later-commit query would also show up here.
   assert.ok(!calls.some((c) => c.command === 'turbo'))
   assert.equal(deploysOf(calls).length, 2)
@@ -194,8 +199,17 @@ test('later commits on master that affect no Worker do not make the run stale', 
     workers: WORKERS,
     from: DEPLOYED,
   })
-  assert.deepEqual(calls.find((c) => c.args[0] === 'fetch').args, ['fetch', 'origin', 'master'])
-  assert.ok(calls.some((c) => c.args[0] === 'cat-file' && c.args[2] === `${TIP}^{commit}`))
+  // The tip is read from the ref this fetch wrote, never from a separate ls-remote.
+  assert.deepEqual(calls.find((c) => c.args[0] === 'fetch').args, [
+    'fetch',
+    '--no-tags',
+    'origin',
+    '+refs/heads/master:refs/deploy/master-tip',
+  ])
+  assert.ok(
+    calls.some((c) => c.args[1] === '--verify' && c.args[2] === 'refs/deploy/master-tip^{commit}'),
+  )
+  assert.ok(!calls.some((c) => c.args[0] === 'ls-remote'))
   assert.ok(calls.some((c) => c.command === 'turbo' && c.args.includes(`...[${SHA}...${TIP}]`)))
   assert.equal(deploysOf(calls).length, 2)
 })
@@ -218,14 +232,26 @@ test('a SHA that is not on master is stale', async () => {
   assert.ok(!calls.some((c) => c.command === 'wrangler'))
 })
 
-test('a master tip missing locally fails instead of guessing', async () => {
+test('a master tip the fetch cannot resolve fails instead of guessing', async () => {
   const { io } = fakeIo({ tip: TIP })
   const run = io.run
   io.run = (command, args) => {
-    if (args[0] === 'cat-file') throw new Error('missing')
+    if (args[1] === '--verify') throw new Error('fatal: Needed a single revision')
     return run(command, args)
   }
-  await assert.rejects(deploy({ env: 'prod', all: true }, io), /not available locally/)
+  await assert.rejects(deploy({ env: 'prod', all: true }, io), /single revision/)
+})
+
+test('a shallow clone fails instead of calling every run stale', async () => {
+  const { io, calls } = fakeIo({ tip: TIP, shallow: true })
+  await assert.rejects(deploy({ env: 'prod', all: true }, io), /shallow.*fetch-depth: 0/)
+  assert.ok(!calls.some((c) => c.args[0] === 'merge-base' || c.command === 'wrangler'))
+})
+
+test('a git error in merge-base fails; only exit code 1 means not on master', async () => {
+  const { io, calls } = fakeIo({ tip: TIP, onMaster: false, mergeBaseStatus: 128 })
+  await assert.rejects(deploy({ env: 'prod', all: true }, io), /exit 128/)
+  assert.ok(!calls.some((c) => c.command === 'wrangler'))
 })
 
 test('--allow-stale deploys even when a later commit affects a Worker', async () => {

@@ -230,19 +230,26 @@ test('readHealth follows a redirect', async () => {
   assert.deepEqual(hits, ['/', '/other'])
 })
 
-test('readHealth reports a 200 body without a string sha instead of throwing', async () => {
-  for (const body of ['null', '{}', '{"sha":42}', '"ok"', 'not json']) {
-    const server = createServer((_, res) =>
-      res.writeHead(200, { 'Content-Type': 'application/json' }).end(body),
-    )
-    await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve))
-    try {
-      const result = await readHealth(`http://127.0.0.1:${server.address().port}/`)
-      assert.ok(result.error && !('sha' in result), `${body}: ${JSON.stringify(result)}`)
-    } finally {
-      server.close()
-    }
+async function readHealthOf(body) {
+  const server = createServer((_, res) =>
+    res.writeHead(200, { 'Content-Type': 'application/json' }).end(body),
+  )
+  await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve))
+  try {
+    return await readHealth(`http://127.0.0.1:${server.address().port}/`)
+  } finally {
+    server.close()
   }
+}
+
+test('readHealth reports a JSON body without a usable sha as "no sha in the body"', async () => {
+  for (const body of ['null', '{}', '{"sha":42}', '"ok"', '{"sha":""}', '{"sha":"  "}'])
+    assert.deepEqual(await readHealthOf(body), { error: 'no sha in the body' }, body)
+})
+
+test('readHealth reports a body that is not JSON as a read error, not as a missing sha', async () => {
+  const result = await readHealthOf('not json')
+  assert.ok(result.error && result.error !== 'no sha in the body', JSON.stringify(result))
 })
 
 test('a prod environment with no events in Sentry has no new issues; a 404 without it is an error', async () => {
