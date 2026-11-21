@@ -44,7 +44,8 @@ Lo imprescindible para que los primeros clientes prueben la herramienta. Vive en
 | PRD | En el MVP |
 |---|---|
 | **Access and first company** (PRD #10) | Entero |
-| **Team** (PRD #11) | Como mínimo, invitar y quitar miembros |
+| **Organization structure and scoped roles** (PRD #71) | Unidades en árbol, roles fijos por rama (con viewer) y registro de cambios de permisos |
+| **Team** (PRD #11) | Como mínimo, invitar y quitar miembros, con rol y unidad |
 | **Marketing site, help and legal** (PRD #15) | Landing y textos legales (RGPD, cookies) |
 | **Account deletion and data rights** (PRD #16) | Borrar la cuenta y exportar los datos |
 | **Backups and recovery** (PRD #17) | Entero |
@@ -67,6 +68,7 @@ Hecho: **Working foundation** (PRD #4), cerrado el 2026-11-20.
 ### Next (MVP)
 | PRD | Problema que resuelve | Dominios |
 |---|---|---|
+| **Organization structure and scoped roles** (PRD #71) | Una empresa es plana: no refleja su estructura interna ni da acceso solo a una parte | `companies`, `access` |
 | **Team** (PRD #11) | Una empresa tiene un solo usuario | `companies`, `access` |
 | **Marketing site, help and legal** (PRD #15) | No hay escaparate, ayuda ni textos legales | `content` (apoyo) |
 | **Account deletion and data rights** (PRD #16) | No se puede borrar ni exportar lo de una empresa | `companies` |
