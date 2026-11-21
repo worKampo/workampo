@@ -88,8 +88,8 @@ Every architectural and process decision of worKampo, one file per decision ([MA
 | [ADR-0050](0050-enter-as-staff-impersonation.md) | "Enter as" (staff impersonation) | accepted |
 | [ADR-0051](0051-stripe-checkout-and-customer-portal.md) | Billing with Stripe Checkout and Customer Portal | accepted |
 | [ADR-0052](0052-living-specs-only-and-flow-by-size.md) | Only living specs in `master`, and flow by size | accepted |
-| [ADR-0053](0053-code-conventions.md) | Code conventions | accepted |
-| [ADR-0054](0054-roles-and-permissions.md) | Roles and permissions | accepted (roles in code only, one role per member and the three-role matrix superseded by ADR-0072) |
+| [ADR-0053](0053-code-conventions.md) | Code conventions | accepted (role in `members` superseded by ADR-0072) |
+| [ADR-0054](0054-roles-and-permissions.md) | Roles and permissions | accepted (roles in code only, one role per member for the whole company and the three-role matrix superseded by ADR-0072) |
 
 ## Delivery, tooling and data
 
