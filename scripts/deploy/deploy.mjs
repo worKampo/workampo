@@ -18,6 +18,7 @@ const SENTRY_URL = 'https://de.sentry.io'
 const HEALTH_TIMEOUT_MS = 10 * 1000
 const USAGE = 'Usage: node scripts/deploy/deploy.mjs <stg|prod> [--all] [--allow-stale]'
 const FLAGS = ['--all', '--allow-stale']
+const TIP_REF = 'refs/deploy/master-tip'
 
 export function parseArgs(argv) {
   const [env, ...rest] = argv
@@ -77,12 +78,13 @@ export function workersChanged(from, to, io) {
 // Runs of older pushes can start late: deploying one would roll back a newer Worker change on master.
 // Later commits that touch no Worker (docs only) never deploy anything, so they do not make a run stale.
 function staleReason(sha, io) {
-  // ls-remote, not FETCH_HEAD: another fetch in the job can overwrite FETCH_HEAD.
-  const tip = io.run('git', ['ls-remote', 'origin', 'refs/heads/master']).split(/\s/)[0]
-  if (!tip) throw new Error('origin has no master branch')
+  const tip = fetchMasterTip(io.run)
   if (tip === sha) return null
-  io.run('git', ['fetch', 'origin', 'master'])
-  if (!isKnownCommit(tip, io)) throw new Error(`origin/master tip ${tip} is not available locally`)
+  // A shallow clone hides the ancestry, so every run would look stale.
+  if (io.run('git', ['rev-parse', '--is-shallow-repository']).trim() === 'true')
+    throw new Error(
+      'The clone is shallow: checking for a newer deploy needs the full history (fetch-depth: 0).',
+    )
   if (!isAncestor(sha, tip, io)) return `${sha} is not on origin/master (at ${tip})`
   const workers = workersChanged(sha, tip, io)
   if (!workers.length) {
@@ -92,12 +94,21 @@ function staleReason(sha, io) {
   return `origin/master is at ${tip} and changes ${workers.map((w) => w.package).join(', ')} after ${sha}: its own run deploys it`
 }
 
+// The tip is what this fetch brought, read from a ref of its own: a separate ls-remote could see a
+// newer tip than the fetch, and another fetch in the job can overwrite FETCH_HEAD.
+export function fetchMasterTip(run) {
+  run('git', ['fetch', '--no-tags', 'origin', `+refs/heads/master:${TIP_REF}`])
+  return run('git', ['rev-parse', '--verify', `${TIP_REF}^{commit}`]).trim()
+}
+
 function isAncestor(sha, tip, io) {
   try {
     io.run('git', ['merge-base', '--is-ancestor', sha, tip])
     return true
-  } catch {
-    return false
+  } catch (error) {
+    // Exit code 1 is "not an ancestor"; any other failure is a git error, not a stale run.
+    if (error.status === 1) return false
+    throw error
   }
 }
 

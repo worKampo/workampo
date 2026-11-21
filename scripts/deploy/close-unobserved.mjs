@@ -9,7 +9,7 @@ import { parse } from 'yaml'
 import { observationAuthors } from '../observation/check.mjs'
 import { messagesLogArgs, parseRefs, postComments } from '../smoke/verification-comment.mjs'
 import { moveCard, readComments } from '../work/work.mjs'
-import { run, workersChanged } from './deploy.mjs'
+import { fetchMasterTip, run, workersChanged } from './deploy.mjs'
 
 const ROOT = fileURLToPath(new URL('../../', import.meta.url))
 const USAGE = 'Usage: node scripts/deploy/close-unobserved.mjs <sha> [<from>]'
@@ -72,11 +72,10 @@ function ticketCommits(number, tip) {
     .map(([commit]) => commit)
 }
 
-// Same reads as deploy's staleness check: ls-remote (public repo, no credentials), then fetch.
+// Same read as deploy's staleness check.
 function masterTip() {
-  const tip = run('git', ['ls-remote', 'origin', 'refs/heads/master']).split(/\s/)[0]
-  if (!FULL_SHA.test(tip)) throw new Error('origin has no master branch')
-  run('git', ['fetch', '--no-tags', 'origin', 'master'])
+  const tip = fetchMasterTip(run)
+  if (!FULL_SHA.test(tip)) throw new Error(`origin/master tip "${tip}" is not a full SHA`)
   return tip
 }
 

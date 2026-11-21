@@ -212,7 +212,9 @@ async function readUptime(env, deploy) {
 export async function readHealth(healthUrl) {
   const { body, error } = await fetchJson(healthUrl, { redirect: 'follow' })
   if (error) return { error }
-  return typeof body?.sha === 'string' ? { sha: body.sha } : { error: 'no sha in the body' }
+  return typeof body?.sha === 'string' && body.sha.trim()
+    ? { sha: body.sha }
+    : { error: 'no sha in the body' }
 }
 
 function run(command, args, { input, env } = {}) {
