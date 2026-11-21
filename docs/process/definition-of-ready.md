@@ -9,3 +9,5 @@ Un ticket pasa de Backlog a Ready cuando cumple todo. Fuente: [ADR-0034](../adr/
 - [ ] Clasificado: milestone `MVP` o `Post-MVP`; si solo una parte es imprescindible, partido en dos issues enlazadas ([vision](../product/vision.md#mvp)).
 
 Todos los tickets llevan además un label `area:` ([ADR-0034](../adr/0034-prds-slicing-and-ticket-format.md)). Es el momento 1 del [cycle](cycle.md).
+
+Una issue suelta pasa de Backlog a Ready con el [refinamiento](../procedures/refinement.md); los tickets de un PRD, en su slicing.

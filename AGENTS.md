@@ -51,7 +51,7 @@ Pre-commit runs gitleaks and `pnpm check`. Never skip it, except the documented 
 - Behaviour lives in the living specs of [docs/domains/](docs/domains/README.md); terms in [`docs/glossary.md`](docs/glossary.md).
 - Code: [docs/process/code-conventions.md](docs/process/code-conventions.md). Reviews: [`docs/process/review.md`](docs/process/review.md).
 - Every decision and its why: [docs/adr/README.md](docs/adr/README.md). `D53` in older text means ADR-0053. Read the relevant ADR before changing anything; a new decision is a new ADR, only with the person's approval.
-- Traceability formats (branch names, trailers, PR body): [docs/procedures/traceability.md](docs/procedures/traceability.md). Tools: [work](docs/procedures/work.md), [planning](docs/procedures/planning.md), [living specs](docs/procedures/living-specs.md), [testing](docs/procedures/testing.md); critical zones that force `size:L`: [critical-paths](docs/procedures/critical-paths.md).
+- Traceability formats (branch names, trailers, PR body): [docs/procedures/traceability.md](docs/procedures/traceability.md). Tools: [refinement](docs/procedures/refinement.md) (Backlog to Ready), [work](docs/procedures/work.md), [planning](docs/procedures/planning.md), [living specs](docs/procedures/living-specs.md), [testing](docs/procedures/testing.md); critical zones that force `size:L`: [critical-paths](docs/procedures/critical-paths.md).
 
 ## 6. GitHub identity
 
