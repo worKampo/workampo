@@ -1,6 +1,7 @@
 // commitlint over BASE..HEAD with commitlint.config.mjs; TICKET drives its `Refs:` rule.
 import { fileURLToPath } from 'node:url'
 import { stripVTControlCharacters } from 'node:util'
+import { CLOSING_HINT, closingRefs } from '../lib/closing-keywords.mjs'
 
 export const name = 'Commits'
 const ROOT = fileURLToPath(new URL('../..', import.meta.url))
@@ -18,15 +19,34 @@ export function summarize(output) {
   return errors.length ? errors : [output.trim()]
 }
 
+// Read here, not as a commitlint rule: commitlint skips merges, fixup! and squash! commits
+// before any rule runs, and GitHub still reads them in the squash commit.
+export function closingErrors(log) {
+  return log
+    .split('')
+    .filter((entry) => entry.trim())
+    .flatMap((entry) => {
+      const [subject, body] = entry.split('')
+      const refs = closingRefs(body)
+      if (!refs.length) return []
+      return [
+        `commit "${subject.trim()}" closes ${refs.map((r) => `#${r}`).join(', ')}: ${CLOSING_HINT}`,
+      ]
+    })
+}
+
 export function check(ctx) {
+  const range = `${ctx.env.BASE_SHA}..${ctx.env.HEAD_SHA}`
+  const closing = closingErrors(ctx.run('git', ['log', '--format=%x1e%h %s%x1f%B', range]))
   const ticket = ctx.isRenovate() ? '' : String(ctx.ticket ?? '')
   try {
     ctx.run(process.execPath, [CLI, '--from', ctx.env.BASE_SHA, '--to', ctx.env.HEAD_SHA], {
       cwd: ROOT,
       env: { ...process.env, TICKET: ticket, NO_COLOR: '1' },
     })
-    return { errors: [] }
+    return { errors: closing }
   } catch (error) {
-    return { errors: summarize(`${error.stdout ?? ''}${error.stderr ?? ''}` || error.message) }
+    const lint = summarize(`${error.stdout ?? ''}${error.stderr ?? ''}` || error.message)
+    return { errors: [...lint, ...closing] }
   }
 }
