@@ -1216,4 +1216,9 @@ test('verify: the branch install, seed and app run without credentials', async (
       SENTRY_AUTH_TOKEN: '',
     },
   )
+  // Windows variable names ignore case, and names outside the prefixes still carry secrets.
+  assert.deepEqual(
+    withoutCredentials({ gh_token: 'g', DB_PASSWORD: 'p', NPM_AUTH: 'a', Path: '/bin' }),
+    { gh_token: '', DB_PASSWORD: '', NPM_AUTH: '' },
+  )
 })

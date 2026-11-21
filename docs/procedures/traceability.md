@@ -45,7 +45,7 @@ Run in CI on every PR (`.github/workflows/traceability.yml`) by `pnpm check:pr`,
 | Check | Rule |
 |---|---|
 | Branch | Name matches the regex and the number is an open issue |
-| Commits | commitlint: conventional commit and `Refs: #<ticket of the branch>` in every commit, no other `Refs:` (a merge with no Worker affected closes every ticket it names, #46), and no closing keyword before `#n` |
+| Commits | commitlint: conventional commit and `Refs: #<ticket of the branch>` in every commit, and no other `Refs:` (a merge with no Worker affected closes every ticket it names, #46). Every message of the range, merges and `fixup!` included, has no closing keyword before `#n` (commitlint skips those commits, GitHub does not) |
 | PR body and labels | `Ticket #N` (and `PRD #N` if the ticket has a parent); `type:` and `area:` labels; no closing keyword before `#n` |
 | Size | `size:` label on the issue; `size:L` if the diff touches a path of [critical-paths](critical-paths.md) |
 | Temporaries | No `@wip`, `.work/PROGRESS.md`, `.work/plan.md` or `.work/tasks.md` in what reaches `master` |

@@ -1040,7 +1040,10 @@ async function waitUntilServing(url, io) {
 
 // verify runs the branch's own install scripts, seed and app: none of them gets a credential.
 // Blank, not removed, because run() and spawnDetached() merge env over process.env.
-const CREDENTIAL = /^(GH|GITHUB|BOARD|CLOUDFLARE|SENTRY|UPTIMEROBOT)_|TOKEN|SECRET|_KEY$/
+// shortcut: a deny list; an allow list would also cut the system variables pnpm and wrangler need on
+// Windows. Case-insensitive because Windows variable names are.
+const CREDENTIAL =
+  /^(GH|GITHUB|BOARD|CLOUDFLARE|SENTRY|UPTIMEROBOT)_|TOKEN|SECRET|PASSWORD|PASSWD|CREDENTIAL|PRIVATE|_AUTH|_KEY$/i
 export function withoutCredentials(env) {
   return Object.fromEntries(
     Object.keys(env)
