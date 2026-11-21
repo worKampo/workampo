@@ -145,7 +145,15 @@ Ink background (`--text`) with `--bg` text, so they read as system feedback in b
 
 ## Empty state
 
-shadcn `Empty`. Centred column, gap 12, padding 56 16, 1 px **dashed** `--border-hard`, radius 12, `--surface`. Icon 24 px, `h2`/`h3` title, one paragraph `--text-2` (max 360 px), one action. Copy rules in [content.md](content.md#empty-states).
+shadcn `Empty`. Centred column, gap 12, padding 56 16, 1 px **dashed** `--border-hard`, radius 12, `--surface`. The **logo mark in ink** (below) at 40 px, `h2`/`h3` title, one paragraph `--text-2` (max 360 px), one action. Copy rules in [content.md](content.md#empty-states).
+
+## Logo mark in ink
+
+Custom. The minimal logo (`logo-mono-*.svg` in [brand/](brand/)) inlined as an SVG filled with `currentColor` on `--text`, so it follows the theme: the circle with the K, the arc and the dot cut out. Sizes: 40 px in empty states, 48 px in the app loader, 56 px on system pages. Decorative: `aria-hidden="true"`, the text next to it carries the meaning. Never in colour inside the app: no orange dot, which would read as a warning (`--warn`) or a notification.
+
+## App loader
+
+Custom. The logo mark in ink, 48 px, centred on `--bg`, with a bead cut into the arc that slides along it and back (1.6 s, ease-in-out). Only while there is no layout to draw yet: the first load, after sign-in and when switching company; it appears after about 300 ms. Inside a screen, a skeleton. `role="status"` with `aria-label="Loading"`. With `prefers-reduced-motion` the bead stays still at the top of the arc.
 
 ## Skeleton
 
