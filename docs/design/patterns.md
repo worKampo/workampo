@@ -147,8 +147,26 @@ In Tailwind, `lg:` (1024) is the single layout breakpoint; below it the touch la
 
 - All colours come from tokens; components never hardcode colours. `.dark` on `<html>` switches the token set.
 - **User preference** in My account: Light / Dark / **System** (default). System follows `prefers-color-scheme` and reacts to changes live. The choice is stored per user and applied before first paint to avoid a flash.
-- Public pages follow `prefers-color-scheme`.
+- The app and the backoffice follow the preference above. **Marketing pages and each company's public page are light only**: they do not follow `prefers-color-scheme` (ADR-0070). Forced colours still work.
 - Check both themes in Verify (D31).
+
+## Commercial emphasis (ADR-0070)
+
+Colour in the app means data, status or a business moment. A business moment uses `--commercial` (the logo's sky), never green or orange: they read as "OK" and "warning".
+
+- **Where**: the end of a trial ("Trial · N days left"), "Upgrade", the recommended plan, a "New" badge for a feature.
+- **At most one per screen.** If two compete, the one closer to the user's task wins and the other stays ink.
+- **Shape**: a fill (`--commercial` with `--on-commercial` ink text), a band (`--commercial-bg`) or a 2 px ring (`--commercial-border`). Never a small badge alone: that shape is `--info`.
+- Text in the colour only with `--commercial-text`, and only where a fill or ring is not possible.
+- Primary buttons, links, focus and selection stay ink. A primary "Upgrade" button is ink; the band or ring around it carries the emphasis.
+
+## Marketing pages (ADR-0070)
+
+The worKampo landing, pricing, the marketing site and help or changelog pages that sell. Sign in, create company and a company's public page are not marketing pages.
+
+- Free use of the logo palette (`--brand-sky`, `--brand-green`, `--brand-orange` and their tints), illustration and graphic resources, without overdoing it: **one accent per section**, and the primary button stays ink.
+- Fills with ink text. Sky and orange are never text on a light background; green only on white.
+- **Light only**, WCAG 2.2 AA, and light pages: static HTML (Astro), no image or video that slows the first load.
 
 ## Public pages and auth
 

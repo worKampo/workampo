@@ -7,8 +7,8 @@ The visual language, components, patterns and copy rules for every user interfac
 | Principle | Rule |
 |---|---|
 | Grey chrome, white surfaces | The shell (sidebar, topbar, page background) is grey `--chrome`. Content sits on white `--surface` islands (cards, tables, drawers, dialogs). In dark mode the chrome is black and surfaces are near-black. |
-| Ink is the only accent | Primary buttons, focus rings, selected states and progress use ink (`--ui`). No brand colour in the app. |
-| Colour only for data and status | Green `--pos`, blue `--info`, red `--neg` mark state (badges, banners, charts). Amber `--warn-*` is reserved for staff sessions and warnings. Never colour for decoration. |
+| Ink is the accent | Primary buttons, focus rings, selected states and progress use ink (`--ui`). The only other colour with a role is `--commercial` for a business moment, one per screen ([patterns](patterns.md#commercial-emphasis-adr-0070), ADR-0070). Marketing pages use the logo palette freely ([patterns](patterns.md#marketing-pages-adr-0070)). |
+| Colour only for meaning | Green `--pos`, blue `--info`, red `--neg` mark state (badges, banners, charts). Amber `--warn-*` is reserved for staff sessions and warnings; sky `--commercial` for business moments. Never colour for decoration in the app. |
 | Inverted feedback | Toast, tooltip and save bar use ink background with inverted text. |
 | One typeface | IBM Plex Sans 400/500/600, self-hosted in production (no font CDN on `/login`, D32). |
 | Tabular numbers | `font-variant-numeric: tabular-nums` everywhere, so figures align in tables and KPIs. |
