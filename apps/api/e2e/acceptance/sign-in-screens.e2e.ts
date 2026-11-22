@@ -36,7 +36,7 @@ test('@id:access-96-17 with the browser in Spanish /login is in Spanish', async 
 test('@id:access-96-18 the staging smoke signs in with a code created by the WorkOS API', {
   tag: '@smoke',
 }, async ({ page }) => {
-  await signInWithCode(page, 'smoke@example.com')
+  await signInWithCode(page, 'smoke@workampo.test')
 
   await currentUser(page)
   await expectNoPassword(page)
