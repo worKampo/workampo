@@ -57,7 +57,12 @@
       "define": { "__ALLOW_FAKE_IDENTITY__": "false" },
       "triggers": { "crons": ["0 3 * * *"] },
       "version_metadata": { "binding": "CF_VERSION_METADATA" },
-      "vars": { "ENVIRONMENT": "stg", "ENABLE_DEBUG_ERROR": "true" },
+      "vars": {
+        "ENVIRONMENT": "stg",
+        "ENABLE_DEBUG_ERROR": "true",
+        // Public identifier of the WorkOS staging environment; the API key is a secret.
+        "WORKOS_CLIENT_ID": "client_01M81TN93VKET6PAFSK3B1QYZJ"
+      },
       "kv_namespaces": [{ "binding": "LANDINGS", "id": "80961b47e3a54aadbe0eb4c99f1d33cc" }],
       "d1_databases": [
         {
