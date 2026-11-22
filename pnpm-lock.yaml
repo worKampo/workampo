@@ -59,6 +59,9 @@ importers:
       '@workampo/domain':
         specifier: workspace:*
         version: link:../../packages/domain
+      '@workampo/i18n':
+        specifier: workspace:*
+        version: link:../../packages/i18n
       drizzle-orm:
         specifier: 0.45.4
         version: 0.45.4(@cloudflare/workers-types@5.20261112.1)(@opentelemetry/api@1.10.0)

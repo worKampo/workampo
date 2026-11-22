@@ -1,0 +1,21 @@
+import type { VerifiedIdentity } from '@workampo/domain/access/identity'
+import type { Language } from '@workampo/i18n'
+
+type RequestOrigin = { ipAddress?: string; userAgent?: string }
+
+// Our own seam over the identity provider (ADR-0071): it verifies who the person is, nothing more.
+export type IdentityProvider = {
+  startCodeSignIn(input: { email: string; locale: Language } & RequestOrigin): Promise<void>
+  completeCodeSignIn(
+    input: { email: string; code: string } & RequestOrigin,
+  ): Promise<VerifiedIdentity>
+  googleAuthorizationUrl(input: { state: string; redirectUri: string }): string
+  completeGoogleSignIn(input: { code: string } & RequestOrigin): Promise<VerifiedIdentity>
+}
+
+// Wrong or expired: the provider does not tell them apart, nor do we.
+export class InvalidCodeError extends Error {
+  readonly code = 'access.invalid_code'
+}
+
+export class ProviderUnavailableError extends Error {}

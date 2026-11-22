@@ -13,6 +13,7 @@
   "dependencies": {
     "@workampo/db": "workspace:*",
     "@workampo/domain": "workspace:*",
+    "@workampo/i18n": "workspace:*",
     "@sentry/cloudflare": "11.12.0",
     "@sentry/hono": "11.12.0",
     "hono": "4.13.18",

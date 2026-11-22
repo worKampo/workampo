@@ -38,10 +38,28 @@ module.exports = {
       from: { path: '^apps/([^/]+)/src/([^_/][^/]*)/' },
       to: { path: '^apps/$1/src/[^_/][^/]*/.+/', pathNot: '^apps/$1/src/$2/' },
     },
+    {
+      name: 'identity-provider-seam',
+      comment: 'Only _shared/auth/ picks and uses an identity provider implementation (ADR-0071).',
+      severity: 'error',
+      from: { pathNot: '^apps/api/src/_shared/auth/' },
+      to: { path: '^apps/api/src/_shared/auth/(workos|fake)-' },
+    },
+    {
+      name: 'database-seam',
+      comment: 'Only repos and _shared/db/ touch Drizzle or the database client (ADR-0053).',
+      severity: 'error',
+      from: {
+        path: '^apps/[^/]+/src/',
+        pathNot: ['-repo\\.ts$', '^apps/[^/]+/src/_shared/db/'],
+      },
+      to: { path: ['(^|node_modules/)drizzle-orm(/|$)', '^apps/[^/]+/src/_shared/db/'] },
+    },
   ],
   options: {
     doNotFollow: { path: 'node_modules' },
-    exclude: { path: '(^|/)(node_modules|\\.wrangler|dist)/' },
+    // node_modules stays visible (doNotFollow only), or the package rules would never match.
+    exclude: { path: '(^|/)(\\.wrangler|dist)/' },
     tsPreCompilationDeps: true,
     tsConfig: { fileName: 'tsconfig.base.json' },
     enhancedResolveOptions: { exportsFields: ['exports'], conditionNames: ['import', 'default'] },
