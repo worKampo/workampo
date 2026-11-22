@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { checkPlan } from './check.mjs'
+import { checkPlan } from './plan-check.mjs'
 
 const table = (rows, waves) =>
   `| ID | Task | Depends on | Touches | Size | Level | Status |

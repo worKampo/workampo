@@ -108,7 +108,7 @@ After the prod deploy a verifier reviews new Sentry errors, Worker metrics and t
 
 ### How it is checked
 
-[`.github/workflows/observation-window.yml`](../../.github/workflows/observation-window.yml) runs every hour (minute 17) and by hand, with `node scripts/observation/check.mjs`. It is a deterministic script, not an AI agent. The scheduled run judges and writes; the manual run is a dry run by default (input `dry_run`, true): it prints the decisions and comments or closes nothing until you untick it. Requests to Sentry and UptimeRobot do not follow redirects, so the API key never goes to another origin; the `/health` read carries no credentials and follows them.
+[`.github/workflows/observation-window.yml`](../../.github/workflows/observation-window.yml) runs every hour (minute 17) and by hand, with `node scripts/observation/observation-check.mjs`. It is a deterministic script, not an AI agent. The scheduled run judges and writes; the manual run is a dry run by default (input `dry_run`, true): it prints the decisions and comments or closes nothing until you untick it. Requests to Sentry and UptimeRobot do not follow redirects, so the API key never goes to another origin; the `/health` read carries no credentials and follows them.
 
 1. Reads every page of the GitHub deployments of the `prod` Environment and of their statuses. A deploy is due when its success status is at least 24 hours old.
 2. Its tickets are the `Refs: #N` trailers of the commits between the previous prod deploy and this one; it needs the full history: on a shallow checkout it fails before judging anything, and if that range is missing it fails for that deploy instead of judging part of it. A ticket that cannot be read is reported and the others go on; the run then ends with an error. It skips a closed ticket and a ticket that already has a comment with `<!-- observation-window:<sha> -->` by the workflow, the agents' App or the project account; if that comment is clean and the ticket is still open (the close failed), it closes it again, unless the ticket was reopened after that comment or a later window left a "needs the person" comment on it. Before commenting it reads the ticket again, and leaves it alone if another run or the person acted while the signals were read.
@@ -120,7 +120,7 @@ After the prod deploy a verifier reviews new Sentry errors, Worker metrics and t
 
 A missing secret leaves its signal "not checked", and the window is not clean. Sentry issues are listed by id and link only: their titles can carry user data and the issue is public.
 
-To see the decisions without writing: `GH_TOKEN=$(node scripts/github/app-token.mjs) node scripts/observation/check.mjs --dry-run`.
+To see the decisions without writing: `GH_TOKEN=$(node scripts/github/app-token.mjs) node scripts/observation/observation-check.mjs --dry-run`.
 
 GitHub disables a scheduled workflow after 60 days without activity in the repo. Any merge to `master` counts; re-enable it in the Actions tab if it was disabled.
 

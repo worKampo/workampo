@@ -1,5 +1,5 @@
 # Project profile (ADR-0045). Never secrets: only their name and where they live.
-# Validated by `pnpm check` (scripts/project/check.mjs). Ticket 3 (#7) fills in the deployed environments.
+# Validated by `pnpm check` (scripts/project/project-check.mjs). Ticket 3 (#7) fills in the deployed environments.
 name: workampo
 brand: worKampo
 

@@ -19,7 +19,7 @@ import {
   ticketAction,
   uptimeRange,
   uptimeSignal,
-} from './check.mjs'
+} from './observation-check.mjs'
 
 const config = { github: { account: 'workampo-dev', agentsApp: { name: 'workampo-agents' } } }
 const HEALTH = 'https://app.example.com/health'

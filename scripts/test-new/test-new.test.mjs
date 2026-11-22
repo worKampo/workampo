@@ -3,7 +3,7 @@ import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { test } from 'node:test'
-import { newTest } from './new.mjs'
+import { newTest } from './test-new.mjs'
 
 test('writes the template and refuses to overwrite', () => {
   const root = mkdtempSync(join(tmpdir(), 'test-new-'))

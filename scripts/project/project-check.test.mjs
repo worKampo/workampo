@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { test } from 'node:test'
-import { validate } from './check.mjs'
+import { validate } from './project-check.mjs'
 
 const valid = readFileSync(new URL('../../project.yaml', import.meta.url), 'utf8')
 
