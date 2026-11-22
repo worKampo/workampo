@@ -1,3 +1,4 @@
+import { rateLimitRepo } from './rate-limit-repo'
 import {
   isOverLimit,
   type RateLimitPurpose,
@@ -5,8 +6,7 @@ import {
   rateLimitKey,
   windowEnd,
   windowStart,
-} from '@workampo/domain/access/rate-limit'
-import { rateLimitRepo } from './rate-limit-repo'
+} from './window'
 
 // Unsalted on purpose (ADR-0073): the same email or IP must land on the same row; rows live one window.
 async function sha256Hex(text: string) {

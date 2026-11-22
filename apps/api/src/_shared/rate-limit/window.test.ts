@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { isOverLimit, rateLimitKey, windowEnd, windowStart } from './rate-limit'
+import { isOverLimit, rateLimitKey, windowEnd, windowStart } from './window'
 
 const HOUR = 3600
 

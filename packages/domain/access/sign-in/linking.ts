@@ -1,5 +1,5 @@
+import type { VerifiedIdentity } from '../identity'
 import { normalizeEmail } from './email'
-import type { VerifiedIdentity } from './identity'
 
 type User = { id: string; email: string }
 

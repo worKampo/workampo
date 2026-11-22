@@ -1,5 +1,5 @@
-import { chooseProvider } from '@workampo/domain/access/choose-provider'
 import type { IdentityProviderKey } from '@workampo/domain/access/identity'
+import { chooseProvider } from '@workampo/domain/access/sign-in/choose-provider'
 import type { ParsedEnv } from '../env'
 import { fakeProvider } from './fake-provider'
 import type { IdentityProvider } from './identity-provider'

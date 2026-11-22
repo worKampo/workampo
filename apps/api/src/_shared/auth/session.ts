@@ -1,4 +1,4 @@
-import { isSessionValid } from '@workampo/domain/access/session'
+import { isSessionValid } from '@workampo/domain/access/session/session'
 import { createMiddleware } from 'hono/factory'
 import type { AppEnv } from '../http/app-env'
 import { problemJson } from '../http/problem-json'

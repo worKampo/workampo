@@ -1,4 +1,4 @@
-import { SESSION_TTL_DAYS } from '@workampo/domain/access/session'
+import { SESSION_TTL_DAYS } from '@workampo/domain/access/session/session'
 import type { Context } from 'hono'
 import { deleteCookie, getCookie, setCookie } from 'hono/cookie'
 
