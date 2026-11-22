@@ -1,0 +1,7 @@
+/* Same-origin IBM Plex Sans (strict CSP) and the design tokens; the app's CSS entry imports this file. */
+@import "@fontsource/ibm-plex-sans/400.css";
+@import "@fontsource/ibm-plex-sans/500.css";
+@import "@fontsource/ibm-plex-sans/600.css";
+@import "../../docs/design/tokens.css";
+
+@source "./";

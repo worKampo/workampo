@@ -6,6 +6,9 @@
     },
     "packages/i18n": {
       "ignoreDependencies": ["i18next"]
+    },
+    "packages/ui": {
+      "ignoreDependencies": ["@fontsource/ibm-plex-sans"]
     }
   }
 }
