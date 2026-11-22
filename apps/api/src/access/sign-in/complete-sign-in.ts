@@ -19,8 +19,9 @@ export async function completeSignIn(env: Env, signIn: SignIn) {
   try {
     return await signInOnce(env, signIn)
   } catch (error) {
-    // Two first sign-ins of one email race on its unique index; the retry finds the winner's user.
-    if (!isUniqueViolation(error)) throw error
+    // Two first sign-ins of one email race: the loser hits the unique index, or reads the winner's
+    // user before its identity (the two reads are not one snapshot). Reading again settles both.
+    if (!isUniqueViolation(error) && !isContactSupport(error)) throw error
 
     return signInOnce(env, signIn)
   }
@@ -125,6 +126,10 @@ async function sessionWrites({
   if (!previousSessionToken) return [create]
 
   return [create, sessions.revokeByTokenHash(await hashSessionToken(previousSessionToken), at)]
+}
+
+function isContactSupport(error: unknown) {
+  return error instanceof AccessError && error.code === 'access.contact_support'
 }
 
 function isUniqueViolation(error: unknown) {
