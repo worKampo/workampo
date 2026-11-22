@@ -21,7 +21,8 @@
     "debt": "node scripts/debt/debt.mjs",
     "check:pr": "node scripts/checks/pr.mjs",
     "db:seed": "node scripts/db/seed.mjs",
-    "db:backfill": "node scripts/db/backfill.mjs"
+    "db:backfill": "node scripts/db/backfill.mjs",
+    "db:migration:new": "node scripts/db/migration-new.mjs"
   },
   "devDependencies": {
     "@biomejs/biome": "2.6.7",
