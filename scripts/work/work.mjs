@@ -31,6 +31,7 @@ const SLUG_MAX = 40
 export const VERIFY_URL = 'http://127.0.0.1:8787'
 const VERIFY_PERSIST = '.wrangler/verify'
 const VERIFY_LOG = '.wrangler/verify.log'
+const SEEDED_MARKER = '.seeded'
 const WRANGLER = 'node_modules/wrangler/bin/wrangler.js'
 
 export const HELP = `Usage: pnpm work <command> [args]
@@ -43,8 +44,10 @@ export const HELP = `Usage: pnpm work <command> [args]
                           On a ticket branch: pnpm check, @wip to @issue, remove .work/, push, open the PR
   close <n> [--learning "<text>"] [--dry-run]
                           Close the issue as completed and move the card to Done
-  verify <n> [--dry-run]  Worktree of the ticket's branch, fresh local database, app running,
-                          browser open, and the verification list
+  verify <n> [--keep-data] [--dry-run]
+                          Worktree of the ticket's branch, fresh local database, app running,
+                          browser open, and the verification list. --keep-data keeps the
+                          previous run's database and applies only new migrations
 
 Issue numbers are written 15 or #15.`
 
@@ -75,6 +78,7 @@ export function parseArgs(argv) {
       args[VALUE_OPTIONS[option]] = value
     } else if (arg === '--json') args.json = true
     else if (arg === '--dry-run') args.dryRun = true
+    else if (arg === '--keep-data' && command === 'verify') args.keepData = true
     else if (arg.startsWith('-')) throw new Error(`Unknown option "${arg}".\n\n${HELP}`)
     else args.numbers.push(parseIssueNumber(arg))
   }
@@ -1084,15 +1088,33 @@ export async function verify(args, config, io) {
   act('pnpm', ['install'], visible(dir))
   // The Worker serves the built SPA (ADR-0073), as in production.
   act('pnpm', ['--filter', '@workampo/web', 'build'], visible(dir))
-  if (args.dryRun) io.log(`Would remove ${persist}`)
+  // --keep-data reuses the previous run's database only if its seed finished; otherwise it starts fresh.
+  const seeded = join(persist, SEEDED_MARKER)
+  const keepsData = Boolean(args.keepData) && io.exists(seeded)
+  if (args.keepData && !keepsData)
+    io.log('No complete database from a previous run: starting a fresh one.')
+
+  if (keepsData) io.log(`Keeping ${persist}: only new migrations are applied, no seed.`)
+  else if (args.dryRun) io.log(`Would remove ${persist}`)
   else io.remove(persist)
+
   for (const db of Object.values(LOCAL_DATABASES))
-    act(
-      'node',
-      [wrangler, 'd1', 'migrations', 'apply', db, '--local', '--persist-to', persist],
-      visible(apiDir),
-    )
-  act('node', [join('scripts', 'db', 'seed.mjs'), '--persist-to', persist], visible(dir))
+    applyMigrations({
+      act,
+      keepsData,
+      args: [wrangler, 'd1', 'migrations', 'apply', db, '--local', '--persist-to', persist],
+      options: visible(apiDir),
+    })
+
+  if (!keepsData) {
+    act('node', [join('scripts', 'db', 'seed.mjs'), '--persist-to', persist], visible(dir))
+    if (!args.dryRun)
+      io.writeFile(
+        seeded,
+        `${new Date().toISOString()}
+`,
+      )
+  }
 
   const dev = [wrangler, 'dev', '--local', '--ip', '127.0.0.1', '--port', '8787']
   dev.push('--persist-to', persist)
@@ -1134,6 +1156,17 @@ export async function verify(args, config, io) {
   const prComments = open ? readComments(io, repo, open.number) : []
   const list = verificationList(readComments(io, repo, number), prComments, trustedAuthors(config))
   io.log(`\n${list}`)
+}
+
+function applyMigrations({ act, keepsData, args, options }) {
+  try {
+    act('node', args, options)
+  } catch (error) {
+    if (!keepsData) throw error
+    throw new Error(
+      `A new migration does not apply to the kept data (${error.message}). Run pnpm work verify without --keep-data to start from a fresh database.`,
+    )
+  }
 }
 
 // Started through `pnpm work`, npm_execpath is pnpm's own script: Node cannot spawn pnpm.cmd without a shell.

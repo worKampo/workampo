@@ -40,6 +40,8 @@ The error names the command that fixes each problem. Pushes with a token go to `
 4. Starts `wrangler dev` in the background on port 8787 (log: `apps/api/.wrangler/verify.log`), waits for `/health` and opens it in the browser.
 5. Prints the verification list: the issue's "Work log" comment, or else the PR's latest "Progress" comment, only by trusted authors.
 
+**`--keep-data`** keeps the database of the previous run, so a fix can be checked on the data already created: it skips the delete and the seed and applies only the migrations not yet applied. It keeps a database only if its seed finished (a `.seeded` mark written after the seed); otherwise, or with no previous database, it starts a fresh one. If a new migration does not apply to the kept data, it stops and says to run `verify` without `--keep-data`. The new code is the branch's pushed code, as always.
+
 It prints the command that stops the server: `taskkill /PID <pid> /T /F` on Windows, `kill <pid>` elsewhere. Remove the folder when done with `git worktree remove ../workampo-verify-<n>`.
 
 The observation window that closes tickets after the prod deploy is not part of `pnpm work`: [deploy runbook](../runbooks/deploy.md#release-observation-window).
