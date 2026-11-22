@@ -10,18 +10,26 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@hookform/resolvers": "7.0.7",
     "@tanstack/react-query": "5.108.0",
     "@tanstack/react-router": "1.170.46",
+    "@workampo/client": "workspace:*",
+    "@workampo/domain": "workspace:*",
     "@workampo/i18n": "workspace:*",
     "@workampo/ui": "workspace:*",
     "i18next": "27.2.2",
     "react": "19.1.10",
     "react-dom": "19.1.10",
+    "react-hook-form": "7.92.0",
     "react-i18next": "18.0.3"
   },
   "devDependencies": {
     "@biomejs/biome": "2.6.7",
+    "@cloudflare/workers-types": "5.20261112.1",
     "@tailwindcss/vite": "4.3.5",
+    "@testing-library/dom": "10.4.2",
+    "@testing-library/react": "16.3.3",
+    "@testing-library/user-event": "14.6.13",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
     "@vitejs/plugin-react": "6.3.0",

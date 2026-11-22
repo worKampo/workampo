@@ -152,6 +152,7 @@ Use one name end to end: living-spec rule (`@id:companies-15-1`) â†’ use case â†
 | Feature | inside its domain | Thin: composes global components with the domain's data; no own styles |
 
 - Promotion: what already exists in the design system is global from day one. What is born in a feature stays there until its second real use, then moves to `_shared/` or `packages/ui` in the same PR. Never generalize a single use.
+- Route files (`_shared/router/`, every `routes.ts` of a domain or feature) only map URLs to screen components and set route options (lazy import, loaders, guards, search validation, preload): no markup, no `className`, no inline JSX layout. A layout is a component in its own file (the person, 2026-11-22).
 
 ## Tests placement
 

@@ -1,4 +1,25 @@
 {
+  "login": {
+    "title": "Entrar",
+    "email_label": "Email",
+    "continue": "Continuar",
+    "or": "o",
+    "google": "Continuar con Google"
+  },
+  "code": {
+    "title": "Revisa tu email",
+    "sent_to": "Hemos enviado un código a <strong>{{email}}</strong>. Vale durante 10 minutos.",
+    "code_label": "Código",
+    "submit": "Entrar",
+    "resend": "Reenviar código",
+    "resent": "Te hemos enviado un código nuevo.",
+    "other_email": "Usar otro email"
+  },
+  "home": {
+    "title": "Aún no perteneces a ninguna empresa",
+    "body": "Cuando una empresa te invite, o crees una, aparecerá aquí.",
+    "sign_out": "Cerrar sesión"
+  },
   "errors": {
     "invalid_email": "Escribe un email válido.",
     "invalid_code": "El código no es válido o ha caducado. Puedes pedir otro.",

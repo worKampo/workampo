@@ -8,7 +8,8 @@
     "./forms": "./forms/index.ts",
     "./content": "./content/index.ts",
     "./brand": "./brand/index.ts",
-    "./lib": "./lib/index.ts"
+    "./lib": "./lib/index.ts",
+    "./layout": "./layout/index.ts"
   },
   "scripts": {
     "typecheck": "tsc",
