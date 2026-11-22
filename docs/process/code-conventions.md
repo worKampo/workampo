@@ -132,7 +132,7 @@ Use one name end to end: living-spec rule (`@id:companies-15-1`) â†’ use case â†
 
 ## Interface
 
-- Styles: only tokens ([`docs/design/tokens.css`](../design/tokens.css)) and Tailwind scale classes; no arbitrary values (`text-[20px]`) outside `packages/ui`.
+- Styles: only tokens ([`packages/ui/styles/tokens.css`](../../packages/ui/styles/tokens.css)) and Tailwind scale classes; no arbitrary values (`text-[20px]`) outside `packages/ui`.
 - Texts through i18n keys, never literals ([ADR-0047](../adr/0047-i18n-from-the-start.md)).
 - Search `packages/ui` and [`docs/design/components.md`](../design/components.md) before creating a component.
 - Load only what a screen needs (the person, 2026-11-22; [ADR-0073](../adr/0073-frontend-stack-and-rate-limiting.md) point 4):

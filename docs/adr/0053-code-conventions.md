@@ -126,7 +126,7 @@ Decided on 2026-11-13. Operational detail lives in `docs/process/code-convention
 - **Configuration**: bindings and variables typed and validated at startup (`env.ts`); no reading loose variables around the code.
   - Local secrets only in `.dev.vars` (ignored by git); `.dev.vars.example` is committed with the names and no values. Staging and production secrets with `wrangler secret` and in the GitHub Environments ([ADR-0013](0013-ci-cd-with-github-actions.md)).
   - Public configuration per environment in `vars` of `wrangler.jsonc`. No `.env.<environment>` files.
-- **Styles**: only tokens (`docs/design/tokens.css`) and Tailwind classes from the scale; no arbitrary values (`text-[20px]`) outside `packages/ui`.
+- **Styles**: only tokens (`packages/ui/styles/tokens.css`) and Tailwind classes from the scale; no arbitrary values (`text-[20px]`) outside `packages/ui`.
 - **UI components: componentize as much as possible, in three levels** (2026-11-13):
 
 | Level | Where | What | Rules |

@@ -2,7 +2,7 @@
 
 This is the catalogue of global components, which live in `packages/ui` (D53). Before creating a component, look here and in `packages/ui`. Domain components compose these; a component born in one domain moves to `packages/ui` (or the app's `_shared/components/`) when a second domain needs it.
 
-Each component adapts a shadcn/ui component (or is a small custom one) to the tokens in [tokens.css](tokens.css). Sizes are desktop / touch (tablet and phone). Radii: 8 px controls, 12 px cards and overlays, 999 px pills; 4 px only for kbd and tags, 6 px for inner segments and skeletons, 16 px for the top corners of a phone bottom sheet.
+Each component adapts a shadcn/ui component (or is a small custom one) to the tokens in [tokens.css](../../packages/ui/styles/tokens.css). Sizes are desktop / touch (tablet and phone). Radii: 8 px controls, 12 px cards and overlays, 999 px pills; 4 px only for kbd and tags, 6 px for inner segments and skeletons, 16 px for the top corners of a phone bottom sheet.
 
 General rules:
 

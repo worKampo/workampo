@@ -1,4 +1,4 @@
-import './app.css'
+import '@workampo/ui/styles.css'
 import { QueryClient } from '@tanstack/react-query'
 import { createApiClient } from '@workampo/app-core/_shared/api-client'
 import { createRoot } from 'react-dom/client'

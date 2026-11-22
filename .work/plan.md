@@ -258,7 +258,7 @@ Ventana fija (ADR-0073). La aritmética es pura, en `apps/api/src/_shared/rate-l
   - Cadena de respaldo única (la persona, 2026-11-22; ADR-0047): `ca` → `es` → `en`, `es` → `en`, `en` solo. `FALLBACKS` y `fallbackLanguages(idioma)` en `resolve-language.ts`; la web construye con ella `fallbackLng` de i18next (`{ ca: ["es", "en"], default: ["en"] }`) y la API la usa cuando un proveedor o un contenido no tiene catalán. Magic Auth de WorkOS acepta `ca` (comprobado 2026-11-22), así que se le manda tal cual.
 - `apps/web/src/_shared/i18n/i18n.ts` solo inicializa i18next + react-i18next con un backend propio sobre `loadNamespace` (por idioma y namespace, a demanda), `resolveLanguage(navigator.languages)` y `fallbackLng` sacado de `FALLBACKS`. Sin plugin de detección. `<html lang>` al idioma activo.
 - `scripts/i18n/check-keys.mjs` en `check:repo`: cada idioma de `packages/i18n/src/locales/` tiene los mismos ficheros y las mismas claves que `en` (ADR-0047).
-- `packages/ui`: tokens de `docs/design/tokens.css`, IBM Plex Sans desde `@fontsource/ibm-plex-sans` copiada al build (mismo origen), componentes `Button`, `Input`, `Field`, `Card`, `Logo` adaptados de shadcn.
+- `packages/ui`: tokens de `packages/ui/styles/tokens.css`, IBM Plex Sans desde `@fontsource/ibm-plex-sans` copiada al build (mismo origen), componentes `Button`, `Input`, `Field`, `Card`, `Logo` adaptados de shadcn.
 
 ## Tests per example
 
