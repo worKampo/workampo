@@ -48,6 +48,7 @@ function fakeIo({
     log: () => {},
     readFile: () => SAMPLE_CONFIG,
     removeMaps: (dir) => calls.push({ command: 'removeMaps', args: [dir] }),
+    assertNoFakeProvider: (dir) => calls.push({ command: 'assertNoFakeProvider', args: [dir] }),
     deployedSha: async () => deployed,
     run: (command, args) => {
       calls.push({ command, args })
@@ -163,6 +164,9 @@ test('a real deploy migrates, builds, strips maps and deploys, always with --env
 
   const order = calls.map((c) => c.command)
   assert.ok(order.indexOf('removeMaps') < order.lastIndexOf('wrangler'))
+  // The bundle that goes out is checked for the fake identity provider first (ADR-0029).
+  assert.ok(order.indexOf('assertNoFakeProvider') < order.lastIndexOf('wrangler'))
+  assert.ok(order.indexOf('assertNoFakeProvider') > order.indexOf('wrangler'))
   assert.equal(calls.filter((c) => c.command === 'sentry-cli').length, 0)
 })
 

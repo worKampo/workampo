@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "wrangler dev",
-    "build": "wrangler deploy --dry-run --outdir dist",
+    "build": "wrangler deploy --dry-run --env prod --outdir dist && node ../../scripts/build/no-fake-provider.mjs dist",
     "typecheck": "wrangler types --include-runtime=false && tsc",
     "lint": "biome check .",
     "test": "vitest run",

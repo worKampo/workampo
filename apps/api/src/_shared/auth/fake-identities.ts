@@ -5,22 +5,25 @@ export const FAKE_VALID_CODE = '424242'
 export const FAKE_EXPIRED_CODE = '000000'
 export const FAKE_GOOGLE_CODE = 'fake-google'
 
-// Emails not listed sign in as `fake|<email>`, verified.
-const FAKE_CODE_IDENTITIES: Readonly<Record<string, VerifiedIdentity>> = {
-  'linked@example.com': fakeIdentity({ subject: 'linked', email: 'linked@example.com' }),
-  'unverified@example.com': fakeIdentity({
-    subject: 'unverified',
-    email: 'unverified@example.com',
-    isEmailVerified: false,
-  }),
-  'renamed@example.com': fakeIdentity({ subject: 'renamed', email: 'renamed.new@example.com' }),
-  'clash@example.com': fakeIdentity({ subject: 'clash', email: 'linked@example.com' }),
+// Functions, not module-level values, so stg and prod bundles drop this module with the fake.
+export function fakeCodeIdentity(email: string): VerifiedIdentity {
+  switch (email) {
+    case 'linked@example.com':
+      return fakeIdentity({ subject: 'linked', email })
+    case 'unverified@example.com':
+      return fakeIdentity({ subject: 'unverified', email, isEmailVerified: false })
+    case 'renamed@example.com':
+      return fakeIdentity({ subject: 'renamed', email: 'renamed.new@example.com' })
+    case 'clash@example.com':
+      return fakeIdentity({ subject: 'clash', email: 'linked@example.com' })
+    default:
+      // Any other email signs in as `fake|<email>`, verified.
+      return fakeIdentity({ subject: email, email })
+  }
 }
 
-export const FAKE_GOOGLE_IDENTITY = fakeIdentity({ subject: 'google', email: 'google@example.com' })
-
-export function fakeCodeIdentity(email: string): VerifiedIdentity {
-  return FAKE_CODE_IDENTITIES[email] ?? fakeIdentity({ subject: email, email })
+export function fakeGoogleIdentity(): VerifiedIdentity {
+  return fakeIdentity({ subject: 'google', email: 'google@example.com' })
 }
 
 function fakeIdentity({

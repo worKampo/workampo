@@ -8,6 +8,7 @@ import { createRequire } from 'node:module'
 import { join } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { parse } from 'yaml'
+import { assertNoFakeProvider } from '../build/no-fake-provider.mjs'
 import { parsePrNumber } from '../smoke/verification-comment.mjs'
 
 export const ENVIRONMENTS = ['stg', 'prod']
@@ -130,6 +131,7 @@ function deployWorker(worker, env, sha, message, io) {
 
   // --upload-source-maps only makes the dry run write the .map files; nothing is uploaded.
   wrangler(['deploy', '--dry-run', '--env', env, '--outdir', 'dist', '--upload-source-maps'])
+  io.assertNoFakeProvider(join(cwd, 'dist'))
   uploadSourceMaps(cwd, sha, io)
   io.removeMaps(join(cwd, 'dist'))
 
@@ -247,6 +249,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     run,
     deployedSha,
     removeMaps,
+    assertNoFakeProvider,
     readFile: (path) => readFileSync(path, 'utf8'),
     env: process.env,
     log: console.log,

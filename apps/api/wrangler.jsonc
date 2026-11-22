@@ -10,6 +10,9 @@
   "version_metadata": { "binding": "CF_VERSION_METADATA" },
   // Daily at 03:00 UTC: deletes rate-limit counters whose window has ended.
   "triggers": { "crons": ["0 3 * * *"] },
+  // The fake identity provider exists only in this local bundle; stg and prod compile it out and
+  // scripts/build/no-fake-provider.mjs fails their build if it is there (ADR-0029).
+  "define": { "__ALLOW_FAKE_IDENTITY__": "true" },
   // Local test values. In stg and prod the thresholds are Cloudflare secrets (AGENTS.md "No entra")
   // and IDENTITY_PROVIDER is absent, so the real provider is the only one there.
   "vars": {
@@ -40,6 +43,7 @@
   "env": {
     "stg": {
       "name": "app-stg",
+      "define": { "__ALLOW_FAKE_IDENTITY__": "false" },
       "triggers": { "crons": ["0 3 * * *"] },
       "version_metadata": { "binding": "CF_VERSION_METADATA" },
       "vars": { "ENVIRONMENT": "stg", "ENABLE_DEBUG_ERROR": "true" },
@@ -62,6 +66,7 @@
     "prod": {
       // Without an explicit name Wrangler would call it app-prod; the production Worker is app.
       "name": "app",
+      "define": { "__ALLOW_FAKE_IDENTITY__": "false" },
       "triggers": { "crons": ["0 3 * * *"] },
       "version_metadata": { "binding": "CF_VERSION_METADATA" },
       "vars": { "ENVIRONMENT": "prod" },
