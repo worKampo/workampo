@@ -71,7 +71,7 @@ Title says **what is not there yet**; one line says **why it matters or what wil
 - Use the library's interpolation and **ICU plurals**; never concatenate translated fragments or build sentences from pieces ("Invite " + n + " people").
 - Allow for expansion: Spanish is often 20–30 % longer than English. Buttons, chips and table headers must not truncate at that length.
 - CI fails if a key is missing in any locale. Agents propose translations; they are reviewed in the PR.
-- **Files and keys** (the person, 2026-11-22). Texts live in `packages/i18n/locales/<lang>/<domain>.json`, one i18next namespace per domain, nested by screen: `access.json` → `{ "login": {…}, "code": {…}, "home": {…}, "errors": {…} }`.
+- **Files and keys** (the person, 2026-11-22). Texts live in `packages/i18n/src/locales/<lang>/<domain>.json`, one i18next namespace per domain, nested by screen: `access.json` → `{ "login": {…}, "code": {…}, "home": {…}, "errors": {…} }`.
   1. **`errors` is the domain's error screen**: one key per error code of the domain (`access.invalid_code` → `access.errors.invalid_code`). A test checks that every code has its text in every language.
   2. **Repeated texts are repeated per screen**: each keeps its context, and Catalan or Spanish may need different forms in different places.
   3. **`common`** (`locales/<lang>/common.json`) holds only generic design-system words with the same meaning everywhere: actions (cancel, close, back, save, retry) and states (loading). When in doubt, the text stays in its screen.

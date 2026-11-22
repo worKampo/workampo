@@ -20,7 +20,7 @@ The same domain and feature folders everywhere, with identical feature names in 
 packages/domain/access/          errors.ts, identity.ts     what the whole domain shares (errors, types, values)
   sign-in/  session/             pure business rules and their tests
 packages/client/access/sign-in/  data hooks (queries, mutations) and form schemas; no DOM; shared by web and mobile
-packages/i18n/locales/<lang>/access.json   texts grouped by screen, plus `errors`; `_context/access.json` for translators
+packages/i18n/src/locales/<lang>/access.json   texts grouped by screen, plus `errors`; `_context/access.json` for translators
 apps/api/src/access/             routes.ts (mounts the features), errors.ts
   sign-in/  session/             the feature's routes, use cases, repos and tests
   users/                         a repo several features share
@@ -30,6 +30,8 @@ apps/mobile/src/access/          when the app arrives: the same feature folders,
 ```
 
 `packages/ui` is not per domain: it is grouped by component family in folders that mirror the headings of [components.md](../design/components.md) (`actions/`, `forms/`, `content/`, `brand/`…), each component with its test beside it, and imported per family: `@workampo/ui/forms` (the person, 2026-11-22).
+
+The root of a package or app holds only configuration, generated files and the folders an external tool reads as they are (`migrations/`, `seed/`, `backfills/`, `public/`, `e2e/`, `test/` setup). Everything our code imports, code or data such as translations and styles, lives in `src/` or in the package's own grouping folders: domains in `packages/domain`, families in `packages/ui`, `schema/` in `packages/db` (the person, 2026-11-22).
 
 ## Names
 

@@ -39,7 +39,7 @@ Decided by the person in ticket 96 (2026-11-22).
 4. **Load only what each screen needs** (the person, 2026-11-22):
    - Every route is lazy by default: TanStack Router code-based `.lazy(() => import(...))`, with the screen as the split point, and `defaultPreload: 'intent'`, so hovering or focusing a link downloads it.
    - Heavy pieces inside a screen (editors, charts, maps, date pickers) are imported when opened, with the skeleton meanwhile ([patterns](../design/patterns.md)).
-   - Translations load on demand: only the active language and only the namespaces (domains) a screen uses, plus `common`, by dynamic import of `packages/i18n/locales/<lang>/<ns>.json` through a few-line i18next backend of our own (no dependency). The ca → es → en fallback still applies: i18next loads the chain's files of each namespace it loads.
+   - Translations load on demand: only the active language and only the namespaces (domains) a screen uses, plus `common`, by dynamic import of `packages/i18n/src/locales/<lang>/<ns>.json` through a few-line i18next backend of our own (no dependency). The ca → es → en fallback still applies: i18next loads the chain's files of each namespace it loads.
    - A size budget in CI: a check measures the gzip size of the initial JS of `/login` and of the signed-in app shell and fails over its limit; the limits come from the first measurement plus about 10 % and live in the script.
    - The mobile app (Expo) follows the same rules for translations and heavy pieces; it does not need per-screen splitting.
    - A chunk that fails to load is handled by [ADR-0059](0059-web-client-version.md).
