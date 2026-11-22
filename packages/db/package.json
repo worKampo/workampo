@@ -2,6 +2,9 @@
   "name": "@workampo/db",
   "private": true,
   "type": "module",
+  "dependencies": {
+    "drizzle-orm": "0.45.4"
+  },
   "devDependencies": {
     "drizzle-kit": "0.31.11"
   }
