@@ -21,6 +21,7 @@
     "hono": "4.13.18"
   },
   "peerDependencies": {
+    "@workampo/api": "workspace:*",
     "@tanstack/react-query": "^5.108.0",
     "react": "^19.1.10"
   },
@@ -31,7 +32,6 @@
     "@testing-library/dom": "10.4.2",
     "@testing-library/react": "16.3.3",
     "@types/react": "19.3.0",
-    "@workampo/api": "workspace:*",
     "jsdom": "31.0.1",
     "react": "19.1.10",
     "react-dom": "19.1.10",

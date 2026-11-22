@@ -9,6 +9,12 @@
   "upload_source_maps": false,
   "version_metadata": { "binding": "CF_VERSION_METADATA" },
   // Daily at 03:00 UTC: deletes rate-limit counters whose window has ended.
+  // The SPA of apps/web; only these paths reach the Worker (ADR-0073). Repeated in each env.
+  "assets": {
+    "directory": "../web/dist",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*", "/health", "/l/*"]
+  },
   "triggers": { "crons": ["0 3 * * *"] },
   // The fake identity provider exists only in this local bundle; stg and prod compile it out and
   // scripts/build/no-fake-provider.mjs fails their build if it is there (ADR-0029).
@@ -43,6 +49,11 @@
   "env": {
     "stg": {
       "name": "app-stg",
+      "assets": {
+        "directory": "../web/dist",
+        "not_found_handling": "single-page-application",
+        "run_worker_first": ["/api/*", "/health", "/l/*"]
+      },
       "define": { "__ALLOW_FAKE_IDENTITY__": "false" },
       "triggers": { "crons": ["0 3 * * *"] },
       "version_metadata": { "binding": "CF_VERSION_METADATA" },
@@ -66,6 +77,11 @@
     "prod": {
       // Without an explicit name Wrangler would call it app-prod; the production Worker is app.
       "name": "app",
+      "assets": {
+        "directory": "../web/dist",
+        "not_found_handling": "single-page-application",
+        "run_worker_first": ["/api/*", "/health", "/l/*"]
+      },
       "define": { "__ALLOW_FAKE_IDENTITY__": "false" },
       "triggers": { "crons": ["0 3 * * *"] },
       "version_metadata": { "binding": "CF_VERSION_METADATA" },

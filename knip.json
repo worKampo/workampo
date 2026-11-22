@@ -9,6 +9,9 @@
     },
     "apps/web": {
       "ignoreDependencies": ["tailwindcss"]
+    },
+    "apps/api": {
+      "ignoreDependencies": ["@workampo/web"]
     }
   }
 }

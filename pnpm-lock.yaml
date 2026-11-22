@@ -87,6 +87,9 @@ importers:
       '@playwright/test':
         specifier: 1.65.1
         version: 1.65.1
+      '@workampo/web':
+        specifier: workspace:*
+        version: link:../web
       typescript:
         specifier: 6.0.3
         version: 6.0.3
@@ -181,6 +184,9 @@ importers:
 
   packages/app-core:
     dependencies:
+      '@workampo/api':
+        specifier: workspace:*
+        version: link:../../apps/api
       '@workampo/domain':
         specifier: workspace:*
         version: link:../domain
@@ -206,9 +212,6 @@ importers:
       '@types/react':
         specifier: 19.3.0
         version: 19.3.0
-      '@workampo/api':
-        specifier: workspace:*
-        version: link:../../apps/api
       jsdom:
         specifier: 31.0.1
         version: 31.0.1

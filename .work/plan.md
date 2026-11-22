@@ -245,7 +245,7 @@ Ventana fija (ADR-0073). La aritmética es pura, en `apps/api/src/_shared/rate-l
 - `apps/web/public/_headers`: `Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: same-origin`; `/assets/*` `immutable`; `/index.html` `no-cache` (ADR-0059).
 - `@workampo/web` es devDependency de `@workampo/api`; en `turbo.json`, `build`, `e2e` y `test` de api dependen de `^build`. `pnpm work verify` construye la web antes de `wrangler dev`.
 - Desarrollo: `vite` con `server.proxy` de `/api` a `wrangler dev` en 8787.
-- **[decisión]** Las pruebas de aceptación viven en `apps/api/e2e/acceptance/`: el Worker `app` sirve SPA y API, y allí está el único Playwright con su `webServer` (ADR-0029 "a single Playwright"). `baseURL` pasa a `http://localhost:8788` para que el navegador acepte cookies `Secure` sobre http local.
+- **[decisión]** Las pruebas de aceptación viven en `apps/api/e2e/acceptance/`: el Worker `app` sirve SPA y API, y allí está el único Playwright con su `webServer` (ADR-0029 "a single Playwright"). `baseURL` pasa a `https://localhost:8788` (`wrangler dev --local-protocol https`, certificado local, `ignoreHTTPSErrors`): sobre http, la API de cookies de Playwright rechaza las `Secure` (`addCookies` de E15).
 
 ## i18n
 
