@@ -2,14 +2,14 @@ import { Hono } from 'hono'
 import { requireSession, type SessionVariables } from '../../_shared/auth/session'
 import { clearSessionCookie, readSessionCookie } from '../../_shared/auth/session-cookie'
 import type { AppEnv } from '../../_shared/http/app-env'
-import { problemJson } from '../../_shared/http/problem-json'
+import { AccessError } from '../errors'
 import { userRepo } from '../users/user-repo'
 import { signOut } from './sign-out'
 
 export const sessionRoutes = new Hono<AppEnv & { Variables: SessionVariables }>()
   .get('/me', requireSession, async (c) => {
     const user = await userRepo(c.env).findById(c.var.session.userId)
-    if (!user) return problemJson('access.unauthenticated')
+    if (!user) throw new AccessError('access.unauthenticated')
 
     return c.json(user)
   })

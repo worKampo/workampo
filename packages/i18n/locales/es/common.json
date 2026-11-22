@@ -1,5 +1,8 @@
 {
   "states": {
     "loading": "Cargando"
+  },
+  "errors": {
+    "unexpected": "Algo ha fallado. Vuelve a intentarlo."
   }
 }

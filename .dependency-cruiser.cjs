@@ -10,8 +10,23 @@ module.exports = {
     {
       name: 'packages-not-from-apps',
       severity: 'error',
+      comment: 'packages/client may import the API route type for hc, as a type only (ADR-0073).',
       from: { path: '^packages/' },
+      to: { path: '^apps/', dependencyTypesNot: ['type-only'] },
+    },
+    {
+      name: 'packages-not-from-apps-even-as-types',
+      severity: 'error',
+      from: { path: '^packages/', pathNot: '^packages/client/' },
       to: { path: '^apps/' },
+    },
+    {
+      name: 'client-has-no-dom',
+      comment:
+        'packages/client is shared with the mobile app: no react-dom, nothing of apps/web (ADR-0057).',
+      severity: 'error',
+      from: { path: '^packages/client/', pathNot: '\\.test\\.ts$' },
+      to: { path: ['(^|node_modules/)react-dom(/|$)', '^apps/web/'] },
     },
     {
       name: 'domain-is-pure',

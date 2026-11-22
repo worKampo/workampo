@@ -4,7 +4,7 @@ import { loadNamespace } from './load-namespace'
 it('loads one namespace of one language', async () => {
   const texts = await loadNamespace({ language: 'ca', namespace: 'common' })
 
-  expect(texts).toEqual({ states: { loading: "S'està carregant" } })
+  expect(texts).toMatchObject({ states: { loading: "S'està carregant" } })
 })
 
 it('fails for a namespace that does not exist', async () => {

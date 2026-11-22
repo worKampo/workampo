@@ -16,7 +16,10 @@ app.use(appVersionHeader)
 // content types. DELETE, PUT and JSON bodies need a preflight our API never grants.
 app.on('POST', '/api/*', csrf())
 
-app.route('/api', accessRoutes)
+const api = app.route('/api', accessRoutes)
+
+// The typed contract of hc (ADR-0019); clients import it as a type only.
+export type AppType = typeof api
 
 app.get('/health', (c) =>
   c.json({

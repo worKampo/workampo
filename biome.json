@@ -26,6 +26,26 @@
   },
   "overrides": [
     {
+      "includes": ["packages/client/**", "!**/*.test.ts"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedGlobals": {
+              "level": "error",
+              "options": {
+                "deniedGlobals": {
+                  "window": "packages/client is shared with the mobile app: no browser globals.",
+                  "document": "packages/client is shared with the mobile app: no browser globals.",
+                  "localStorage": "Inject the storage (ADR-0073 point 5).",
+                  "navigator": "packages/client is shared with the mobile app: no browser globals."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
       "includes": ["scripts/**", "commitlint.config.mjs"],
       "linter": {
         "rules": {
