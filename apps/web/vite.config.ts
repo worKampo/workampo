@@ -4,6 +4,8 @@ import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  // The size budget reads which chunks each screen needs (scripts/build/web-size-budget.mjs).
+  build: { manifest: true },
   // Development only: the Worker serves the API on the same origin in every environment.
   server: { proxy: { '/api': 'http://localhost:8787' } },
   test: { environment: 'jsdom' },
