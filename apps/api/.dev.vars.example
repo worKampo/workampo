@@ -1,7 +1,7 @@
 # Local secrets for `wrangler dev`. Copy to .dev.vars (ignored by git) and fill in values.
 # Names only here; values never go into the repo (D43, D64).
 
-# Real WorkOS locally instead of the fake provider (optional).
-IDENTITY_PROVIDER=
+# fake keeps the local fake provider. To try the real WorkOS locally, set workos and fill in both.
+IDENTITY_PROVIDER=fake
 WORKOS_API_KEY=
 WORKOS_CLIENT_ID=
