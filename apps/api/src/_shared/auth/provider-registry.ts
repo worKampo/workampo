@@ -1,6 +1,9 @@
 import type { IdentityProviderKey } from '@workampo/domain/access/identity'
 import { chooseProvider } from '@workampo/domain/access/sign-in/choose-provider'
+import type { Hono } from 'hono'
 import type { ParsedEnv } from '../env'
+import type { AppEnv } from '../http/app-env'
+import { mountFakeConsentPage } from './fake-consent'
 import { fakeProvider } from './fake-provider'
 import type { IdentityProvider } from './identity-provider'
 import { workosProvider } from './workos-provider'
@@ -29,4 +32,9 @@ export function identityProvider(env: ParsedEnv): IdentityProvider {
   })
 
   return ADAPTERS[key](env)
+}
+
+// Pages a provider serves on our own origin: only the fake's consent page, in the local bundle.
+export function mountProviderPages(app: Hono<AppEnv>) {
+  if (__ALLOW_FAKE_IDENTITY__) mountFakeConsentPage(app)
 }

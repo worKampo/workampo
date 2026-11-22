@@ -5,6 +5,9 @@ export const FAKE_VALID_CODE = '424242'
 export const FAKE_EXPIRED_CODE = '000000'
 export const FAKE_GOOGLE_CODE = 'fake-google'
 
+// Searched for in the stg and prod bundles by scripts/build/no-fake-provider.mjs.
+export const FAKE_PROVIDER_MARK = 'workampo-fake-identity-provider'
+
 // Functions, not module-level values, so stg and prod bundles drop this module with the fake.
 export function fakeCodeIdentity(email: string): VerifiedIdentity {
   switch (email) {

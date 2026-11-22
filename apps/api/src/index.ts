@@ -1,5 +1,6 @@
 import { Hono } from 'hono'
 import { csrf } from 'hono/csrf'
+import { mountProviderPages } from './_shared/auth/provider-registry'
 import { parsedEnv } from './_shared/env'
 import { errorTracking } from './_shared/error-tracking/sentry-error-tracking'
 import { type AppEnv, deployedSha } from './_shared/http/app-env'
@@ -17,6 +18,7 @@ app.use(appVersionHeader)
 // content types. DELETE, PUT and JSON bodies need a preflight our API never grants.
 app.on('POST', '/api/*', csrf())
 app.use('/api/*', parsedEnv)
+mountProviderPages(app)
 
 const api = app.route('/api', accessRoutes)
 

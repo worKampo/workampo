@@ -13,7 +13,7 @@ it('@id:access-96-6 Google start redirects to the provider with a state cookie',
 it('@id:access-96-6 the callback with that state signs in and goes to /', async () => {
   const { state, location } = await startGoogle()
 
-  const back = await callback({ url: location, stateCookie: state })
+  const back = await callback({ url: await throughConsent(location), stateCookie: state })
 
   expect(back.status).toBe(302)
   expect(new URL(back.headers.get('Location') ?? '', 'https://app.test').pathname).toBe('/')
@@ -28,8 +28,8 @@ it('@id:access-96-7 a state that does not match the cookie creates no session', 
   forged.searchParams.set('state', 'forged')
 
   const answers = [
-    await callback({ url: forged.href, stateCookie: state }),
-    await callback({ url: location }),
+    await callback({ url: await throughConsent(forged.href), stateCookie: state }),
+    await callback({ url: await throughConsent(location) }),
   ]
 
   for (const back of answers) {
@@ -50,7 +50,6 @@ it('@id:access-96-8 a linked identity signs in to the same account with Google',
   expect((await second.json<{ id: string }>()).id).toBe(firstUser.id)
 })
 
-// The fake's authorization URL points straight back to our callback.
 async function startGoogle() {
   const response = await exports.default.fetch('https://app.test/api/sessions/google', {
     redirect: 'manual',
@@ -70,5 +69,14 @@ function callback({ url, stateCookie }: { url: string; stateCookie?: string | un
 async function signInWithGoogle() {
   const { state, location } = await startGoogle()
 
-  return callback({ url: location, stateCookie: state })
+  return callback({ url: await throughConsent(location), stateCookie: state })
+}
+
+// The fake's authorization URL is its consent page, which sends the browser on to our callback.
+async function throughConsent(url: string) {
+  const page = await (await exports.default.fetch(url)).text()
+  const next = /url=([^"]+)"/.exec(page)?.[1]
+  if (!next) throw new Error('the consent page names no callback')
+
+  return next.replaceAll('&amp;', '&')
 }

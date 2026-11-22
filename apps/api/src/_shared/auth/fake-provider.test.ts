@@ -37,17 +37,26 @@ describe('the fake identities that tests and the seed rely on', () => {
     ).rejects.toBeInstanceOf(InvalidCodeError)
   })
 
-  it('Google comes straight back to our callback and signs in as the Google user', async () => {
+  it('Google goes through the local consent page, which knows our callback and the state', () => {
     const url = new URL(
       fakeProvider.googleAuthorizationUrl({
         state: 'state 1',
         redirectUri: 'https://app.test/api/sessions/google/callback',
       }),
     )
-    expect(url.origin + url.pathname).toBe('https://app.test/api/sessions/google/callback')
-    expect(url.searchParams.get('code')).toBe(FAKE_GOOGLE_CODE)
-    expect(url.searchParams.get('state')).toBe('state 1')
-    expect(await fakeProvider.completeGoogleSignIn({ code: FAKE_GOOGLE_CODE })).toEqual({
+
+    expect(url.origin + url.pathname).toBe('https://app.test/api/sessions/google/fake-consent')
+    expect(Object.fromEntries(url.searchParams)).toEqual({
+      redirect_uri: 'https://app.test/api/sessions/google/callback',
+      code: FAKE_GOOGLE_CODE,
+      state: 'state 1',
+    })
+  })
+
+  it('the Google code signs in as the Google user; another code is invalid', async () => {
+    const identity = await fakeProvider.completeGoogleSignIn({ code: FAKE_GOOGLE_CODE })
+
+    expect(identity).toEqual({
       provider: 'workos',
       subject: 'fake|google',
       email: 'google@example.com',
