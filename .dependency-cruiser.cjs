@@ -61,6 +61,14 @@ module.exports = {
       to: { path: '^apps/api/src/_shared/auth/(workos|fake)-' },
     },
     {
+      name: 'error-tracking-seam',
+      comment:
+        'Only the sentry-* files of _shared/error-tracking/ import a Sentry package (ADR-0053).',
+      severity: 'error',
+      from: { pathNot: '^apps/[^/]+/src/_shared/error-tracking/sentry-[^/]+\\.ts$' },
+      to: { path: '(^|node_modules/)@sentry/' },
+    },
+    {
       name: 'database-seam',
       comment: 'Only repos and _shared/db/ touch Drizzle or the database client (ADR-0053).',
       severity: 'error',

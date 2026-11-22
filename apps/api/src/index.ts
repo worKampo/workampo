@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
 import { csrf } from 'hono/csrf'
-import { errorTracking } from './_shared/error-tracking/error-tracking'
+import { errorTracking } from './_shared/error-tracking/sentry-error-tracking'
 import { type AppEnv, deployedSha } from './_shared/http/app-env'
 import { appVersionHeader } from './_shared/http/app-version-header'
 import { clientVersionLog } from './_shared/http/client-version-log'
