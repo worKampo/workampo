@@ -4,6 +4,7 @@ import { errorKey, errorKeyOf } from '@workampo/app-core/_shared/error-key'
 import { loginFormSchema } from '@workampo/app-core/access/sign-in/sign-in-forms'
 import { useStartCodeSignIn } from '@workampo/app-core/access/sign-in/sign-in-hooks'
 import { Button, buttonClassName } from '@workampo/ui/actions'
+import { Text } from '@workampo/ui/content'
 import { Field, Input } from '@workampo/ui/forms'
 import { CardScreen } from '@workampo/ui/layout'
 import { useForm } from 'react-hook-form'
@@ -37,7 +38,9 @@ export function LoginScreen() {
           {t('login.continue')}
         </Button>
       </form>
-      <p className="text-center text-xs text-text-2">{t('login.or')}</p>
+      <Text size="xs" tone="muted" align="center">
+        {t('login.or')}
+      </Text>
       {/* A full navigation: Google's flow leaves the app and comes back to our callback. */}
       <a href="/api/sessions/google" className={buttonClassName({ variant: 'secondary' })}>
         {t('login.google')}

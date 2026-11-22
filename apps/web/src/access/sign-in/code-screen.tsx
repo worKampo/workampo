@@ -1,13 +1,15 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Link, Navigate, useNavigate, useRouterState } from '@tanstack/react-router'
+import { Navigate, useNavigate, useRouterState } from '@tanstack/react-router'
 import { errorKeyOf } from '@workampo/app-core/_shared/error-key'
 import { codeFormSchema } from '@workampo/app-core/access/sign-in/sign-in-forms'
 import { useStartCodeSignIn, useVerifyCode } from '@workampo/app-core/access/sign-in/sign-in-hooks'
 import { Button } from '@workampo/ui/actions'
+import { Text } from '@workampo/ui/content'
 import { Field, Input } from '@workampo/ui/forms'
 import { CardScreen } from '@workampo/ui/layout'
 import { useForm } from 'react-hook-form'
 import { Trans, useTranslation } from 'react-i18next'
+import { RouterTextLink } from '../../_shared/router/router-text-link'
 
 // After a reload the email is gone (it never travels in the URL): back to /login.
 export function CodeScreen() {
@@ -36,14 +38,14 @@ function CodeForm({ email }: { email: string }) {
 
   return (
     <CardScreen title={t('code.title')}>
-      <p className="text-sm text-text-1">
+      <Text>
         <Trans
           t={t}
           i18nKey="code.sent_to"
           values={{ email }}
           components={{ strong: <strong /> }}
         />
-      </p>
+      </Text>
       <form onSubmit={submit} noValidate className="flex flex-col gap-4">
         <Field
           label={t('code.code_label')}
@@ -67,9 +69,9 @@ function CodeForm({ email }: { email: string }) {
           {t('code.resend')}
         </Button>
       </form>
-      <Link to="/login" className="text-center text-sm text-text-1 underline underline-offset-4">
-        {t('code.other_email')}
-      </Link>
+      <Text align="center">
+        <RouterTextLink to="/login">{t('code.other_email')}</RouterTextLink>
+      </Text>
     </CardScreen>
   )
 

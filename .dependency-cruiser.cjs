@@ -76,6 +76,20 @@ module.exports = {
       to: { path: '(^|node_modules/)@sentry/' },
     },
     {
+      name: 'screens-only-from-their-routes',
+      comment:
+        'A screen is imported only, lazily, by its own feature routes file: anything else would pull it into its chunk (code conventions).',
+      severity: 'error',
+      from: { path: '^apps/web/src/', pathNot: ['-routes\\.tsx?$', '\\.test\\.tsx?$'] },
+      to: { path: '-screen\\.tsx$', dependencyTypesNot: ['type-only'] },
+    },
+    {
+      name: 'screens-only-from-their-own-routes',
+      severity: 'error',
+      from: { path: '^(apps/web/src/.+)/[^/]+-routes\\.tsx?$' },
+      to: { path: '-screen\\.tsx$', pathNot: '^$1/[^/]+-screen\\.tsx$' },
+    },
+    {
       name: 'database-seam',
       comment: 'Only repos and _shared/db/ touch Drizzle or the database client (ADR-0053).',
       severity: 'error',

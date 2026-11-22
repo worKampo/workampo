@@ -1,3 +1,4 @@
+import { Text } from '@workampo/ui/content'
 import { CardScreen } from '@workampo/ui/layout'
 import { useTranslation } from 'react-i18next'
 import { SignOutButton } from '../session/sign-out-button'
@@ -8,7 +9,7 @@ export function HomeScreen() {
 
   return (
     <CardScreen title={t('home.title')}>
-      <p className="text-sm text-text-2">{t('home.body')}</p>
+      <Text tone="muted">{t('home.body')}</Text>
       <SignOutButton />
     </CardScreen>
   )
