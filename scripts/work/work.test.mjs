@@ -1172,6 +1172,17 @@ test('verify --keep-data: keeps the database, applies only new migrations and do
   assert.match(io.output.join('\n'), /only new migrations are applied, no seed/)
 })
 
+test('verify --keep-data with a database whose seed never finished starts a fresh one', async () => {
+  const io = verifyIo({ exists: true })
+  io.exists = (path) => !slashes(path).endsWith('.wrangler/verify/.seeded')
+
+  await verify({ numbers: [9], keepData: true }, CONFIG, io)
+
+  assert.equal(io.removed.length, 1)
+  assert.ok(joined(io).some((c) => c.includes('scripts/db/seed.mjs')))
+  assert.ok(Object.keys(io.writes).some((path) => path.endsWith('.wrangler/verify/.seeded')))
+})
+
 test('verify --keep-data with no previous database starts a fresh one', async () => {
   const io = verifyIo({ exists: false })
 
@@ -1179,7 +1190,10 @@ test('verify --keep-data with no previous database starts a fresh one', async ()
 
   assert.equal(io.removed.length, 1)
   assert.ok(joined(io).some((c) => c.includes('scripts/db/seed.mjs')))
-  assert.match(io.output.join('\n'), /No database from a previous run: starting a fresh one/)
+  assert.match(
+    io.output.join('\n'),
+    /No complete database from a previous run: starting a fresh one/,
+  )
 })
 
 test('verify --keep-data: a migration that fails on the kept data says how to start fresh', async () => {

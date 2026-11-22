@@ -31,6 +31,7 @@ const SLUG_MAX = 40
 export const VERIFY_URL = 'http://127.0.0.1:8787'
 const VERIFY_PERSIST = '.wrangler/verify'
 const VERIFY_LOG = '.wrangler/verify.log'
+const SEEDED_MARKER = '.seeded'
 const WRANGLER = 'node_modules/wrangler/bin/wrangler.js'
 
 export const HELP = `Usage: pnpm work <command> [args]
@@ -1087,9 +1088,11 @@ export async function verify(args, config, io) {
   act('pnpm', ['install'], visible(dir))
   // The Worker serves the built SPA (ADR-0073), as in production.
   act('pnpm', ['--filter', '@workampo/web', 'build'], visible(dir))
-  // --keep-data reuses the previous run's database; with none to keep, it starts fresh.
-  const keepsData = Boolean(args.keepData) && io.exists(persist)
-  if (args.keepData && !keepsData) io.log('No database from a previous run: starting a fresh one.')
+  // --keep-data reuses the previous run's database only if its seed finished; otherwise it starts fresh.
+  const seeded = join(persist, SEEDED_MARKER)
+  const keepsData = Boolean(args.keepData) && io.exists(seeded)
+  if (args.keepData && !keepsData)
+    io.log('No complete database from a previous run: starting a fresh one.')
 
   if (keepsData) io.log(`Keeping ${persist}: only new migrations are applied, no seed.`)
   else if (args.dryRun) io.log(`Would remove ${persist}`)
@@ -1103,8 +1106,15 @@ export async function verify(args, config, io) {
       options: visible(apiDir),
     })
 
-  if (!keepsData)
+  if (!keepsData) {
     act('node', [join('scripts', 'db', 'seed.mjs'), '--persist-to', persist], visible(dir))
+    if (!args.dryRun)
+      io.writeFile(
+        seeded,
+        `${new Date().toISOString()}
+`,
+      )
+  }
 
   const dev = [wrangler, 'dev', '--local', '--ip', '127.0.0.1', '--port', '8787']
   dev.push('--persist-to', persist)
