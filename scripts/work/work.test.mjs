@@ -1028,6 +1028,8 @@ test('write commands parse their options', () => {
   })
   assert.equal(parseArgs(['pr', '--title', 'feat: x', '--body-file', 's.md']).bodyFile, 's.md')
   assert.equal(parseArgs(['close', '15', '--learning', 'a b']).learning, 'a b')
+  assert.equal(parseArgs(['verify', '96', '--keep-data']).keepData, true)
+  assert.throws(() => parseArgs(['start', '96', '--keep-data']), /Unknown option "--keep-data"/)
   assert.throws(() => parseArgs(['start']), /one issue number/)
   assert.throws(() => parseArgs(['pr', '3']), /no issue numbers/)
   assert.throws(() => parseArgs(['close', '3', '--title', 'x']), /close takes no --title/)
@@ -1156,6 +1158,43 @@ test('verify: refuses an existing worktree with local changes and leaves them', 
     args.includes('status') ? ' M apps/api/src/index.ts\n' : run(command, args, options)
   await assert.rejects(verify({ numbers: [9] }, CONFIG, io), /has local changes/)
   assert.ok(!joined(io).some((c) => c.includes('switch') || c.includes('worktree remove')))
+})
+
+test('verify --keep-data: keeps the database, applies only new migrations and does not seed', async () => {
+  const io = verifyIo({ exists: true })
+
+  await verify({ numbers: [9], keepData: true }, CONFIG, io)
+
+  const calls = joined(io)
+  assert.deepEqual(io.removed, [])
+  assert.equal(calls.filter((c) => c.includes('d1 migrations apply')).length, 2)
+  assert.ok(!calls.some((c) => c.includes('scripts/db/seed.mjs')))
+  assert.match(io.output.join('\n'), /only new migrations are applied, no seed/)
+})
+
+test('verify --keep-data with no previous database starts a fresh one', async () => {
+  const io = verifyIo({ exists: false })
+
+  await verify({ numbers: [9], keepData: true }, CONFIG, io)
+
+  assert.equal(io.removed.length, 1)
+  assert.ok(joined(io).some((c) => c.includes('scripts/db/seed.mjs')))
+  assert.match(io.output.join('\n'), /No database from a previous run: starting a fresh one/)
+})
+
+test('verify --keep-data: a migration that fails on the kept data says how to start fresh', async () => {
+  const io = verifyIo({ exists: true })
+  const run = io.run
+  io.run = (command, args, options) => {
+    if (args?.includes('migrations')) throw new Error('NOT NULL constraint failed')
+    return run(command, args, options)
+  }
+
+  await assert.rejects(
+    verify({ numbers: [9], keepData: true }, CONFIG, io),
+    /does not apply to the kept data \(NOT NULL constraint failed\)\. Run pnpm work verify without --keep-data/,
+  )
+  assert.deepEqual(io.spawned, [])
 })
 
 test('verify: refuses without a branch or with the port taken, and --dry-run only prints', async () => {
