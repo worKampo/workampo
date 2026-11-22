@@ -126,6 +126,10 @@ function deployWorker(worker, env, sha, message, io) {
   const cwd = join(ROOT, worker.dir)
   const wrangler = (args) => io.run('wrangler', args, { cwd })
 
+  // The Worker serves other packages' builds (apps/web as Static Assets); build them before
+  // migrating, so a failed build leaves the databases untouched.
+  io.run('turbo', ['run', 'build', '--filter', `${worker.package}^...`])
+
   for (const db of d1Databases(io.readFile(join(cwd, 'wrangler.jsonc')), env))
     wrangler(['d1', 'migrations', 'apply', db, '--env', env, '--remote'])
 
@@ -210,7 +214,8 @@ const BINARIES = {
 
 export function run(command, args, { cwd = ROOT, env = process.env } = {}) {
   const [file, ...prefix] = BINARIES[command](cwd)
-  const isCaptured = command === 'git' || command === 'turbo'
+  // Only output we parse is captured; a build shows its log in CI.
+  const isCaptured = command === 'git' || (command === 'turbo' && args[0] === 'ls')
   return execFileSync(file, [...prefix, ...args], {
     cwd,
     env,

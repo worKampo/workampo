@@ -111,7 +111,7 @@ test('docs-only diff deploys nothing', async () => {
     current: true,
   })
   assert.equal(calls.filter((c) => c.command === 'wrangler').length, 0)
-  const turbo = calls.find((c) => c.command === 'turbo')
+  const turbo = calls.find((c) => c.command === 'turbo' && c.args[0] === 'ls')
   assert.ok(turbo.args.includes(`...[${DEPLOYED}...${SHA}]`))
 })
 
@@ -122,7 +122,7 @@ test('unreachable /health and --all deploy everything without asking turbo', asy
   ]) {
     const { io, calls } = fakeIo(options)
     assert.deepEqual(await deploy({ env: 'stg', all }, io), { workers: WORKERS, from: '' })
-    assert.equal(calls.filter((c) => c.command === 'turbo').length, 0)
+    assert.equal(calls.filter((c) => c.command === 'turbo' && c.args[0] === 'ls').length, 0)
   }
 })
 
@@ -131,9 +131,35 @@ test('a /health sha that is not a full lowercase SHA counts as no deployed SHA',
   for (const deployed of bad) {
     const { io, calls } = fakeIo({ deployed })
     assert.deepEqual(await deploy({ env: 'stg', all: false }, io), { workers: WORKERS, from: '' })
-    assert.equal(calls.filter((c) => c.command === 'turbo').length, 0)
+    assert.equal(calls.filter((c) => c.command === 'turbo' && c.args[0] === 'ls').length, 0)
     assert.equal(calls.filter((c) => c.args.includes('cat-file')).length, 0)
   }
+})
+
+test('the Worker dependencies are built before the migrations and the dry run', async () => {
+  const { io, calls } = fakeIo()
+
+  await deploy({ env: 'prod', all: false }, io)
+
+  const build = calls.findIndex(
+    (c) => c.command === 'turbo' && c.args[0] === 'run' && c.args[1] === 'build',
+  )
+  assert.ok(build >= 0, 'turbo run build was not called')
+  assert.deepEqual(calls[build].args, ['run', 'build', '--filter', '@workampo/api^...'])
+  assert.ok(build < calls.findIndex((c) => c.command === 'wrangler'))
+})
+
+test('a failing dependency build stops the deploy before any migration', async () => {
+  const { io, calls } = fakeIo()
+  const run = io.run
+  io.run = (command, args) => {
+    if (command === 'turbo' && args[0] === 'run') throw new Error('build failed')
+    return run(command, args)
+  }
+
+  await assert.rejects(deploy({ env: 'prod', all: false }, io), /build failed/)
+
+  assert.ok(!calls.some((c) => c.command === 'wrangler'))
 })
 
 test('a real deploy migrates, builds, strips maps and deploys, always with --env', async () => {
@@ -193,8 +219,8 @@ test('HEAD at the tip of master deploys without asking turbo about later commits
   assert.deepEqual(await deploy({ env: 'prod', all: true }, io), { workers: WORKERS, from: '' })
   assert.ok(calls.some((c) => c.args[0] === 'fetch'))
   assert.ok(!calls.some((c) => ['ls-remote', 'merge-base'].includes(c.args[0])))
-  // With --all nothing asks turbo; a later-commit query would also show up here.
-  assert.ok(!calls.some((c) => c.command === 'turbo'))
+  // With --all nothing asks turbo which Workers changed; a later-commit query would show up here.
+  assert.ok(!calls.some((c) => c.command === 'turbo' && c.args[0] === 'ls'))
   assert.equal(deploysOf(calls).length, 2)
 })
 
