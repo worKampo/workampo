@@ -36,6 +36,13 @@ Decided by the person in ticket 96 (2026-11-22).
 3. **Rate limiting with counters in `DB_GLOBAL`**: one table of fixed-window counters, keyed by purpose and subject (code requests per email and per IP, failed attempts per email; the email stored as a hash), incremented atomically with a single upsert that returns the new count. Thresholds and windows are environment variables (AGENTS.md "No entra"). The Worker's single cron deletes expired windows ([ADR-0048](0048-separate-backoffice-worker-and-account-limits.md)). WorkOS's own limits stay as a second layer.
    - Why not the binding: availability on Free is not documented, its windows are 10 or 60 s, and its counts are per location and approximate. Not KV: 1,000 writes a day and eventual consistency. Not a Durable Object: strict and free, but one more moving part for the same result.
    - It can be revisited when the binding is confirmed on Free (for short per-IP bursts) or when the counters' writes weigh on D1 Free.
+4. **Load only what each screen needs** (the person, 2026-11-22):
+   - Every route is lazy by default: TanStack Router code-based `.lazy(() => import(...))`, with the screen as the split point, and `defaultPreload: 'intent'`, so hovering or focusing a link downloads it.
+   - Heavy pieces inside a screen (editors, charts, maps, date pickers) are imported when opened, with the skeleton meanwhile ([patterns](../design/patterns.md)).
+   - Translations load on demand: only the active language and only the namespaces (domains) a screen uses, plus `common`, by dynamic import of `packages/i18n/locales/<lang>/<ns>.json` through a few-line i18next backend of our own (no dependency). The ca → es → en fallback still applies: i18next loads the chain's files of each namespace it loads.
+   - A size budget in CI: a check measures the gzip size of the initial JS of `/login` and of the signed-in app shell and fails over its limit; the limits come from the first measurement plus about 10 % and live in the script.
+   - The mobile app (Expo) follows the same rules for translations and heavy pieces; it does not need per-screen splitting.
+   - A chunk that fails to load is handled by [ADR-0059](0059-web-client-version.md).
 
 This resolves the "Decided later" line of [ADR-0053](0053-code-conventions.md) for router, server state and forms, the library of [ADR-0047](0047-i18n-from-the-start.md), and the deferred rate limiting of [ADR-0065](0065-zero-spend-and-free-tier-limits.md) for sign-in.
 

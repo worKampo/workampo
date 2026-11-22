@@ -129,6 +129,11 @@ Use one name end to end: living-spec rule (`@id:companies-15-1`) â†’ use case â†
 - Styles: only tokens ([`docs/design/tokens.css`](../design/tokens.css)) and Tailwind scale classes; no arbitrary values (`text-[20px]`) outside `packages/ui`.
 - Texts through i18n keys, never literals ([ADR-0047](../adr/0047-i18n-from-the-start.md)).
 - Search `packages/ui` and [`docs/design/components.md`](../design/components.md) before creating a component.
+- Load only what a screen needs (the person, 2026-11-22; [ADR-0073](../adr/0073-frontend-stack-and-rate-limiting.md) point 4):
+  - Every route is lazy (`.lazy(() => import(...))`, one split per screen) and the router preloads on intent.
+  - Heavy pieces inside a screen (editors, charts, maps, date pickers) are imported when opened, with a skeleton meanwhile.
+  - Translations load per language and namespace on demand; never import a locale file statically in the web.
+  - The initial JS of `/login` and of the signed-in shell stays under the budget the web check enforces.
 
 | Level | Where | Rule |
 |---|---|---|
