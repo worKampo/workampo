@@ -6,7 +6,7 @@ import { sessionRepo } from '../../_shared/auth/session-repo'
 import { hashSessionToken, newSessionToken } from '../../_shared/auth/session-token'
 import { newId } from '../../_shared/ids/uuid'
 import { AccessError } from '../errors'
-import { userRepo } from '../user-repo'
+import { userRepo } from '../users/user-repo'
 import { identityRepo } from './identity-repo'
 import { commitSignIn } from './sign-in-repo'
 

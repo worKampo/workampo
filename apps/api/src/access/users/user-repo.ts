@@ -1,6 +1,6 @@
 import { users } from '@workampo/db/schema/global'
 import { eq } from 'drizzle-orm'
-import { globalDb } from '../_shared/db/d1-global-db'
+import { globalDb } from '../../_shared/db/d1-global-db'
 
 // Writes come back unawaited so a use case can put them in one batch() with other writes.
 export function userRepo(env: { DB_GLOBAL: D1Database }) {
