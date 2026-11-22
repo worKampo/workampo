@@ -68,7 +68,12 @@ function CodeForm({ email }: { email: string }) {
         <Button type="submit" disabled={verify.isPending}>
           {t('code.submit')}
         </Button>
-        <Button variant="secondary" onClick={resendCode} disabled={resend.isPending}>
+        {/* Not while a code is being checked: resetting that check would drop its navigation. */}
+        <Button
+          variant="secondary"
+          onClick={resendCode}
+          disabled={resend.isPending || verify.isPending}
+        >
           {t('code.resend')}
         </Button>
       </form>
