@@ -3,7 +3,7 @@ import { expect, it } from 'vitest'
 
 const STATE_COOKIE = /__Host-oauth_state=([^;]+)/
 
-it.fails('@id:access-96-6 Google start redirects with a state cookie and the callback signs in', async () => {
+it('@id:access-96-6 Google start redirects with a state cookie and the callback signs in', async () => {
   const { response, state, location } = await startGoogle()
 
   expect(response.status).toBe(302)
@@ -17,7 +17,7 @@ it.fails('@id:access-96-6 Google start redirects with a state cookie and the cal
   expect(await me(sessionCookie(back))).toMatchObject({ email: 'google@example.com' })
 })
 
-it.fails('@id:access-96-7 a state that does not match the cookie creates no session', async () => {
+it('@id:access-96-7 a state that does not match the cookie creates no session', async () => {
   const { state, location } = await startGoogle()
   const forged = new URL(location)
   forged.searchParams.set('state', 'forged')
@@ -30,7 +30,7 @@ it.fails('@id:access-96-7 a state that does not match the cookie creates no sess
   }
 })
 
-it.fails('@id:access-96-8 a linked identity signs in to the same account with Google', async () => {
+it('@id:access-96-8 a linked identity signs in to the same account with Google', async () => {
   const first = await me(sessionCookie(await signInWithGoogle()))
   const second = await me(sessionCookie(await signInWithGoogle()))
 
