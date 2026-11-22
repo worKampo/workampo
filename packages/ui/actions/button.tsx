@@ -1,5 +1,5 @@
 import type { ComponentProps } from 'react'
-import { cx } from './cx'
+import { cx } from '../lib/cx'
 
 // docs/design/components.md, "Buttons": 36 / 44 high, small 32 / 40, 13 px weight 500, radius 8.
 const VARIANTS = {

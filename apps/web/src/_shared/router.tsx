@@ -1,5 +1,5 @@
 import { createRootRoute, createRoute, createRouter, Outlet } from '@tanstack/react-router'
-import { Logo } from '@workampo/ui/logo'
+import { Logo } from '@workampo/ui/brand'
 
 // Code-based routes (ADR-0073): each domain adds its own from its folder.
 const rootRoute = createRootRoute({ component: Outlet })

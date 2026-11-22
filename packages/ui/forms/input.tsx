@@ -1,5 +1,5 @@
 import type { ComponentProps } from 'react'
-import { cx } from './cx'
+import { cx } from '../lib/cx'
 
 // docs/design/components.md, "Fields": 16 px text on touch so iOS does not zoom.
 export function Input({ className, ...props }: ComponentProps<'input'>) {

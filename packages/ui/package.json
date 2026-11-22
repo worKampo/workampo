@@ -3,8 +3,12 @@
   "private": true,
   "type": "module",
   "exports": {
-    "./styles.css": "./styles.css",
-    "./*": "./*.tsx"
+    "./styles.css": "./styles/styles.css",
+    "./actions": "./actions/index.ts",
+    "./forms": "./forms/index.ts",
+    "./content": "./content/index.ts",
+    "./brand": "./brand/index.ts",
+    "./lib": "./lib/index.ts"
   },
   "scripts": {
     "typecheck": "tsc",
