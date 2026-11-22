@@ -136,6 +136,12 @@ Use one name end to end: living-spec rule (`@id:companies-15-1`) â†’ use case â†
   - Heavy pieces inside a screen (editors, charts, maps, date pickers) are imported when opened, with a skeleton meanwhile.
   - Translations load per language and namespace on demand; never import a locale file statically in the web.
   - The initial JS of `/login` and of the signed-in shell stays under the budget the web check enforces.
+- Where state lives (the person, 2026-11-22; [ADR-0073](../adr/0073-frontend-stack-and-rate-limiting.md) point 5):
+  - Server data: only the TanStack Query cache of `packages/client`; never copied into context or `useState`.
+  - Shareable or restorable state (company, filters, search, page, sort, open drawer): the URL.
+  - UI state: local `useState`, lifted only as far as needed. Form state: react-hook-form in its screen.
+  - Context: only rarely-changing app-wide values not from the server (router, query and i18n providers, theme, toast queue), in `apps/web/src/_shared/providers/` with a one-line why.
+  - Shared or persisted client state: a Zustand store in `packages/client` with injected storage, versioned with a migration; never personal data, tokens or server data. No other global state library without an ADR.
 
 | Level | Where | Rule |
 |---|---|---|

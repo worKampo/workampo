@@ -43,6 +43,14 @@ Decided by the person in ticket 96 (2026-11-22).
    - A size budget in CI: a check measures the gzip size of the initial JS of `/login` and of the signed-in app shell and fails over its limit; the limits come from the first measurement plus about 10 % and live in the script.
    - The mobile app (Expo) follows the same rules for translations and heavy pieces; it does not need per-screen splitting.
    - A chunk that fails to load is handled by [ADR-0059](0059-web-client-version.md).
+5. **Where frontend state lives** (the person, 2026-11-22):
+   - Server data lives only in the TanStack Query cache (`packages/client`), never copied into context or `useState`.
+   - What can be shared or restored goes in the URL: company, filters, search, page, sort, open drawer.
+   - UI state is local (`useState`), lifted only as far as needed.
+   - Form state lives in react-hook-form inside its screen.
+   - React context only for app-wide values that change rarely and do not come from the server: library providers (router, query, i18n), theme, toast queue. Each lives in `apps/web/src/_shared/providers/` with a one-line why.
+   - Client state that is not server data and must be shared across distant parts of the app, or kept in browser storage between sessions (preferences, dismissed hints, drafts), uses **Zustand**, with its `persist` middleware for storage. The store is defined in `packages/client` with the storage injected (web: `localStorage` through `createJSONStorage`; mobile: its own), so web and mobile share it. Never persisted: personal data, tokens or anything the server owns (the session stays in the HttpOnly cookie). Every persisted store has a version and a migration. No other global state library without an ADR. Zustand is added with the first store that needs it.
+   - The mobile app follows the same rules with the same hooks and stores of `packages/client`.
 
 This resolves the "Decided later" line of [ADR-0053](0053-code-conventions.md) for router, server state and forms, the library of [ADR-0047](0047-i18n-from-the-start.md), and the deferred rate limiting of [ADR-0065](0065-zero-spend-and-free-tier-limits.md) for sign-in.
 
