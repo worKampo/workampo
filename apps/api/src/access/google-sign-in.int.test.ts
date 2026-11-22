@@ -3,37 +3,6 @@ import { expect, it } from 'vitest'
 
 const STATE_COOKIE = /__Host-oauth_state=([^;]+)/
 
-/** Starts Google sign-in; the fake's authorization URL points back to our callback. */
-async function startGoogle() {
-  const response = await exports.default.fetch('https://app.test/api/sessions/google', {
-    redirect: 'manual',
-  })
-  const state = STATE_COOKIE.exec(response.headers.get('Set-Cookie') ?? '')?.[1]
-  return { response, state, location: response.headers.get('Location') ?? '' }
-}
-
-function callback(url: string, cookie?: string) {
-  return exports.default.fetch(url, {
-    redirect: 'manual',
-    headers: cookie ? { Cookie: `__Host-oauth_state=${cookie}` } : {},
-  })
-}
-
-const sessionCookie = (response: Response) =>
-  /__Host-session=([^;]+)/.exec(response.headers.get('Set-Cookie') ?? '')?.[1]
-
-async function signInWithGoogle() {
-  const { state, location } = await startGoogle()
-  return callback(location, state)
-}
-
-async function me(token: string | undefined) {
-  const response = await exports.default.fetch('https://app.test/api/me', {
-    headers: { Cookie: `__Host-session=${token}` },
-  })
-  return response.json<{ id: string; email: string }>()
-}
-
 it.fails('@id:access-96-6 Google start redirects with a state cookie and the callback signs in', async () => {
   const { response, state, location } = await startGoogle()
 
@@ -68,3 +37,37 @@ it.fails('@id:access-96-8 a linked identity signs in to the same account with Go
   expect(first.email).toBe('google@example.com')
   expect(second.id).toBe(first.id)
 })
+
+/** Starts Google sign-in; the fake's authorization URL points back to our callback. */
+async function startGoogle() {
+  const response = await exports.default.fetch('https://app.test/api/sessions/google', {
+    redirect: 'manual',
+  })
+  const state = STATE_COOKIE.exec(response.headers.get('Set-Cookie') ?? '')?.[1]
+
+  return { response, state, location: response.headers.get('Location') ?? '' }
+}
+
+function callback(url: string, cookie?: string) {
+  return exports.default.fetch(url, {
+    redirect: 'manual',
+    headers: cookie ? { Cookie: `__Host-oauth_state=${cookie}` } : {},
+  })
+}
+
+const sessionCookie = (response: Response) =>
+  /__Host-session=([^;]+)/.exec(response.headers.get('Set-Cookie') ?? '')?.[1]
+
+async function signInWithGoogle() {
+  const { state, location } = await startGoogle()
+
+  return callback(location, state)
+}
+
+async function me(token: string | undefined) {
+  const response = await exports.default.fetch('https://app.test/api/me', {
+    headers: { Cookie: `__Host-session=${token}` },
+  })
+
+  return response.json<{ id: string; email: string }>()
+}

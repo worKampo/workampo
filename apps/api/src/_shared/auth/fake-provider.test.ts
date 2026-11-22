@@ -4,29 +4,31 @@ import { fakeProvider } from './fake-provider'
 import { InvalidCodeError } from './identity-provider'
 import { identityProviderContract } from './identity-provider.contract'
 
-identityProviderContract('the fake', () => fakeProvider, {
+identityProviderContract({
+  name: 'the fake',
+  makeProvider: () => fakeProvider,
   email: 'ana@example.com',
   validCode: FAKE_VALID_CODE,
   invalidCode: '111111',
 })
 
-const signIn = (email: string) => fakeProvider.completeCodeSignIn({ email, code: FAKE_VALID_CODE })
-
 describe('the fake identities that tests and the seed rely on', () => {
   it.each([
-    ['ana@example.com', 'fake|ana@example.com', 'ana@example.com', true],
-    ['linked@example.com', 'fake|linked', 'linked@example.com', true],
-    ['unverified@example.com', 'fake|unverified', 'unverified@example.com', false],
-    ['taken@example.com', 'fake|taken@example.com', 'taken@example.com', true],
-    ['renamed@example.com', 'fake|renamed', 'renamed.new@example.com', true],
-    ['clash@example.com', 'fake|clash', 'linked@example.com', true],
-  ])('%s signs in as %s', async (email, subject, identityEmail, isEmailVerified) => {
-    expect(await signIn(email)).toEqual({
-      provider: 'workos',
-      subject,
-      email: identityEmail,
-      isEmailVerified,
-    })
+    { typed: 'ana@example.com', subject: 'fake|ana@example.com', email: 'ana@example.com' },
+    { typed: 'linked@example.com', subject: 'fake|linked', email: 'linked@example.com' },
+    {
+      typed: 'unverified@example.com',
+      subject: 'fake|unverified',
+      email: 'unverified@example.com',
+      isEmailVerified: false,
+    },
+    { typed: 'taken@example.com', subject: 'fake|taken@example.com', email: 'taken@example.com' },
+    { typed: 'renamed@example.com', subject: 'fake|renamed', email: 'renamed.new@example.com' },
+    { typed: 'clash@example.com', subject: 'fake|clash', email: 'linked@example.com' },
+  ])('$typed signs in as $subject', async ({ typed, subject, email, isEmailVerified = true }) => {
+    const identity = await signIn(typed)
+
+    expect(identity).toEqual({ provider: 'workos', subject, email, isEmailVerified })
   })
 
   it('the expired code is invalid like a wrong one', async () => {
@@ -56,3 +58,5 @@ describe('the fake identities that tests and the seed rely on', () => {
     )
   })
 })
+
+const signIn = (email: string) => fakeProvider.completeCodeSignIn({ email, code: FAKE_VALID_CODE })

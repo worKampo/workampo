@@ -23,14 +23,20 @@ describe('@id:access-96-5 code requests are counted in fixed windows', () => {
   })
 
   it('counts by email and by IP under separate keys', () => {
-    expect(rateLimitKey('code_request', 'email', 'abc')).toBe('code_request:email:abc')
-    expect(rateLimitKey('code_request', 'ip', 'abc')).toBe('code_request:ip:abc')
+    expect(
+      rateLimitKey({ purpose: 'code_request', subjectKind: 'email', subjectHash: 'abc' }),
+    ).toBe('code_request:email:abc')
+    expect(rateLimitKey({ purpose: 'code_request', subjectKind: 'ip', subjectHash: 'abc' })).toBe(
+      'code_request:ip:abc',
+    )
   })
 })
 
 describe('@id:access-96-4 code attempts have a limit', () => {
   it('counts attempts per email under their own key', () => {
-    expect(rateLimitKey('code_attempt', 'email', 'abc')).toBe('code_attempt:email:abc')
+    expect(
+      rateLimitKey({ purpose: 'code_attempt', subjectKind: 'email', subjectHash: 'abc' }),
+    ).toBe('code_attempt:email:abc')
   })
 
   it('is over the limit only once the count passes the threshold', () => {

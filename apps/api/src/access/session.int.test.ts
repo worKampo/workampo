@@ -4,56 +4,6 @@ import { expect, it } from 'vitest'
 const VALID_CODE = '424242'
 const DAY_MS = 24 * 60 * 60 * 1000
 
-function signIn(email: string, previousToken?: string) {
-  return exports.default.fetch('https://app.test/api/sessions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      ...(previousToken && { Cookie: `__Host-session=${previousToken}` }),
-    },
-    body: JSON.stringify({ email, code: VALID_CODE }),
-  })
-}
-
-function sessionToken(response: Response) {
-  const token = /__Host-session=([^;]+)/.exec(response.headers.get('Set-Cookie') ?? '')?.[1]
-  if (!token) throw new Error('no session cookie')
-  return token
-}
-
-const me = (token: string) =>
-  exports.default.fetch('https://app.test/api/me', {
-    headers: { Cookie: `__Host-session=${token}` },
-  })
-
-async function expectUnauthenticated(token: string) {
-  const response = await me(token)
-  expect(response.status).toBe(401)
-  expect(await response.json()).toMatchObject({ code: 'access.unauthenticated' })
-}
-
-async function sha256Hex(text: string) {
-  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text))
-  return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, '0')).join('')
-}
-
-/** Inserts a user with a session created at `createdAt` that lasts 30 days. */
-async function insertSession(token: string, createdAt: Date) {
-  const userId = crypto.randomUUID()
-  const at = createdAt.toISOString()
-  const expiresAt = new Date(createdAt.getTime() + 30 * DAY_MS).toISOString()
-  await env.DB_GLOBAL.batch([
-    env.DB_GLOBAL.prepare(
-      'INSERT INTO users (id, email, created_at, updated_at) VALUES (?, ?, ?, ?)',
-    ).bind(userId, `new-${userId}@example.com`, at, at),
-    env.DB_GLOBAL.prepare(
-      'INSERT INTO sessions (id, user_id, token_hash, created_at, expires_at, revoked_at) VALUES (?, ?, ?, ?, ?, NULL)',
-    ).bind(crypto.randomUUID(), userId, await sha256Hex(token), at, expiresAt),
-  ])
-}
-
-const newEmail = () => `new-${crypto.randomUUID()}@example.com`
-
 it.fails('@id:access-96-13 the session cookie is __Host-, HttpOnly, Secure, SameSite=Lax, Path=/ and has no Domain', async () => {
   const response = await signIn(newEmail())
 
@@ -110,3 +60,57 @@ it.fails('@id:access-96-15 a session created 29 days ago is still valid', async 
 
   expect((await me(token)).status).toBe(200)
 })
+
+function signIn(email: string, previousToken?: string) {
+  return exports.default.fetch('https://app.test/api/sessions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(previousToken && { Cookie: `__Host-session=${previousToken}` }),
+    },
+    body: JSON.stringify({ email, code: VALID_CODE }),
+  })
+}
+
+function sessionToken(response: Response) {
+  const token = /__Host-session=([^;]+)/.exec(response.headers.get('Set-Cookie') ?? '')?.[1]
+  if (!token) throw new Error('no session cookie')
+
+  return token
+}
+
+const me = (token: string) =>
+  exports.default.fetch('https://app.test/api/me', {
+    headers: { Cookie: `__Host-session=${token}` },
+  })
+
+async function expectUnauthenticated(token: string) {
+  const response = await me(token)
+
+  expect(response.status).toBe(401)
+  expect(await response.json()).toMatchObject({ code: 'access.unauthenticated' })
+}
+
+async function sha256Hex(text: string) {
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text))
+
+  return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, '0')).join('')
+}
+
+/** Inserts a user with a session created at `createdAt` that lasts 30 days. */
+async function insertSession(token: string, createdAt: Date) {
+  const userId = crypto.randomUUID()
+  const at = createdAt.toISOString()
+  const expiresAt = new Date(createdAt.getTime() + 30 * DAY_MS).toISOString()
+
+  await env.DB_GLOBAL.batch([
+    env.DB_GLOBAL.prepare(
+      'INSERT INTO users (id, email, created_at, updated_at) VALUES (?, ?, ?, ?)',
+    ).bind(userId, `new-${userId}@example.com`, at, at),
+    env.DB_GLOBAL.prepare(
+      'INSERT INTO sessions (id, user_id, token_hash, created_at, expires_at, revoked_at) VALUES (?, ?, ?, ?, ?, NULL)',
+    ).bind(crypto.randomUUID(), userId, await sha256Hex(token), at, expiresAt),
+  ])
+}
+
+const newEmail = () => `new-${crypto.randomUUID()}@example.com`

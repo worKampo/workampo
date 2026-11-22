@@ -13,12 +13,6 @@ const authenticateAnswerSchema = z.object({
   user: z.object({ id: z.string(), email: z.string(), email_verified: z.boolean() }),
 })
 
-type Origin = { ipAddress?: string | undefined; userAgent?: string | undefined }
-const originFields = ({ ipAddress, userAgent }: Origin) => ({
-  ...(ipAddress && { ip_address: ipAddress }),
-  ...(userAgent && { user_agent: userAgent }),
-})
-
 export function workosProvider({
   apiKey,
   clientId,
@@ -98,3 +92,9 @@ export function workosProvider({
       authenticate({ grant_type: 'authorization_code', code, ...originFields(origin) }),
   }
 }
+
+type Origin = { ipAddress?: string | undefined; userAgent?: string | undefined }
+const originFields = ({ ipAddress, userAgent }: Origin) => ({
+  ...(ipAddress && { ip_address: ipAddress }),
+  ...(userAgent && { user_agent: userAgent }),
+})

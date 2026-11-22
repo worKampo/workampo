@@ -6,38 +6,6 @@ const VALID_CODE = '424242'
 // Thresholds are environment variables (AGENTS.md "No entra"): try until the limit shows up.
 const MAX_TRIES = 100
 
-const newEmail = () => `new-${crypto.randomUUID()}@example.com`
-const newIp = () => `2001:db8::${crypto.randomUUID().slice(0, 4)}`
-
-function post(path: string, body: unknown, ip = newIp()) {
-  return exports.default.fetch(`https://app.test${path}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'CF-Connecting-IP': ip },
-    body: JSON.stringify(body),
-  })
-}
-
-async function expectProblem(response: Response, status: number, code: string) {
-  expect(response.status).toBe(status)
-  expect(response.headers.get('Content-Type')).toContain('application/problem+json')
-  expect(await response.json()).toMatchObject({ code })
-}
-
-async function postUntil429(path: string, body: () => unknown, ip?: string) {
-  for (let i = 0; i < MAX_TRIES; i++) {
-    const response = await post(path, body(), ip)
-    if (response.status === 429) return response
-  }
-  throw new Error(`no 429 from ${path} after ${MAX_TRIES} requests`)
-}
-
-const countUsers = async (email: string) =>
-  (
-    await env.DB_GLOBAL.prepare('SELECT COUNT(*) AS n FROM users WHERE email = ?')
-      .bind(email)
-      .first<{ n: number }>()
-  )?.n
-
 it.fails('@id:access-96-1 requesting a code answers 202 without the code', async () => {
   const response = await post('/api/sign-in-codes', { email: newEmail() })
 
@@ -48,7 +16,7 @@ it.fails('@id:access-96-1 requesting a code answers 202 without the code', async
 it.fails('@id:access-96-1 an invalid email answers 400 access.invalid_email', async () => {
   const response = await post('/api/sign-in-codes', { email: 'not-an-email' })
 
-  await expectProblem(response, 400, 'access.invalid_email')
+  await expectProblem(response, { status: 400, code: 'access.invalid_email' })
 })
 
 it.fails('@id:access-96-2 the right code of an email without an account creates it and signs in', async () => {
@@ -99,7 +67,7 @@ it.fails('@id:access-96-3 a wrong or expired code answers 400 access.invalid_cod
   for (const code of ['000000', '111111']) {
     const response = await post('/api/sessions', { email, code })
 
-    await expectProblem(response, 400, 'access.invalid_code')
+    await expectProblem(response, { status: 400, code: 'access.invalid_code' })
     expect(response.headers.has('Set-Cookie')).toBe(false)
   }
   expect(await countUsers(email)).toBe(0)
@@ -117,34 +85,92 @@ it.fails('@id:access-96-4 after too many attempts even the right code answers 42
   const email = newEmail()
   await post('/api/sign-in-codes', { email })
 
-  const limited = await postUntil429('/api/sessions', () => ({ email, code: '111111' }))
+  const limited = await postUntil429({
+    path: '/api/sessions',
+    body: () => ({ email, code: '111111' }),
+  })
 
-  await expectProblem(limited, 429, 'access.too_many_attempts')
+  await expectProblem(limited, { status: 429, code: 'access.too_many_attempts' })
   const right = await post('/api/sessions', { email, code: VALID_CODE })
-  await expectProblem(right, 429, 'access.too_many_attempts')
+  await expectProblem(right, { status: 429, code: 'access.too_many_attempts' })
   expect(await countUsers(email)).toBe(0)
 })
 
 it.fails('@id:access-96-4 successful attempts count towards the limit too', async () => {
   const email = newEmail()
 
-  const limited = await postUntil429('/api/sessions', () => ({ email, code: VALID_CODE }))
+  const limited = await postUntil429({
+    path: '/api/sessions',
+    body: () => ({ email, code: VALID_CODE }),
+  })
 
-  await expectProblem(limited, 429, 'access.too_many_attempts')
+  await expectProblem(limited, { status: 429, code: 'access.too_many_attempts' })
 })
 
 it.fails('@id:access-96-5 too many code requests for an email answer 429', async () => {
   const email = newEmail()
 
-  const limited = await postUntil429('/api/sign-in-codes', () => ({ email }))
+  const limited = await postUntil429({ path: '/api/sign-in-codes', body: () => ({ email }) })
 
-  await expectProblem(limited, 429, 'access.too_many_code_requests')
+  await expectProblem(limited, { status: 429, code: 'access.too_many_code_requests' })
 })
 
 it.fails('@id:access-96-5 too many code requests from an IP answer 429', async () => {
   const ip = newIp()
 
-  const limited = await postUntil429('/api/sign-in-codes', () => ({ email: newEmail() }), ip)
+  const limited = await postUntil429({
+    path: '/api/sign-in-codes',
+    body: () => ({ email: newEmail() }),
+    ip,
+  })
 
-  await expectProblem(limited, 429, 'access.too_many_code_requests')
+  await expectProblem(limited, { status: 429, code: 'access.too_many_code_requests' })
 })
+
+const newEmail = () => `new-${crypto.randomUUID()}@example.com`
+const newIp = () => `2001:db8::${crypto.randomUUID().slice(0, 4)}`
+
+function post(path: string, body: unknown) {
+  return send({ path, body, ip: newIp() })
+}
+
+function send({ path, body, ip }: { path: string; body: unknown; ip: string }) {
+  return exports.default.fetch(`https://app.test${path}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'CF-Connecting-IP': ip },
+    body: JSON.stringify(body),
+  })
+}
+
+async function expectProblem(
+  response: Response,
+  { status, code }: { status: number; code: string },
+) {
+  expect(response.status).toBe(status)
+  expect(response.headers.get('Content-Type')).toContain('application/problem+json')
+  expect(await response.json()).toMatchObject({ code })
+}
+
+async function postUntil429({
+  path,
+  body,
+  ip,
+}: {
+  path: string
+  body: () => unknown
+  ip?: string
+}) {
+  for (let i = 0; i < MAX_TRIES; i++) {
+    const response = await send({ path, body: body(), ip: ip ?? newIp() })
+    if (response.status === 429) return response
+  }
+
+  throw new Error(`no 429 from ${path} after ${MAX_TRIES} requests`)
+}
+
+const countUsers = async (email: string) =>
+  (
+    await env.DB_GLOBAL.prepare('SELECT COUNT(*) AS n FROM users WHERE email = ?')
+      .bind(email)
+      .first<{ n: number }>()
+  )?.n

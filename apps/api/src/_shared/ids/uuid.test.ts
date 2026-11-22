@@ -10,6 +10,7 @@ describe('newId', () => {
 
   it('starts with the creation time in milliseconds', () => {
     const id = newId(new Date('2026-11-22T10:00:00.000Z'))
+
     expect(Number.parseInt(id.replace('-', '').slice(0, 12), 16)).toBe(
       Date.parse('2026-11-22T10:00:00.000Z'),
     )
@@ -18,6 +19,7 @@ describe('newId', () => {
   it('sorts by creation time and never repeats', () => {
     const earlier = newId(new Date('2026-11-22T10:00:00.000Z'))
     const later = newId(new Date('2026-11-22T10:00:00.001Z'))
+
     expect(earlier < later).toBe(true)
     expect(new Set(Array.from({ length: 1000 }, () => newId())).size).toBe(1000)
   })

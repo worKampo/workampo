@@ -29,6 +29,7 @@ describe('problemJson', () => {
 describe('toProblem', () => {
   it('translates a thrown error that carries a known code', () => {
     const error = Object.assign(new Error('wrong code'), { code: 'access.invalid_code' })
+
     expect(toProblem(error)?.status).toBe(400)
   })
 

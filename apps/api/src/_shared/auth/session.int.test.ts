@@ -12,33 +12,6 @@ const app = new Hono<AppEnv & { Variables: SessionVariables }>()
 
 const DAY_MS = 24 * 60 * 60 * 1000
 
-async function sessionOf(userId: string, { createdAgoMs = 0, isRevoked = false } = {}) {
-  const token = newSessionToken()
-  const createdAt = new Date(Date.now() - createdAgoMs)
-  await env.DB_GLOBAL.prepare(
-    "INSERT INTO users (id, email, created_at, updated_at) VALUES (?, ?, '2026-01-01', '2026-01-01')",
-  )
-    .bind(userId, `${userId}@example.com`)
-    .run()
-  await sessionRepo(env).create({
-    id: crypto.randomUUID(),
-    userId,
-    tokenHash: await hashSessionToken(token),
-    createdAt: createdAt.toISOString(),
-    expiresAt: new Date(createdAt.getTime() + 30 * DAY_MS).toISOString(),
-    revokedAt: isRevoked ? createdAt.toISOString() : null,
-  })
-  return token
-}
-
-const me = (token?: string) =>
-  app.request('/me', token ? { headers: { Cookie: `__Host-session=${token}` } } : {}, env)
-
-async function expectUnauthenticated(response: Response) {
-  expect(response.status).toBe(401)
-  expect(await response.json()).toMatchObject({ code: 'access.unauthenticated' })
-}
-
 describe('requireSession', () => {
   it('lets a valid session through with its user', async () => {
     const userId = crypto.randomUUID()
@@ -72,3 +45,30 @@ describe('requireSession', () => {
     await expectUnauthenticated(await me(token))
   })
 })
+
+async function sessionOf(userId: string, { createdAgoMs = 0, isRevoked = false } = {}) {
+  const token = newSessionToken()
+  const createdAt = new Date(Date.now() - createdAgoMs)
+  await env.DB_GLOBAL.prepare(
+    "INSERT INTO users (id, email, created_at, updated_at) VALUES (?, ?, '2026-01-01', '2026-01-01')",
+  )
+    .bind(userId, `${userId}@example.com`)
+    .run()
+  await sessionRepo(env).create({
+    id: crypto.randomUUID(),
+    userId,
+    tokenHash: await hashSessionToken(token),
+    createdAt: createdAt.toISOString(),
+    expiresAt: new Date(createdAt.getTime() + 30 * DAY_MS).toISOString(),
+    revokedAt: isRevoked ? createdAt.toISOString() : null,
+  })
+  return token
+}
+
+const me = (token?: string) =>
+  app.request('/me', token ? { headers: { Cookie: `__Host-session=${token}` } } : {}, env)
+
+async function expectUnauthenticated(response: Response) {
+  expect(response.status).toBe(401)
+  expect(await response.json()).toMatchObject({ code: 'access.unauthenticated' })
+}

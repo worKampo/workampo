@@ -15,10 +15,24 @@
   "javascript": { "formatter": { "quoteStyle": "single", "semicolons": "asNeeded" } },
   "linter": {
     "rules": {
-      "style": { "noDefaultExport": "error" }
+      "style": {
+        "noDefaultExport": "error",
+        "noNestedTernary": "error",
+        "noUselessElse": "error"
+      },
+      "complexity": { "useMaxParams": { "level": "error", "options": { "max": 2 } } }
     }
   },
   "overrides": [
+    {
+      "includes": ["scripts/**", "commitlint.config.mjs"],
+      "linter": {
+        "rules": {
+          "style": { "noNestedTernary": "off" },
+          "complexity": { "useMaxParams": "off" }
+        }
+      }
+    },
     {
       "includes": ["apps/*/src/index.ts", "**/*.config.ts"],
       "linter": { "rules": { "style": { "noDefaultExport": "off" } } }

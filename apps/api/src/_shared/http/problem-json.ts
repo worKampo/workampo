@@ -13,9 +13,6 @@ const STATUS_BY_CODE = {
 
 export type ProblemCode = keyof typeof STATUS_BY_CODE
 
-const isProblemCode = (code: unknown): code is ProblemCode =>
-  typeof code === 'string' && Object.hasOwn(STATUS_BY_CODE, code)
-
 // RFC 9457 with the stable `code` the interface translates.
 export function problemJson(code: ProblemCode): Response {
   const status = STATUS_BY_CODE[code]
@@ -31,3 +28,6 @@ export function toProblem(error: unknown): Response | null {
 
   return isProblemCode(code) ? problemJson(code) : null
 }
+
+const isProblemCode = (code: unknown): code is ProblemCode =>
+  typeof code === 'string' && Object.hasOwn(STATUS_BY_CODE, code)

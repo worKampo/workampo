@@ -218,7 +218,7 @@ type IdentityProvider = {
 
 ## Rate limiting
 
-Ventana fija (ADR-0073). La aritmética es pura, en `apps/api/src/_shared/rate-limit/window.ts` (regla técnica de la API, no de negocio): `windowStart(now, windowSeconds)`, `windowEnd`, `rateLimitKey(purpose, subjectKind, subjectHash)` e `isOverLimit(count, threshold)`. `_shared/rate-limit/rate-limit.ts` hashea el sujeto (SHA-256 con `crypto.subtle`), hace `INSERT … ON CONFLICT (key, window_started_at) DO UPDATE SET count = count + 1 RETURNING count` y aplica `isOverLimit`.
+Ventana fija (ADR-0073). La aritmética es pura, en `apps/api/src/_shared/rate-limit/window.ts` (regla técnica de la API, no de negocio): `windowStart(now, windowSeconds)`, `windowEnd`, `rateLimitKey({ purpose, subjectKind, subjectHash })` e `isOverLimit(count, threshold)`. `_shared/rate-limit/rate-limit.ts` hashea el sujeto (SHA-256 con `crypto.subtle`), hace `INSERT … ON CONFLICT (key, window_started_at) DO UPDATE SET count = count + 1 RETURNING count` y aplica `isOverLimit`.
 
 | Propósito      | Sujeto                  | Cuándo                       | Variable del umbral                  |
 | -------------- | ----------------------- | ---------------------------- | ------------------------------------ |

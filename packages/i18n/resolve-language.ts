@@ -13,8 +13,6 @@ export function fallbackLanguages(language: Language): readonly Language[] {
   return FALLBACKS[language]
 }
 
-const isLanguage = (tag: string): tag is Language => (LANGUAGES as readonly string[]).includes(tag)
-
 // No user or company preference yet: the browser list or Accept-Language, then English (ADR-0047).
 export function resolveLanguage(preferences: readonly string[] | string | undefined): Language {
   const tags = typeof preferences === 'string' ? byWeight(preferences) : (preferences ?? [])
@@ -40,3 +38,5 @@ function byWeight(acceptLanguage: string): string[] {
     .sort((a, b) => b.weight - a.weight)
     .map(({ tag }) => tag)
 }
+
+const isLanguage = (tag: string): tag is Language => (LANGUAGES as readonly string[]).includes(tag)

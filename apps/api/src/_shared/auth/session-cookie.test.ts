@@ -32,6 +32,7 @@ describe('the session cookie', () => {
 
   it('is read back from the request', async () => {
     const response = await app.request('/read', { headers: { Cookie: '__Host-session=token-1' } })
+
     expect(await response.text()).toBe('token-1')
     expect(await (await app.request('/read')).text()).toBe('none')
   })

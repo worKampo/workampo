@@ -133,6 +133,50 @@ Biome keeps blank lines but never adds them; apply this by hand (the person, 202
 - A single-statement `if` stays on one line when it fits; otherwise Biome puts the body on its own indented line.
 - No blank line right after an opening brace or right before a closing one.
 
+## Code shape
+
+Rules of the person (2026-11-22). Biome enforces 3, 4 and 6 (`noUselessElse`, `useMaxParams` with `max: 2`, `noNestedTernary`) outside `scripts/`, whose older tooling predates them; the rest is by hand.
+
+1. **File order**: imports, constants, then what the file exports, then its private helpers.
+   ```ts
+   const HOUR = 3600
+   export function hitRateLimit() { … sha256Hex(subject) … }
+   async function sha256Hex(text: string) { … }
+   ```
+2. **Use case sections**, each separated by a blank line: validate input, load, decide (the pure domain rule), persist, respond.
+   ```ts
+   const input = verifyCodeSchema.parse(body)
+
+   const [userBySubject, userByEmail] = await Promise.all([…])
+
+   const decision = decideSignIn({ identity, userBySubject, userByEmail })
+
+   await repo.batch(…)
+
+   return c.json({ user }, 201)
+   ```
+3. **Early returns, not nesting**: the conditions that cut go first and the normal path stays unindented; no `else` after a `return`.
+   ```ts
+   if (!session) return problemJson('access.unauthenticated')
+
+   return next()
+   ```
+4. **More than two parameters → one named object**, so call sites read `rateLimitKey({ purpose, subjectKind, subjectHash })`.
+5. **Tests in three sections** separated by a blank line: arrange, act, assert. The test name cites the example it covers as `@id:access-96-9`, the form `pnpm check:pr` looks for.
+   ```ts
+   it('@id:access-96-9 an unverified email is refused', async () => {
+     const identity = unverifiedIdentity()
+
+     const decision = decideSignIn({ identity, userBySubject: null, userByEmail: null })
+
+     expect(decision).toEqual({ kind: 'refuse', code: 'access.email_not_verified' })
+   })
+   ```
+6. **No nested ternaries**: a ternary picks between two cases; more cases use early-return `if`s or a lookup map.
+   ```ts
+   const STATUS_BY_CODE = { 'access.invalid_code': 400, 'access.too_many_attempts': 429 }
+   ```
+
 ## Logs and comments
 
 - Logs: structured JSON with request id and company id, no personal data. Errors go to Sentry through its adapter, sent with `ctx.waitUntil`.

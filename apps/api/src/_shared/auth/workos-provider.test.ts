@@ -7,34 +7,9 @@ type Call = { url: string; init: RequestInit; body: Record<string, unknown> }
 
 const workosUser = { id: 'user_01', email: 'ana@example.com', email_verified: true }
 
-// A test fetch that answers like WorkOS: never a module mock.
-function fakeWorkos(answer: (call: Call) => Response = () => Response.json({})) {
-  const calls: Call[] = []
-  const fetch = async (input: RequestInfo | URL, init: RequestInit = {}) => {
-    const call = { url: String(input), init, body: JSON.parse(String(init.body ?? '{}')) }
-    calls.push(call)
-    return answer(call)
-  }
-  return { calls, provider: workosProvider({ apiKey: 'test-key', clientId: 'test-client', fetch }) }
-}
-
-const workosAnswers = ({ url, body }: Call) => {
-  if (url.endsWith('/user_management/magic_auth'))
-    return Response.json({ id: 'magic_auth_01', email: body.email, code: '987654' })
-  if (body.code === '123456' || body.code === 'google-code')
-    return Response.json({
-      user: workosUser,
-      access_token: 'access',
-      refresh_token: 'refresh',
-      oauth_tokens: { access_token: 'google' },
-    })
-  return Response.json(
-    { error: 'invalid_grant', error_description: 'Invalid code' },
-    { status: 400 },
-  )
-}
-
-identityProviderContract('WorkOS', () => fakeWorkos(workosAnswers).provider, {
+identityProviderContract({
+  name: 'WorkOS',
+  makeProvider: () => fakeWorkos(workosAnswers).provider,
   email: 'ana@example.com',
   validCode: '123456',
   invalidCode: '111111',
@@ -161,3 +136,30 @@ describe('workosProvider', () => {
     })
   })
 })
+
+// A test fetch that answers like WorkOS: never a module mock.
+function fakeWorkos(answer: (call: Call) => Response = () => Response.json({})) {
+  const calls: Call[] = []
+  const fetch = async (input: RequestInfo | URL, init: RequestInit = {}) => {
+    const call = { url: String(input), init, body: JSON.parse(String(init.body ?? '{}')) }
+    calls.push(call)
+    return answer(call)
+  }
+  return { calls, provider: workosProvider({ apiKey: 'test-key', clientId: 'test-client', fetch }) }
+}
+
+const workosAnswers = ({ url, body }: Call) => {
+  if (url.endsWith('/user_management/magic_auth'))
+    return Response.json({ id: 'magic_auth_01', email: body.email, code: '987654' })
+  if (body.code === '123456' || body.code === 'google-code')
+    return Response.json({
+      user: workosUser,
+      access_token: 'access',
+      refresh_token: 'refresh',
+      oauth_tokens: { access_token: 'google' },
+    })
+  return Response.json(
+    { error: 'invalid_grant', error_description: 'Invalid code' },
+    { status: 400 },
+  )
+}

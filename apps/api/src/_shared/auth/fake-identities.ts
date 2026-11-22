@@ -5,23 +5,32 @@ export const FAKE_VALID_CODE = '424242'
 export const FAKE_EXPIRED_CODE = '000000'
 export const FAKE_GOOGLE_CODE = 'fake-google'
 
-const identity = (subject: string, email: string, isEmailVerified = true): VerifiedIdentity => ({
-  provider: 'workos',
-  subject: `fake|${subject}`,
-  email,
-  isEmailVerified,
-})
-
 // Emails not listed sign in as `fake|<email>`, verified.
 const FAKE_CODE_IDENTITIES: Readonly<Record<string, VerifiedIdentity>> = {
-  'linked@example.com': identity('linked', 'linked@example.com'),
-  'unverified@example.com': identity('unverified', 'unverified@example.com', false),
-  'renamed@example.com': identity('renamed', 'renamed.new@example.com'),
-  'clash@example.com': identity('clash', 'linked@example.com'),
+  'linked@example.com': fakeIdentity({ subject: 'linked', email: 'linked@example.com' }),
+  'unverified@example.com': fakeIdentity({
+    subject: 'unverified',
+    email: 'unverified@example.com',
+    isEmailVerified: false,
+  }),
+  'renamed@example.com': fakeIdentity({ subject: 'renamed', email: 'renamed.new@example.com' }),
+  'clash@example.com': fakeIdentity({ subject: 'clash', email: 'linked@example.com' }),
 }
 
-export const FAKE_GOOGLE_IDENTITY = identity('google', 'google@example.com')
+export const FAKE_GOOGLE_IDENTITY = fakeIdentity({ subject: 'google', email: 'google@example.com' })
 
 export function fakeCodeIdentity(email: string): VerifiedIdentity {
-  return FAKE_CODE_IDENTITIES[email] ?? identity(email, email)
+  return FAKE_CODE_IDENTITIES[email] ?? fakeIdentity({ subject: email, email })
+}
+
+function fakeIdentity({
+  subject,
+  email,
+  isEmailVerified = true,
+}: {
+  subject: string
+  email: string
+  isEmailVerified?: boolean
+}): VerifiedIdentity {
+  return { provider: 'workos', subject: `fake|${subject}`, email, isEmailVerified }
 }

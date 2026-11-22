@@ -11,11 +11,15 @@ export function windowEnd(start: Date, windowSeconds: number): Date {
   return new Date(start.getTime() + windowSeconds * 1000)
 }
 
-export function rateLimitKey(
-  purpose: RateLimitPurpose,
-  subjectKind: RateLimitSubjectKind,
-  subjectHash: string,
-): string {
+export function rateLimitKey({
+  purpose,
+  subjectKind,
+  subjectHash,
+}: {
+  purpose: RateLimitPurpose
+  subjectKind: RateLimitSubjectKind
+  subjectHash: string
+}): string {
   return `${purpose}:${subjectKind}:${subjectHash}`
 }
 

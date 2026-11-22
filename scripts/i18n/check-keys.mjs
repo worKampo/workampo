@@ -7,16 +7,6 @@ import { ROOT } from '../db/d1.mjs'
 const LOCALES_DIR = join(ROOT, 'packages', 'i18n', 'locales')
 const BASE = 'en'
 
-function keysOf(texts, prefix = '') {
-  return Object.entries(texts).flatMap(([key, value]) =>
-    typeof value === 'object' && value !== null
-      ? keysOf(value, `${prefix}${key}.`)
-      : value === ''
-        ? []
-        : [`${prefix}${key}`],
-  )
-}
-
 // locales: { <lang>: Map<file name, parsed JSON> }
 export function keyErrors(locales) {
   const errors = []
@@ -56,6 +46,15 @@ function readLocales(dir) {
       ),
     ]),
   )
+}
+
+// An empty text counts as missing.
+function keysOf(texts, prefix = '') {
+  return Object.entries(texts).flatMap(([key, value]) => {
+    if (typeof value === 'object' && value !== null) return keysOf(value, `${prefix}${key}.`)
+
+    return value === '' ? [] : [`${prefix}${key}`]
+  })
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {

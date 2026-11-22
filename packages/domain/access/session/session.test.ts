@@ -30,6 +30,7 @@ describe('@id:access-96-15 a session lasts 30 days', () => {
 describe('@id:access-96-14 a revoked session', () => {
   it('is not valid even before it expires', () => {
     const revokedAt = '2026-01-02T00:00:00.000Z'
+
     expect(isSessionValid({ expiresAt, revokedAt }, at('2026-01-03T00:00:00.000Z'))).toBe(false)
   })
 })
