@@ -1,0 +1,306 @@
+/* Design tokens for apps/web (Vite + React + shadcn/ui + Tailwind v4).
+   Source of truth: the approved canvas design system (ds.css). Values must stay identical to it.
+   Our token names are primary; the shadcn variables below each block only point at them. */
+
+@import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  color-scheme: light;
+
+  /* surfaces */
+  --bg: #ffffff;
+  --chrome: #f3f3f4;
+  --surface: #ffffff;
+  --surface-hover: #f6f6f7;
+  --drawer: #ffffff;
+  --table-head: #eaeaec;
+  --chrome-control: #e7e7e9;
+  --chrome-control-border: transparent;
+  --nav-hover: rgba(17, 17, 17, 0.045);
+  --nav-active: #ffffff;
+
+  /* fields */
+  --field-bg: #f7f7f8;
+  --field-border: #8e8e94;
+  --field-hover-border: #5e5e64;
+  --field-focus: #ffffff;
+  --focus-halo: rgba(17, 17, 17, 0.1);
+
+  /* lines */
+  --muted: rgba(17, 17, 17, 0.055);
+  --line: rgba(17, 17, 17, 0.14);
+  --border: rgba(17, 17, 17, 0.1);
+  --border-hard: rgba(17, 17, 17, 0.24);
+
+  /* text */
+  --text: #111111;
+  --text-1: #3f3f3f;
+  --text-1b: #333333;
+  --text-2: #5e5e5e;
+  --text-3: #6e6e6e;
+
+  /* skeleton */
+  --sk1: rgba(17, 17, 17, 0.05);
+  --sk2: rgba(17, 17, 17, 0.1);
+
+  /* ink (the only accent). ds.css also defines --accent: #111111; it is dropped here because
+     shadcn owns --accent (hover surface). Use --ui for ink. */
+  --accent-soft: rgba(17, 17, 17, 0.055);
+  --accent-border: rgba(17, 17, 17, 0.24);
+  --ui: #111111;
+  --ui-hover: #3a3a3a;
+  --on-ui: #ffffff;
+
+  /* status (data only) */
+  --pos: #0b6b3f;
+  --pos-bg: rgba(11, 107, 63, 0.07);
+  --pos-border: rgba(11, 107, 63, 0.24);
+  --neg: #a82217;
+  --neg-bg: rgba(168, 34, 23, 0.06);
+  --neg-border: rgba(168, 34, 23, 0.24);
+  --on-neg: #ffffff;
+  --info: #2c48a8;
+  --info-bg: rgba(53, 87, 199, 0.07);
+  --info-border: rgba(53, 87, 199, 0.28);
+  --warn-dot: #d97706;
+  --warn-text: #92400e;
+  --warn-bg: #fef3c7;
+  --warn-border: #f59e0b;
+
+  /* commercial emphasis: one per screen, always a fill, band or ring (ADR-0070) */
+  --commercial: #4aacdf;
+  --on-commercial: #111111;
+  --commercial-bg: rgba(74, 172, 223, 0.12);
+  --commercial-border: #3b8ab2;
+  --commercial-text: #307091;
+
+  /* brand palette of the logo: marketing pages only, which are light only (ADR-0070).
+     Text on a fill: ink on sky and orange, white on green. Sky and orange never as text on a light background. */
+  --brand-sky: #4aacdf;
+  --brand-green: #42843c;
+  --brand-orange: #f2760a;
+  --brand-sky-tint: rgba(74, 172, 223, 0.12);
+  --brand-green-tint: rgba(66, 132, 60, 0.12);
+  --brand-orange-tint: rgba(242, 118, 10, 0.12);
+
+  /* charts */
+  --c1: #0e7490;
+  --c2: #3557c7;
+  --c3: #0f766e;
+  --c4: #6d4aa8;
+  --cmp: #6b6b6b;
+
+  /* elevation */
+  --shadow-pop: 0 2px 4px -2px rgba(0, 0, 0, 0.1), 0 18px 40px -14px rgba(0, 0, 0, 0.32);
+  --shadow-modal: 0 24px 60px -20px rgba(0, 0, 0, 0.45);
+  --shadow-drawer: -16px 0 40px -16px rgba(0, 0, 0, 0.35);
+  --shadow-float: 0 12px 28px -12px rgba(0, 0, 0, 0.4);
+  --scrim: rgba(0, 0, 0, 0.36);
+
+  /* shadcn mapping */
+  --radius: 0.5rem; /* 8px: rounded-lg = controls, rounded-xl = cards and overlays (12px) */
+  /* the app body sits on grey chrome; public pages set bg-bg themselves */
+  --background: var(--chrome);
+  --foreground: var(--text);
+  --card: var(--surface);
+  --card-foreground: var(--text);
+  --popover: var(--surface);
+  --popover-foreground: var(--text);
+  --primary: var(--ui);
+  --primary-foreground: var(--on-ui);
+  --secondary: var(--muted);
+  --secondary-foreground: var(--text);
+  --muted-foreground: var(--text-2);
+  --accent: var(--surface-hover);
+  --accent-foreground: var(--text);
+  --destructive: var(--neg);
+  --destructive-foreground: var(--on-neg);
+  --input: var(--field-border);
+  --ring: var(--ui);
+  --chart-1: var(--c1);
+  --chart-2: var(--c2);
+  --chart-3: var(--c3);
+  --chart-4: var(--c4);
+  --sidebar: var(--chrome);
+  --sidebar-foreground: var(--text-1);
+  --sidebar-primary: var(--ui);
+  --sidebar-primary-foreground: var(--on-ui);
+  /* active item; hover uses --nav-hover (see components.md) */
+  --sidebar-accent: var(--nav-active);
+  --sidebar-accent-foreground: var(--text);
+  --sidebar-border: var(--border);
+  --sidebar-ring: var(--ui);
+}
+
+.dark {
+  color-scheme: dark;
+
+  --bg: #000000;
+  --chrome: #000000;
+  --surface: #0c0c0e;
+  --surface-hover: #161618;
+  --drawer: #111113;
+  --table-head: #151517;
+  --chrome-control: #0c0c0e;
+  --chrome-control-border: rgba(255, 255, 255, 0.12);
+  --nav-hover: rgba(255, 255, 255, 0.05);
+  --nav-active: rgba(255, 255, 255, 0.08);
+
+  --field-bg: #1a1a1d;
+  --field-border: #6e6e74;
+  --field-hover-border: #9a9aa0;
+  --field-focus: #111113;
+  --focus-halo: rgba(255, 255, 255, 0.14);
+
+  --muted: rgba(255, 255, 255, 0.07);
+  --line: rgba(255, 255, 255, 0.18);
+  --border: rgba(255, 255, 255, 0.12);
+  --border-hard: rgba(255, 255, 255, 0.32);
+
+  --text: #f7f7f7;
+  --text-1: #d0d0d0;
+  --text-1b: #d6d6d6;
+  --text-2: #a6a6a6;
+  --text-3: #8c8c8c;
+
+  --sk1: rgba(255, 255, 255, 0.06);
+  --sk2: rgba(255, 255, 255, 0.12);
+
+  --accent-soft: rgba(255, 255, 255, 0.08);
+  --accent-border: rgba(255, 255, 255, 0.32);
+  --ui: #f2f2f2;
+  --ui-hover: #cfcfcf;
+  --on-ui: #000000;
+
+  --pos: #5cd39a;
+  --pos-bg: rgba(92, 211, 154, 0.09);
+  --pos-border: rgba(92, 211, 154, 0.26);
+  --neg: #f5938c;
+  --neg-bg: rgba(245, 147, 140, 0.09);
+  --neg-border: rgba(245, 147, 140, 0.26);
+  --on-neg: #1a0503;
+  --info: #a9befa;
+  --info-bg: rgba(126, 156, 245, 0.1);
+  --info-border: rgba(126, 156, 245, 0.35);
+  --warn-dot: #f59e0b;
+  --warn-text: #fcd34d;
+  --warn-bg: rgba(245, 158, 11, 0.12);
+  --warn-border: rgba(245, 158, 11, 0.45);
+
+  --commercial: #4aacdf;
+  --on-commercial: #111111;
+  --commercial-bg: rgba(74, 172, 223, 0.14);
+  --commercial-border: #4aacdf;
+  --commercial-text: #4aacdf;
+
+  --c1: #5bc0d8;
+  --c2: #7e9cf5;
+  --c3: #4fc0b0;
+  --c4: #b195e8;
+  --cmp: #9a9a9a;
+
+  /* shadows and scrim are the same in both themes; the shadcn mapping inherits from :root */
+}
+
+/* Tailwind utilities: bg-chrome, text-text-2, border-border-hard, bg-pos-bg, shadow-pop… */
+@theme inline {
+  --font-sans: "IBM Plex Sans", system-ui, sans-serif;
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --color-bg: var(--bg);
+  --color-chrome: var(--chrome);
+  --color-surface: var(--surface);
+  --color-surface-hover: var(--surface-hover);
+  --color-drawer: var(--drawer);
+  --color-table-head: var(--table-head);
+  --color-chrome-control: var(--chrome-control);
+  --color-chrome-control-border: var(--chrome-control-border);
+  --color-nav-hover: var(--nav-hover);
+  --color-nav-active: var(--nav-active);
+  --color-field-bg: var(--field-bg);
+  --color-field-border: var(--field-border);
+  --color-field-hover-border: var(--field-hover-border);
+  --color-field-focus: var(--field-focus);
+  --color-focus-halo: var(--focus-halo);
+  --color-line: var(--line);
+  --color-border-hard: var(--border-hard);
+  --color-text: var(--text);
+  --color-text-1: var(--text-1);
+  --color-text-1b: var(--text-1b);
+  --color-text-2: var(--text-2);
+  --color-text-3: var(--text-3);
+  --color-sk1: var(--sk1);
+  --color-sk2: var(--sk2);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-border: var(--accent-border);
+  --color-ui: var(--ui);
+  --color-ui-hover: var(--ui-hover);
+  --color-on-ui: var(--on-ui);
+  --color-pos: var(--pos);
+  --color-pos-bg: var(--pos-bg);
+  --color-pos-border: var(--pos-border);
+  --color-neg: var(--neg);
+  --color-neg-bg: var(--neg-bg);
+  --color-neg-border: var(--neg-border);
+  --color-on-neg: var(--on-neg);
+  --color-info: var(--info);
+  --color-info-bg: var(--info-bg);
+  --color-info-border: var(--info-border);
+  --color-warn-dot: var(--warn-dot);
+  --color-warn-text: var(--warn-text);
+  --color-warn-bg: var(--warn-bg);
+  --color-warn-border: var(--warn-border);
+  --color-commercial: var(--commercial);
+  --color-on-commercial: var(--on-commercial);
+  --color-commercial-bg: var(--commercial-bg);
+  --color-commercial-border: var(--commercial-border);
+  --color-commercial-text: var(--commercial-text);
+  --color-brand-sky: var(--brand-sky);
+  --color-brand-green: var(--brand-green);
+  --color-brand-orange: var(--brand-orange);
+  --color-brand-sky-tint: var(--brand-sky-tint);
+  --color-brand-green-tint: var(--brand-green-tint);
+  --color-brand-orange-tint: var(--brand-orange-tint);
+  --color-cmp: var(--cmp);
+  --color-scrim: var(--scrim);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  /* shadows are not mapped: --shadow-* here would shadow our own names. Use shadow-(--shadow-pop). */
+}

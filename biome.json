@@ -7,17 +7,53 @@
       "!docs",
       "!**/worker-configuration.d.ts",
       "!.github/ISSUE_TEMPLATE",
-      "!.claude/agents"
+      "!.claude/agents",
+      "!packages/db/migrations/*/meta"
     ]
   },
   "formatter": { "indentStyle": "space", "indentWidth": 2, "lineEnding": "lf", "lineWidth": 100 },
+  "css": { "parser": { "tailwindDirectives": true } },
   "javascript": { "formatter": { "quoteStyle": "single", "semicolons": "asNeeded" } },
   "linter": {
     "rules": {
-      "style": { "noDefaultExport": "error" }
+      "style": {
+        "noDefaultExport": "error",
+        "noNestedTernary": "error",
+        "noUselessElse": "error"
+      },
+      "complexity": { "useMaxParams": { "level": "error", "options": { "max": 2 } } }
     }
   },
   "overrides": [
+    {
+      "includes": ["packages/app-core/**", "!**/*.test.ts"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedGlobals": {
+              "level": "error",
+              "options": {
+                "deniedGlobals": {
+                  "window": "packages/app-core is shared with the mobile app: no browser globals.",
+                  "document": "packages/app-core is shared with the mobile app: no browser globals.",
+                  "localStorage": "Inject the storage (ADR-0073 point 5).",
+                  "navigator": "packages/app-core is shared with the mobile app: no browser globals."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["scripts/**", "commitlint.config.mjs"],
+      "linter": {
+        "rules": {
+          "style": { "noNestedTernary": "off" },
+          "complexity": { "useMaxParams": "off" }
+        }
+      }
+    },
     {
       "includes": ["apps/*/src/index.ts", "**/*.config.ts"],
       "linter": { "rules": { "style": { "noDefaultExport": "off" } } }

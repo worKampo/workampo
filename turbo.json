@@ -3,9 +3,21 @@
   "tasks": {
     "typecheck": {},
     "lint": {},
-    "test": {},
-    "build": { "outputs": ["dist/**"] },
-    "dev": { "cache": false, "persistent": true },
-    "e2e": { "cache": false }
+    "test": {
+      "dependsOn": ["^build"]
+    },
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**"],
+      "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/scripts/build/**"]
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "e2e": {
+      "dependsOn": ["^build"],
+      "cache": false
+    }
   }
 }

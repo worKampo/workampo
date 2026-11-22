@@ -1,7 +1,17 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
   "workspaces": {
-    ".": { "entry": ["scripts/**/*.mjs", ".claude/hooks/*.mjs"] },
-    "apps/api": { "ignoreDependencies": ["@workampo/db"] }
+    ".": {
+      "entry": ["scripts/**/*.mjs", ".claude/hooks/*.mjs"]
+    },
+    "packages/i18n": {
+      "ignoreDependencies": ["i18next"]
+    },
+    "apps/web": {
+      "ignoreDependencies": ["tailwindcss"]
+    },
+    "apps/api": {
+      "ignoreDependencies": ["@workampo/web"]
+    }
   }
 }

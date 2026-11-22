@@ -116,6 +116,7 @@ Every architectural and process decision of worKampo, one file per decision ([MA
 | [ADR-0070](0070-colour-commercial-emphasis-and-marketing.md) | Colour for business moments and free rein on marketing pages | accepted |
 | [ADR-0071](0071-identity-providers.md) | Identity providers as plug-ins; WorkOS for the MVP | accepted |
 | [ADR-0072](0072-organization-units-and-scoped-roles.md) | Organization units in a tree and roles scoped to a branch | accepted |
+| [ADR-0073](0073-frontend-stack-and-rate-limiting.md) | Frontend stack of the SPA and rate limiting on D1 | accepted |
 
 ## Notes
 

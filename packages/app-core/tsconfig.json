@@ -1,0 +1,9 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    // fetch and Response from the Workers types: no DOM lib, as the mobile app has none.
+    "types": ["@cloudflare/workers-types"]
+  },
+  "include": ["**/*.ts", "../../apps/api/worker-configuration.d.ts"],
+  "exclude": ["node_modules"]
+}

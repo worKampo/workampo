@@ -2,25 +2,34 @@
   "name": "@workampo/api",
   "private": true,
   "type": "module",
+  "exports": {
+    "./contract": "./src/contract.ts"
+  },
   "scripts": {
     "dev": "wrangler dev",
-    "build": "wrangler deploy --dry-run --outdir dist",
+    "build": "wrangler deploy --dry-run --env prod --outdir dist && node ../../scripts/build/no-fake-provider.mjs dist",
     "typecheck": "wrangler types --include-runtime=false && tsc",
     "lint": "biome check .",
     "test": "vitest run",
     "e2e": "playwright test"
   },
   "dependencies": {
+    "@workampo/db": "workspace:*",
+    "@workampo/domain": "workspace:*",
+    "@workampo/i18n": "workspace:*",
     "@sentry/cloudflare": "11.12.0",
     "@sentry/hono": "11.12.0",
-    "hono": "4.13.18"
+    "hono": "4.13.18",
+    "zod": "4.6.7",
+    "drizzle-orm": "0.45.4",
+    "@hono/zod-validator": "0.9.1"
   },
   "devDependencies": {
-    "@workampo/db": "workspace:*",
     "@biomejs/biome": "2.6.7",
     "@cloudflare/vitest-plugin": "1.8.1",
     "@cloudflare/workers-types": "5.20261112.1",
     "@playwright/test": "1.65.1",
+    "@workampo/web": "workspace:*",
     "typescript": "6.0.3",
     "vitest": "5.1.0",
     "wrangler": "4.161.0"

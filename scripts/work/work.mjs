@@ -1082,6 +1082,8 @@ export async function verify(args, config, io) {
   const branchEnv = withoutCredentials(io.env)
   const visible = (cwd) => ({ cwd, isVisible: true, env: branchEnv })
   act('pnpm', ['install'], visible(dir))
+  // The Worker serves the built SPA (ADR-0073), as in production.
+  act('pnpm', ['--filter', '@workampo/web', 'build'], visible(dir))
   if (args.dryRun) io.log(`Would remove ${persist}`)
   else io.remove(persist)
   for (const db of Object.values(LOCAL_DATABASES))

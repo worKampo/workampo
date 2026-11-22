@@ -25,6 +25,7 @@ Short lessons that agents must not relearn. Why this file: [ADR-0052](adr/0052-l
 - Piping a file into `gh` on the person's Windows · the PowerShell `gh` function does not pass the pipe, and `cmd /c` runs the global `gh` (another account); use `cmd /c "set GH_CONFIG_DIR=%USERPROFILE%\.config\gh-workampo&& gh … < file"` · a secret ended up with the wrong value, then a 403 · [PR #51](https://github.com/worKampo/workampo/pull/51).
 - Adding a CI check · put it in `pnpm check:ci`, not in a workflow file · the agents' App cannot push commits that change `.github/workflows/` · [PR #28](https://github.com/worKampo/workampo/pull/28).
 - Checking that a path exists · a git-ignored file exists locally but not in CI, so the check treats it as missing · do not require ignored files · [PR #28](https://github.com/worKampo/workampo/pull/28).
+- Writing a commit message with trailers (`Refs`, `Reopen`, `Co-Authored-By`) · put every trailer together in the one final paragraph · git reads trailers only from the last paragraph, so a `Reopen` above a separate `Co-Authored-By` paragraph is invisible to the Acceptance order check (commitlint reads `Refs` from the raw text and hides the problem) · ticket 96.
 
 ## access
 

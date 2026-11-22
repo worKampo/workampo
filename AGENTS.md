@@ -16,14 +16,18 @@ Rules from the machine's other projects do not apply here. Work items are GitHub
 
 worKampo: a multi-tenant SaaS base on Cloudflare (Workers, D1, KV). Profile with accounts, environments, services and where secrets live: [project.yaml](project.yaml). Vision and roadmap: [docs/product/vision.md](docs/product/vision.md).
 
-| Path               | What                                                    |
-| ------------------ | ------------------------------------------------------- |
-| `apps/api/`        | Hono API on a Worker, `/health`                         |
-| `packages/db/`     | Schema, migrations, seeds and backfills (empty for now) |
-| `packages/domain/` | Pure core: no I/O, no frameworks (empty for now)        |
-| `scripts/github/`  | Repo setup and the App token                            |
-| `scripts/project/` | `project.yaml` validation                               |
-| `docs/`            | ADRs, process, domains, agents, design                  |
+| Path                 | What                                                                  |
+| -------------------- | --------------------------------------------------------------------- |
+| `apps/api/`          | Hono API on a Worker: `/health`, access (sign-in, sessions)           |
+| `apps/web/`          | The SPA (Vite, React, TanStack Router), served by the API Worker      |
+| `packages/app-core/` | What the apps share except the views: API client, hooks, form schemas |
+| `packages/db/`       | Drizzle schema, migrations, seeds and backfills                       |
+| `packages/domain/`   | Pure core: business rules, no I/O, no frameworks                      |
+| `packages/i18n/`     | Texts per language and domain, language resolution                    |
+| `packages/ui/`       | Design system: tokens, styles and components by family                |
+| `scripts/github/`    | Repo setup and the App token                                          |
+| `scripts/project/`   | `project.yaml` validation                                             |
+| `docs/`              | ADRs, process, domains, agents, design                                |
 
 ## 4. Commands
 

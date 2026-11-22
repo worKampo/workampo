@@ -40,7 +40,7 @@ What wins when sources differ:
 
 | Topic | Source of truth |
 |---|---|
-| Tokens | The canvas `ds.css`; [`tokens.css`](tokens.css) is fixed in a PR to match it |
+| Tokens | The canvas `ds.css`; [`tokens.css`](../../packages/ui/styles/tokens.css) is fixed in a PR to match it |
 | Screens not built yet | The canvas |
 | Screens already built | **The implemented app** plus the rules in this folder. The canvas and the prototype are not kept as a mirror of the app; they are for proposing changes, always starting from a screenshot of the current app |
 
@@ -84,7 +84,7 @@ The full kit, with every size and variant, lives outside the repo; add a file he
 | File | Content |
 |---|---|
 | [brand/](brand/) | The worKampo logo files the product uses ([Brand](#brand)) |
-| [tokens.css](tokens.css) | Light and dark tokens, mapped to shadcn variables and Tailwind v4 utilities |
+| [tokens.css](../../packages/ui/styles/tokens.css) | Light and dark tokens, mapped to shadcn variables and Tailwind v4 utilities |
 | [components.md](components.md) | Each component: anatomy, sizes, variants, states, a11y, shadcn base |
 | [patterns.md](patterns.md) | Shell, navigation, lists, forms, overlays, destructive actions, screen states, staff session, responsive, dark mode |
 | [content.md](content.md) | Voice and tone, labels, errors, empty states, formats, i18n |

@@ -1,0 +1,47 @@
+import { createMiddleware } from 'hono/factory'
+import { z } from 'zod'
+
+const optionalText = z.string().optional()
+const threshold = z.coerce.number().int().positive()
+const rateLimits = {
+  RATE_LIMIT_CODE_REQUESTS_PER_EMAIL: threshold,
+  RATE_LIMIT_CODE_REQUESTS_PER_IP: threshold,
+  RATE_LIMIT_CODE_ATTEMPTS_PER_EMAIL: threshold,
+  RATE_LIMIT_WINDOW_SECONDS: threshold,
+}
+
+// Variables and secrets the Worker reads beyond what `wrangler types` generates in Env.
+const extraVariablesSchema = z.object({
+  APP_VERSION: optionalText,
+  GIT_SHA: optionalText,
+  SENTRY_DSN: optionalText,
+  WORKOS_API_KEY: optionalText,
+  WORKOS_CLIENT_ID: optionalText,
+})
+
+const envSchema = z.discriminatedUnion('IDENTITY_PROVIDER', [
+  z.object({ IDENTITY_PROVIDER: z.literal('fake'), ...rateLimits }),
+  z.object({
+    IDENTITY_PROVIDER: z.literal('workos'),
+    WORKOS_API_KEY: z.string().min(1),
+    WORKOS_CLIENT_ID: z.string().min(1),
+    ...rateLimits,
+  }),
+])
+
+export type Bindings = Env & z.input<typeof extraVariablesSchema>
+
+export type ParsedEnv = z.infer<typeof envSchema>
+
+// Only the local vars name a provider; stg and prod fall back to the real one.
+export function parseEnv(bindings: Bindings): ParsedEnv {
+  return envSchema.parse({ ...bindings, IDENTITY_PROVIDER: bindings.IDENTITY_PROVIDER ?? 'workos' })
+}
+
+// Parsed once per request, for the routes that need the configuration (/health does not).
+export const parsedEnv = createMiddleware<{ Bindings: Bindings; Variables: { env: ParsedEnv } }>(
+  async (c, next) => {
+    c.set('env', parseEnv(c.env))
+    await next()
+  },
+)

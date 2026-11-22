@@ -1,0 +1,22 @@
+{
+  "login": {
+    "_screen": "The sign-in screen (/login): a card asking for the email to send a sign-in code to, and a link to sign in with Google. There is no password anywhere in the product.",
+    "continue": "Button that sends the code. Short.",
+    "google": "Link that goes to Google sign-in."
+  },
+  "code": {
+    "_screen": "The screen after asking for a code: the person types the 6-digit code we emailed. They can ask for another code or go back to change the email.",
+    "sent_to": "Keep <strong>…</strong> around the email; {{email}} is the address the person typed.",
+    "submit": "Button that checks the code and signs in."
+  },
+  "home": {
+    "_screen": "What a signed-in person sees before belonging to any company: an empty state with one action, signing out.",
+    "title": "Empty-state title: says what is not there yet."
+  },
+  "errors": {
+    "_screen": "Error messages of signing in and of the session, shown under the field or on the sign-in screen. One per error code the API returns. Short, say what happened and what to do next; never blame the person.",
+    "too_many_code_requests": "Rate limit on asking for codes; do not give the limit or the wait time.",
+    "too_many_attempts": "Rate limit on typing codes; do not give the limit or the wait time.",
+    "contact_support": "Shown when the account cannot be opened with this identity (an email already used by another account). Do not mention the other account."
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "login": {
+    "title": "Sign in",
+    "email_label": "Email",
+    "continue": "Continue",
+    "or": "or",
+    "google": "Continue with Google"
+  },
+  "code": {
+    "title": "Check your email",
+    "sent_to": "We sent a code to <strong>{{email}}</strong>. It is valid for 10 minutes.",
+    "code_label": "Code",
+    "submit": "Sign in",
+    "resend": "Resend code",
+    "resent": "We sent you a new code.",
+    "other_email": "Use another email"
+  },
+  "home": {
+    "title": "You do not belong to any company yet",
+    "body": "When a company invites you, or you create one, it will appear here.",
+    "sign_out": "Sign out"
+  },
+  "errors": {
+    "invalid_email": "Enter a valid email address.",
+    "invalid_code": "The code is not valid or has expired. You can ask for another one.",
+    "too_many_code_requests": "You have asked for too many codes. Wait a while before asking for another one.",
+    "too_many_attempts": "Too many attempts. Wait a while before trying again.",
+    "email_not_verified": "Your email address is not verified. Sign in with a verified email address.",
+    "contact_support": "We cannot open your account with this sign-in. Contact support.",
+    "invalid_state": "The sign-in could not be completed. Try again.",
+    "google_failed": "Signing in with Google did not work. Try again.",
+    "unauthenticated": "Your session has ended. Sign in again."
+  }
+}

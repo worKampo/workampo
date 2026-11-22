@@ -12,7 +12,49 @@ Rules an implementer applies. Why: [ADR-0053](../adr/0053-code-conventions.md) (
 - A domain imports only the top-level files of another domain, never its internals.
 - Internal packages by name (`@workampo/…`); no barrel files that re-export everything; no cycles.
 
+## Layout of a domain across packages and apps
+
+The same domain and feature folders everywhere, with identical feature names in every package and app (the person, 2026-11-22). Example, `access` with its features `sign-in` and `session`:
+
+```
+packages/domain/access/          errors.ts, identity.ts     what the whole domain shares (errors, types, values)
+  sign-in/  session/             pure business rules and their tests
+packages/app-core/access/        query-keys.ts: every query key of the domain
+  sign-in/  session/             data hooks (`<feature>-hooks.ts`) and form schemas; no DOM; shared by web and mobile
+packages/i18n/src/locales/<lang>/access.json   texts grouped by screen, plus `errors`; `_context/access.json` for translators
+apps/api/src/access/             routes.ts (mounts the features), errors.ts
+  sign-in/  session/             the feature's routes, use cases, repos and tests
+  users/                         a repo several features share
+apps/web/src/access/             routes.ts (gathers its features' routes)
+  sign-in/                       sign-in-routes.ts and one file per screen (`login-screen.tsx`); screen-only components beside it until a second use promotes them to packages/ui
+apps/mobile/src/access/          when the app arrives: the same feature folders, its own views, the same hooks from packages/app-core
+```
+
+`packages/ui` is not per domain: it is grouped by component family in folders that mirror the headings of [components.md](../design/components.md) (`actions/`, `forms/`, `content/`, `brand/`…), each component with its test beside it, and imported per family: `@workampo/ui/forms` (the person, 2026-11-22).
+
+The root of a package or app holds only configuration, generated files and the folders an external tool reads as they are (`migrations/`, `seed/`, `backfills/`, `public/`, `e2e/`, `test/` setup). Everything our code imports, code or data such as translations and styles, lives in `src/` or in the package's own grouping folders: domains in `packages/domain`, families in `packages/ui`, `schema/` in `packages/db` (the person, 2026-11-22).
+
+Exceptions (the person, 2026-11-22): `apps/web/src/route-tree.ts` sits at the root of `src/`, where the domains' routes meet, because `_shared/` may not import domains.
+
+### Web routing (the person, 2026-11-22)
+
+`main.tsx` → `_shared/providers/app-providers.tsx` → `_shared/router/` → `route-tree.ts` → `<domain>/routes.ts` → `<feature>/<feature>-routes.ts` → screens.
+
+1. A feature's routes file declares its URLs, validates search params and points to its screens with a lazy `import()`; nothing visual. The domain's `routes.ts` only gathers its features' routes; `route-tree.ts` gathers the domains.
+2. A screen is imported only by its own feature's routes file, always lazily; nothing else imports it (it would land in the importer's chunk), and a screen does not know its URL. dependency-cruiser enforces it.
+3. Moving between screens goes through typed URLs (`navigate({ to: '/login/code' })`, `<Link to>`), never by importing another screen.
+4. Data never passes between screens by import: through the app-core query cache or the URL; router history state only for values that must stay out of the URL, such as the sign-in email.
+5. A feature may use a component of another feature of its domain (home uses session's sign-out button); across domains it may not (dependency-cruiser), and the component is promoted to `_shared/components/` or `packages/ui`.
+
 ## Names
+
+A file is not named only by its kind when that name repeats in other folders: `sign-in-api.ts`, `session-hooks.ts`, `sign-in-routes.ts`, not `api.ts`, `hooks.ts`, `routes.ts` (the person, 2026-11-22). Exception: the convention files at the root of a domain keep one fixed name in every domain (`errors.ts`, and `routes.ts` in the apps), because that fixed name and place make the layout predictable. The same goes for `query-keys.ts` at the root of each domain in `packages/app-core`: every TanStack Query key of the domain lives there, and hooks import keys from it, never from another feature's hooks (the person, 2026-11-22).
+
+- Hooks files are `<feature>-hooks.ts`; screens `<name>-screen.tsx` (the person, 2026-11-22).
+- No barrel `index` files: a package's entries are only those declared in its `exports`. A package exports only what other packages and apps may use; internals (`*-api.ts`) and test helpers stay unexported (the person, 2026-11-22).
+- Seeds are numbered like migrations: `NNNN-<domain>.sql`, four digits (the person, 2026-11-22).
+- Test files (the person, 2026-11-22): a unit test is `<source>.test.ts`; a feature's HTTP test `<feature>-routes.int.test.ts`, or `<spec-topic>.int.test.ts` when it covers a rule of the living spec; acceptance scenarios always in `e2e/acceptance/<topic>.e2e.ts` (`e2e/health.e2e.ts` stays as infrastructure).
+- The brand "worKampo" is not translated (the person, 2026-11-22).
 
 | What | Rule | Example |
 |---|---|---|
@@ -39,7 +81,9 @@ Use one name end to end: living-spec rule (`@id:companies-15-1`) → use case �
 
 ## Errors
 
-- Throw typed domain errors from the domain's `errors.ts`.
+- One error class per domain, with its code: `AccessError(code)` in `apps/api/src/access/errors.ts`, which also holds each code's HTTP status (the person, 2026-11-22).
+- Adapters throw neutral errors of their capability (`InvalidCodeError`, never an `access.*` code); the use case translates them into the domain's error (the person, 2026-11-22).
+- The union of every domain's codes is `packages/domain/errors.ts`; the API, app-core and the texts' test read it (the person, 2026-11-22).
 - Translate to HTTP in one place, `_shared/http/problem-json.ts`: `problem+json` (RFC 9457) with a stable `code` the interface translates.
 
 ## Data access
@@ -92,7 +136,9 @@ Use one name end to end: living-spec rule (`@id:companies-15-1`) → use case �
 ## Validation, config, imports
 
 - Zod only at the boundaries (API input, forms, environment variables). Types inferred from Zod and Drizzle, never duplicated by hand.
-- Bindings and variables typed and validated at startup in `env.ts`; no loose reads of variables elsewhere.
+- Bindings and variables typed and validated in `env.ts`; no loose reads of variables elsewhere. The environment is parsed once per request by a middleware into `c.var.env`, and its types have one source, `env.ts` (the person, 2026-11-22).
+- Utilities without I/O of one capability live in `_shared/<capability>/`: `crypto/` (random tokens, SHA-256), `auth/state-cookie.ts`, `http/request-origin.ts` with the one `RequestOrigin` type (the person, 2026-11-22).
+- The API's typed contract is `@workampo/api/contract` (type-only `AppType`); clients import that, never a path into `apps/` (the person, 2026-11-22).
 - Local secrets only in `.dev.vars` (ignored); commit `.dev.vars.example` with names, no values. Staging/production secrets via `wrangler secret` and GitHub Environments. Public config in `vars` of `wrangler.jsonc`; no `.env.<environment>` files.
 
 ## Permissions
@@ -109,9 +155,22 @@ Use one name end to end: living-spec rule (`@id:companies-15-1`) → use case �
 
 ## Interface
 
-- Styles: only tokens ([`docs/design/tokens.css`](../design/tokens.css)) and Tailwind scale classes; no arbitrary values (`text-[20px]`) outside `packages/ui`.
+- All CSS lives in `packages/ui/styles/`; apps import `@workampo/ui/styles.css` (the person, 2026-11-22).
+- Typography through `Text` and `TextLink` of `packages/ui`; screens carry no typography classes (the person, 2026-11-22).
+- Styles: only tokens ([`packages/ui/styles/tokens.css`](../../packages/ui/styles/tokens.css)) and Tailwind scale classes; no arbitrary values (`text-[20px]`) outside `packages/ui`.
 - Texts through i18n keys, never literals ([ADR-0047](../adr/0047-i18n-from-the-start.md)).
 - Search `packages/ui` and [`docs/design/components.md`](../design/components.md) before creating a component.
+- Load only what a screen needs (the person, 2026-11-22; [ADR-0073](../adr/0073-frontend-stack-and-rate-limiting.md) point 4):
+  - Every route is lazy (`.lazy(() => import(...))`, one split per screen) and the router preloads on intent.
+  - Heavy pieces inside a screen (editors, charts, maps, date pickers) are imported when opened, with a skeleton meanwhile.
+  - Translations load per language and namespace on demand; never import a locale file statically in the web.
+  - The initial JS of `/login` and of the signed-in shell stays under the budget the web check enforces.
+- Where state lives (the person, 2026-11-22; [ADR-0073](../adr/0073-frontend-stack-and-rate-limiting.md) point 5):
+  - Server data: only the TanStack Query cache of `packages/app-core`; never copied into context or `useState`.
+  - Shareable or restorable state (company, filters, search, page, sort, open drawer): the URL.
+  - UI state: local `useState`, lifted only as far as needed. Form state: react-hook-form in its screen.
+  - Context: only rarely-changing app-wide values not from the server (router, query and i18n providers, theme, toast queue), in `apps/web/src/_shared/providers/` with a one-line why. Exception: `packages/app-core/_shared/` defines the contexts of its own dependency injection (the API client); each app mounts their providers in its `_shared/providers/app-providers.tsx`.
+  - Shared or persisted client state: a Zustand store in `packages/app-core` with injected storage, versioned with a migration; never personal data, tokens or server data. No other global state library without an ADR.
 
 | Level | Where | Rule |
 |---|---|---|
@@ -120,10 +179,64 @@ Use one name end to end: living-spec rule (`@id:companies-15-1`) → use case �
 | Feature | inside its domain | Thin: composes global components with the domain's data; no own styles |
 
 - Promotion: what already exists in the design system is global from day one. What is born in a feature stays there until its second real use, then moves to `_shared/` or `packages/ui` in the same PR. Never generalize a single use.
+- Route files (`_shared/router/`, every `routes.ts` of a domain or feature) only map URLs to screen components and set route options (lazy import, loaders, guards, search validation, preload): no markup, no `className`, no inline JSX layout. A layout is a component in its own file (the person, 2026-11-22).
 
 ## Tests placement
 
+- Setup of a package's tests in `<package>/test/setup.ts`; helpers tests import in `src/_shared/testing/` (API: `newEmail`, `signIn`, `expectProblem`…). The fake provider's fixtures come from `fake-identities.ts`, never copied (the person, 2026-11-22).
 - Unit next to the code (`x.test.ts`), integration `*.int.test.ts` in the domain folder; strategy in [ADR-0029](../adr/0029-testing-strategy.md). Each approved living-spec example has a test that cites its `@id`.
+
+## Blank lines
+
+Biome keeps blank lines but never adds them; apply this by hand (the person, 2026-11-22):
+
+- One blank line separates logical blocks: after a group of guard clauses and the values they lead to; before and after an `if`, `for`, `while`, `try` or `switch` whose body spans several lines; before the final `return` of a function with other statements before it.
+- A single-statement `if` stays on one line when it fits; otherwise Biome puts the body on its own indented line.
+- No blank line right after an opening brace or right before a closing one.
+
+## Code shape
+
+Rules of the person (2026-11-22). Biome enforces 3, 4 and 6 (`noUselessElse`, `useMaxParams` with `max: 2`, `noNestedTernary`) outside `scripts/`, whose older tooling predates them; the rest is by hand.
+
+1. **File order**: imports, constants, then what the file exports, then its private helpers.
+   ```ts
+   const HOUR = 3600
+   export function hitRateLimit() { … sha256Hex(subject) … }
+   async function sha256Hex(text: string) { … }
+   ```
+2. **Use case sections**, each separated by a blank line: validate input, load, decide (the pure domain rule), persist, respond.
+   ```ts
+   const input = verifyCodeSchema.parse(body)
+
+   const [userBySubject, userByEmail] = await Promise.all([…])
+
+   const decision = decideSignIn({ identity, userBySubject, userByEmail })
+
+   await repo.batch(…)
+
+   return c.json({ user }, 201)
+   ```
+3. **Early returns, not nesting**: the conditions that cut go first and the normal path stays unindented; no `else` after a `return`.
+   ```ts
+   if (!session) return problemJson('access.unauthenticated')
+
+   return next()
+   ```
+4. **More than two parameters → one named object**, so call sites read `rateLimitKey({ purpose, subjectKind, subjectHash })`.
+5. **Tests in three sections** separated by a blank line: arrange, act, assert. The test name cites the example it covers as `@id:access-96-9`, the form `pnpm check:pr` looks for.
+   ```ts
+   it('@id:access-96-9 an unverified email is refused', async () => {
+     const identity = unverifiedIdentity()
+
+     const decision = decideSignIn({ identity, userBySubject: null, userByEmail: null })
+
+     expect(decision).toEqual({ kind: 'refuse', code: 'access.email_not_verified' })
+   })
+   ```
+6. **No nested ternaries**: a ternary picks between two cases; more cases use early-return `if`s or a lookup map.
+   ```ts
+   const STATUS_BY_CODE = { 'access.invalid_code': 400, 'access.too_many_attempts': 429 }
+   ```
 
 ## Logs and comments
 

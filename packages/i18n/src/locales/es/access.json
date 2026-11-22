@@ -1,0 +1,34 @@
+{
+  "login": {
+    "title": "Entrar",
+    "email_label": "Email",
+    "continue": "Continuar",
+    "or": "o",
+    "google": "Continuar con Google"
+  },
+  "code": {
+    "title": "Revisa tu email",
+    "sent_to": "Hemos enviado un código a <strong>{{email}}</strong>. Vale durante 10 minutos.",
+    "code_label": "Código",
+    "submit": "Entrar",
+    "resend": "Reenviar código",
+    "resent": "Te hemos enviado un código nuevo.",
+    "other_email": "Usar otro email"
+  },
+  "home": {
+    "title": "Aún no perteneces a ninguna empresa",
+    "body": "Cuando una empresa te invite, o crees una, aparecerá aquí.",
+    "sign_out": "Cerrar sesión"
+  },
+  "errors": {
+    "invalid_email": "Escribe un email válido.",
+    "invalid_code": "El código no es válido o ha caducado. Puedes pedir otro.",
+    "too_many_code_requests": "Has pedido demasiados códigos. Espera un poco antes de pedir otro.",
+    "too_many_attempts": "Demasiados intentos. Espera un poco antes de volver a intentarlo.",
+    "email_not_verified": "Tu email no está verificado. Entra con un email verificado.",
+    "contact_support": "No podemos abrir tu cuenta con este acceso. Contacta con soporte.",
+    "invalid_state": "No se ha podido completar la entrada. Vuelve a intentarlo.",
+    "google_failed": "No se ha podido entrar con Google. Vuelve a intentarlo.",
+    "unauthenticated": "Tu sesión ha terminado. Vuelve a entrar."
+  }
+}

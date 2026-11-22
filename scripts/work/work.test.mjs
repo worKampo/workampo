@@ -1059,6 +1059,7 @@ function verifyIo({
     'git worktree add': '',
     'git -C': '',
     'pnpm install': '',
+    'pnpm --filter @workampo/web build': '',
     node: '',
     cmd: '',
     'xdg-open': '',
@@ -1101,7 +1102,8 @@ test('verify: worktree of the pushed branch, fresh database, app in the backgrou
     migrations.every((c) => c.includes('--local --persist-to') && c.endsWith('.wrangler/verify')),
   )
   const seed = calls.findIndex((c) => c.includes('scripts/db/seed.mjs --persist-to'))
-  assert.ok(worktree < install && install < seed)
+  const webBuild = calls.indexOf('pnpm --filter @workampo/web build')
+  assert.ok(worktree < install && install < webBuild && webBuild < seed)
   assert.deepEqual(io.removed, [migrations[0].split(' ').at(-1)])
   assert.match(
     slashes(io.spawned[0].join(' ')),

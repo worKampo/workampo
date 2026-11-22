@@ -27,9 +27,11 @@ Decided on 2026-11-13. Operational detail lives in `docs/process/code-convention
     public-site/
     env.ts · index.ts
   apps/web/src/companies/members/
-    members-page.tsx · member-drawer.tsx · use-members.ts · members-page.test.tsx
+    members-screen.tsx · member-drawer.tsx · members-routes.ts · members-screen.test.tsx
   ```
-- **Pure domain core** (2026-11-14, [ADR-0057](0057-ready-for-a-mobile-app.md)): whatever does no I/O and must be shared by the API, the web and the future mobile app (Zod schemas, rules, permissions, error codes, values such as `Email` or `Slug`) lives in `packages/domain/<domain>/`, with the same domain folders. `apps/api` keeps routes, use cases and repos; `apps/web` keeps screens and hooks. That is why the Zod schemas for invitations (`invitation-schemas.ts`) live in `packages/domain/companies/invitations/` and not in the tree above.
+  - **Features inside a domain** (the person, 2026-11-22): in `packages/domain`, `apps/api`, `apps/web` and later the mobile app, a domain folder's root holds only what the whole domain shares (its errors, types, values); everything else goes in a subfolder per feature, with the same folder name in every package and app (`access/sign-in/` in domain, API and web). Web screens are imported only lazily by their feature's routes file; hooks are `<feature>-hooks.ts` in `packages/app-core` (the person, 2026-11-22). The canonical tree is in [code conventions](../process/code-conventions.md#layout-of-a-domain-across-packages-and-apps). The root of a package or app holds only configuration, generated files and folders an external tool reads by convention; what our code imports lives in `src/` or the package's own grouping folders (the person, 2026-11-22).
+  - **Providers visible in the path** (the person, 2026-11-22): the capability folder is named for what it does; the interface and our types keep neutral names; every implementation file carries the provider's name (`workos-*.ts`, `fake-*.ts`, `d1-*.ts`, `sentry-*.ts`…) or sits in a per-provider subfolder. A file without a provider name never imports or calls a provider.
+- **Pure domain core** (2026-11-14, [ADR-0057](0057-ready-for-a-mobile-app.md)): whatever does no I/O and must be shared by the API, the web and the future mobile app (Zod schemas, rules, permissions, error codes, values such as `Email` or `Slug`) lives in `packages/domain/<domain>/`, with the same domain folders. `apps/api` keeps routes, use cases and repos; `apps/web` keeps screens and hooks. That is why the Zod schemas for invitations (`invitation-schemas.ts`) live in `packages/domain/companies/invitations/` and not in the tree above. It holds only business rules (the person, 2026-11-22): no I/O and no technical policies such as rate limiting, retries or caching; technical rules without I/O live in the app's `_shared/<capability>/`.
 - **Boundaries** (dependency-cruiser): a domain does not import the internals of another domain (only what that domain exports in its routes or use cases); `_shared/` does not import from any domain; `packages/domain` does not import Hono, Drizzle, React, `fetch` or anything from `apps/`; the web's data hooks do not use the DOM.
 - **Names**:
 
@@ -124,12 +126,12 @@ Decided on 2026-11-13. Operational detail lives in `docs/process/code-convention
 - **Configuration**: bindings and variables typed and validated at startup (`env.ts`); no reading loose variables around the code.
   - Local secrets only in `.dev.vars` (ignored by git); `.dev.vars.example` is committed with the names and no values. Staging and production secrets with `wrangler secret` and in the GitHub Environments ([ADR-0013](0013-ci-cd-with-github-actions.md)).
   - Public configuration per environment in `vars` of `wrangler.jsonc`. No `.env.<environment>` files.
-- **Styles**: only tokens (`docs/design/tokens.css`) and Tailwind classes from the scale; no arbitrary values (`text-[20px]`) outside `packages/ui`.
+- **Styles**: only tokens (`packages/ui/styles/tokens.css`) and Tailwind classes from the scale; no arbitrary values (`text-[20px]`) outside `packages/ui`.
 - **UI components: componentize as much as possible, in three levels** (2026-11-13):
 
 | Level | Where | What | Rules |
 |---|---|---|---|
-| **Global** | `packages/ui` | Primitives (adapted shadcn: button, fields, dialog, drawer, table, badge, tooltip…) and generic composites (data table, detail drawer, confirmation with "DELETE", filter bar, saved views, page header, KPI, empty/error/loading states, command palette, shell and sidebar) | No business knowledge: data and texts by props, no fetching from the server; accessible; with component tests; documented in `docs/design/components.md` |
+| **Global** | `packages/ui` | Primitives (adapted shadcn: button, fields, dialog, drawer, table, badge, tooltip…) and generic composites (data table, detail drawer, confirmation with "DELETE", filter bar, saved views, page header, KPI, empty/error/loading states, command palette, shell and sidebar) | No business knowledge: data and texts by props, no fetching from the server; accessible; with component tests; documented in `docs/design/components.md`; grouped by family in folders that mirror its headings (`actions/`, `forms/`…) and imported per family, `@workampo/ui/forms` (the person, 2026-11-22) |
 | **App-shared** | `apps/<app>/src/_shared/components/` | They know the app but not a domain: company selector, user menu, plan usage bar, staff banner | No logic of a specific domain |
 | **Feature** | Inside its domain (`src/companies/members/member-drawer.tsx`) | They combine global components with the domain's data and rules | Thin: no styles of their own or repeated presentation |
 

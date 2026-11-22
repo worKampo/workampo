@@ -41,3 +41,7 @@ This supersedes, in ADR-0063, "confirm a WorkOS EU region": there is none, and W
 - Zero spend first (the person, 2026-11-21): the product is built and tested with what costs nothing; the domain, the email service and our own login are evaluated again only when the zero-spend options run out ([ADR-0065](0065-zero-spend-and-free-tier-limits.md)).
 - Moving a user from WorkOS to our own login, or adding a provider for a customer or a country, is a new implementation and a rule in `chooseProvider`, not a rewrite: a new identity links to an existing user once the person proves they hold the account.
 - Post-MVP issues: our own login (issue 68) and provider selection per company and country (issue 69).
+
+## Updates
+
+- 2026-11-22 (the person, PRD 10): the sign-in screens are ours; a provider only verifies who the person is, through its API. No provider's hosted page is used.
