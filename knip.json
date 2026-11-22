@@ -4,9 +4,6 @@
     ".": {
       "entry": ["scripts/**/*.mjs", ".claude/hooks/*.mjs"]
     },
-    "apps/api": {
-      "ignoreDependencies": ["@workampo/db"]
-    },
     "packages/i18n": {
       "ignoreDependencies": ["i18next"]
     }

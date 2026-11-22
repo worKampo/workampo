@@ -53,9 +53,15 @@ importers:
       '@sentry/hono':
         specifier: 11.12.0
         version: 11.12.0(@cloudflare/workers-types@5.20261112.1)(@sentry/cloudflare@11.12.0(@cloudflare/workers-types@5.20261112.1)(vite@8.3.8(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))(wrangler@4.161.0(@cloudflare/workers-types@5.20261112.1)))(hono@4.13.18)
+      '@workampo/db':
+        specifier: workspace:*
+        version: link:../../packages/db
       '@workampo/domain':
         specifier: workspace:*
         version: link:../../packages/domain
+      drizzle-orm:
+        specifier: 0.45.4
+        version: 0.45.4(@cloudflare/workers-types@5.20261112.1)(@opentelemetry/api@1.10.0)
       hono:
         specifier: 4.13.18
         version: 4.13.18
@@ -75,9 +81,6 @@ importers:
       '@playwright/test':
         specifier: 1.65.1
         version: 1.65.1
-      '@workampo/db':
-        specifier: workspace:*
-        version: link:../../packages/db
       typescript:
         specifier: 6.0.3
         version: 6.0.3
