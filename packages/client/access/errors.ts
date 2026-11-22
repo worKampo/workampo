@@ -1,4 +1,4 @@
-import type { ApiErrorCode } from '../api-client'
+import type { ApiErrorCode } from '../_shared/api-client'
 
 // The i18n key of an error: access.invalid_code → access:errors.invalid_code (docs/design/content.md).
 export function errorKey(code: ApiErrorCode) {

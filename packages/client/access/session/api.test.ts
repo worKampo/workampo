@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { fakeApi, problem } from '../../test-support'
+import { fakeApi, problem } from '../../_shared/test-support'
 import { getMe, signOut } from './api'
 
 describe('session api', () => {

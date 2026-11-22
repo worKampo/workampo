@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { useApiClient } from '../../api-client-context'
+import { useApiClient } from '../../_shared/api-client-context'
 import { ME_QUERY_KEY } from '../session/hooks'
 import { startCodeSignIn, verifyCode } from './api'
 

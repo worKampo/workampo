@@ -1,6 +1,6 @@
 import { ACCESS_ERROR_CODES, type AccessErrorCode } from '@workampo/domain/access/errors'
 import { hc } from 'hono/client'
-import type { AppType } from '../../apps/api/src/index'
+import type { AppType } from '../../../apps/api/src/index'
 
 export type ApiErrorCode = AccessErrorCode | 'unknown'
 
