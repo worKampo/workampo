@@ -12,6 +12,23 @@ Rules an implementer applies. Why: [ADR-0053](../adr/0053-code-conventions.md) (
 - A domain imports only the top-level files of another domain, never its internals.
 - Internal packages by name (`@workampo/…`); no barrel files that re-export everything; no cycles.
 
+## Layout of a domain across packages and apps
+
+The same domain and feature folders everywhere, with identical feature names in every package and app (the person, 2026-11-22). Example, `access` with its features `sign-in` and `session`:
+
+```
+packages/domain/access/          errors.ts, identity.ts     what the whole domain shares (errors, types, values)
+  sign-in/  session/             pure business rules and their tests
+packages/client/access/sign-in/  data hooks (queries, mutations) and form schemas; no DOM; shared by web and mobile
+packages/i18n/locales/<lang>/access.json   texts grouped by screen, plus `errors`; `_context/access.json` for translators
+apps/api/src/access/             routes.ts (mounts the features), errors.ts
+  sign-in/  session/             the feature's routes, use cases, repos and tests
+  users/                         a repo several features share
+apps/web/src/access/             routes.ts (the domain's routes)
+  sign-in/                       its routes and one file per screen (`login-screen.tsx`); screen-only components beside it until a second use promotes them to packages/ui
+apps/mobile/src/access/          when the app arrives: the same feature folders, its own views, the same hooks from packages/client
+```
+
 ## Names
 
 | What | Rule | Example |
