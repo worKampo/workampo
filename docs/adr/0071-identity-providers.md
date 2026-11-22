@@ -20,7 +20,6 @@ Then the person decided to reach the MVP with WorkOS and leave our own login for
 Decided by the person in issue 65 (2026-11-21).
 
 1. **Identity behind an interface, every provider a plug-in** ([ADR-0053](0053-code-conventions.md)):
-   - **The sign-in screens are ours**; a provider only verifies who the person is, through its API (the person, PRD 10, 2026-11-22). No provider's hosted page is used.
    - `_shared/auth/` defines an identity interface: start a sign-in, complete it, and return a **verified identity** (provider, subject, email, email verified, and the name only if the provider has it). WorkOS is one implementation; our own login (email code and Google) will be another.
    - The session (ADR-0008), users, companies and roles stay outside every provider. **Our user id is the account's key.** A table of identities maps each provider and subject to one user, unique per pair; one user can have several identities.
    - **Linking**: on sign-in, a known provider and subject opens its user. An identity without a verified email is refused, so a user stores only a verified email. A matching email **never links on its own**, because an address can be handed to someone else: an unknown pair whose verified email matches an existing user is linked only after the person proves they hold that account, by signing in with an identity already linked to it, or, when no linked provider is available any more (a provider retired), with a one-time code sent to the stored email, as an account recovery. Until then they cannot use that account, and no second account is created with the same email. That is how an account survives a change of provider, even when the new provider returns another subject.
@@ -42,3 +41,7 @@ This supersedes, in ADR-0063, "confirm a WorkOS EU region": there is none, and W
 - Zero spend first (the person, 2026-11-21): the product is built and tested with what costs nothing; the domain, the email service and our own login are evaluated again only when the zero-spend options run out ([ADR-0065](0065-zero-spend-and-free-tier-limits.md)).
 - Moving a user from WorkOS to our own login, or adding a provider for a customer or a country, is a new implementation and a rule in `chooseProvider`, not a rewrite: a new identity links to an existing user once the person proves they hold the account.
 - Post-MVP issues: our own login (issue 68) and provider selection per company and country (issue 69).
+
+## Updates
+
+- 2026-11-22 (the person, PRD 10): the sign-in screens are ours; a provider only verifies who the person is, through its API. No provider's hosted page is used.
