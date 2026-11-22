@@ -45,3 +45,4 @@ This supersedes, in ADR-0063, "confirm a WorkOS EU region": there is none, and W
 ## Updates
 
 - 2026-11-22 (the person, PRD 10): the sign-in screens are ours; a provider only verifies who the person is, through its API. No provider's hosted page is used.
+- 2026-11-22 (the person, issue 118): until the first real users, production uses the WorkOS **Staging** environment, the same as stg (client id, `sk_test_` key, Google demo credentials, `workos.dev` sender). It costs nothing (ADR-0065) and keeps the whole cycle running, release and observation window included. Moving to WorkOS Production (billing, our own Google OAuth client, email domain) is the person's decision before any real user enters, in issue 119.

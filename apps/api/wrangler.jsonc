@@ -91,7 +91,11 @@
       "define": { "__ALLOW_FAKE_IDENTITY__": "false" },
       "triggers": { "crons": ["0 3 * * *"] },
       "version_metadata": { "binding": "CF_VERSION_METADATA" },
-      "vars": { "ENVIRONMENT": "prod" },
+      "vars": {
+        "ENVIRONMENT": "prod",
+        // WorkOS Staging until the first real users (ADR-0071 updates, issue 118); Production is issue 119.
+        "WORKOS_CLIENT_ID": "client_01M81TN93VKET6PAFSK3B1QYZJ"
+      },
       "kv_namespaces": [{ "binding": "LANDINGS", "id": "5a7de207c19c4283a40ca5e6183612b3" }],
       "d1_databases": [
         {
