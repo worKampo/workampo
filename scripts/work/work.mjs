@@ -16,13 +16,22 @@ import { createInterface } from 'node:readline/promises'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { parse } from 'yaml'
 import { LOCAL_DATABASES } from '../db/seed.mjs'
+import { checkReviewArgs, REVIEW_HELP, review } from './review.mjs'
 
 const ROOT = fileURLToPath(new URL('../../', import.meta.url))
 const BRANCH_TICKET = /^(?:feature|bugfix|hotfix)\/(\d+)-/
 const ACTIVE_COLUMNS = ['Define', 'Build', 'Review']
 const EMPTY_VALUES = ['', '—', '-']
-const COMMANDS = ['help', 'status', 'inbox', 'resume', 'start', 'pr', 'close', 'verify']
-const VALUE_OPTIONS = { '--title': 'title', '--body-file': 'bodyFile', '--learning': 'learning' }
+const COMMANDS = ['help', 'status', 'inbox', 'resume', 'start', 'pr', 'close', 'verify', 'review']
+const VALUE_OPTIONS = {
+  '--title': 'title',
+  '--body-file': 'bodyFile',
+  '--learning': 'learning',
+  '--reply': 'reply',
+  '--commit': 'commit',
+  '--text': 'text',
+  '--not-applicable': 'notApplicable',
+}
 const PROGRESS_FILE = '.work/PROGRESS.md'
 const PLAN_FILE = '.work/plan.md'
 const TASKS_FILE = '.work/tasks.md'
@@ -48,6 +57,7 @@ export const HELP = `Usage: pnpm work <command> [args]
                           Worktree of the ticket's branch, fresh local database, app running,
                           browser open, and the verification list. --keep-data keeps the
                           previous run's database and applies only new migrations
+${REVIEW_HELP}
 
 Issue numbers are written 15 or #15.`
 
@@ -79,6 +89,7 @@ export function parseArgs(argv) {
     } else if (arg === '--json') args.json = true
     else if (arg === '--dry-run') args.dryRun = true
     else if (arg === '--keep-data' && command === 'verify') args.keepData = true
+    else if (arg === '--wait' && command === 'review') args.wait = true
     else if (arg.startsWith('-')) throw new Error(`Unknown option "${arg}".\n\n${HELP}`)
     else args.numbers.push(parseIssueNumber(arg))
   }
@@ -86,11 +97,17 @@ export function parseArgs(argv) {
     throw new Error('resume takes at most one issue number.')
   if (['inbox', 'pr'].includes(command) && args.numbers.length)
     throw new Error(`${command} takes no issue numbers.`)
-  if (['start', 'close', 'verify'].includes(command) && args.numbers.length !== 1)
+  if (['start', 'close', 'verify', 'review'].includes(command) && args.numbers.length !== 1)
     throw new Error(`${command} takes one issue number.`)
-  const allowed = { pr: ['title', 'bodyFile'], close: ['learning'] }[command] ?? []
+  const allowed =
+    {
+      pr: ['title', 'bodyFile'],
+      close: ['learning'],
+      review: ['reply', 'commit', 'text', 'notApplicable'],
+    }[command] ?? []
   for (const [option, key] of Object.entries(VALUE_OPTIONS))
     if (key in args && !allowed.includes(key)) throw new Error(`${command} takes no ${option}.`)
+  if (command === 'review') checkReviewArgs(args)
   return args
 }
 
@@ -1250,6 +1267,10 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
       pr,
       close,
       verify,
+      review: (args, config, io) => {
+        if (args.reply) assertIdentity(config, io)
+        return review(args, config, io)
+      },
     }
     await commands[args.command](args, config, io)
   } catch (error) {
