@@ -2,19 +2,13 @@ import { chooseProvider } from '@workampo/domain/access/choose-provider'
 import type { IdentityProviderKey } from '@workampo/domain/access/identity'
 import type { ParsedEnv } from '../env'
 import { fakeProvider } from './fake-provider'
-import { type IdentityProvider, ProviderUnavailableError } from './identity-provider'
+import type { IdentityProvider } from './identity-provider'
+import { workosProvider } from './workos-provider'
 
-const unavailable: IdentityProvider = {
-  startCodeSignIn: () => Promise.reject(new ProviderUnavailableError()),
-  completeCodeSignIn: () => Promise.reject(new ProviderUnavailableError()),
-  googleAuthorizationUrl: () => {
-    throw new ProviderUnavailableError()
-  },
-  completeGoogleSignIn: () => Promise.reject(new ProviderUnavailableError()),
-}
+type ProviderEnv = Exclude<ParsedEnv, { IDENTITY_PROVIDER: 'fake' }>
 
-const ADAPTERS: Record<IdentityProviderKey, (env: ParsedEnv) => IdentityProvider> = {
-  workos: () => unavailable,
+const ADAPTERS: Record<IdentityProviderKey, (env: ProviderEnv) => IdentityProvider> = {
+  workos: (env) => workosProvider({ apiKey: env.WORKOS_API_KEY, clientId: env.WORKOS_CLIENT_ID }),
 }
 
 // The fake stands in for every provider, and only where the local vars name it.
