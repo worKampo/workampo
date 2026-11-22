@@ -171,4 +171,6 @@ The worKampo landing, pricing, the marketing site and help or changelog pages th
 ## Public pages and auth
 
 - Landing and marketing (Astro): `--bg` white, header with logo, nav, Sign in / Get started; on phone the nav collapses into a menu button.
-- `/login` and invitation pages: a centred card with modal look on `--chrome` (desktop, tablet), full screen on phone (D7). **No third-party scripts** (analytics, chat) on `/login` (D32); the font is self-hosted.
+- **Card screens** (sign in and its code, choose and create a company, accept an invitation, return from checkout): a card with modal look on `--chrome` at every size; on phone it keeps its border and radius, 16 px from the screen edges, and sits at the top so the keyboard does not cover it (the person, 2026-11-22; this replaces "full screen on phone" of D7).
+  - The card holds only its task. The logo goes in a page header above it (the worKampo logo, or the company's inside a company), and before sign-in the language selector goes at the right of that header.
+- **No third-party scripts** (analytics, chat) on `/login` (D32); the font is self-hosted.
