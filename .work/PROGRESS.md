@@ -2,9 +2,9 @@
 
 PRD #10 · Ticket #96 entrar-con-codigo-o-google-y-salir · Branch: feature/96-entrar-con-codigo-o-google-y-salir
 Step: Build › Implement
-Done in this step: wave 1 — T1 acceptance scenarios E1–E18, T2 integration tests E1–E15 as it.fails; wave 2 — T3 drizzle-kit and pnpm db:migration:new; wave 3 — T4 global schema and four migrations, T5 packages/domain base rules, T8 env.ts; wave 4 — T6 decideSignIn and chooseProvider, T7 packages/i18n (en, es, ca; fallback ca → es → en); wave 5 — T9 domain dependency, UUIDv7, problem+json
+Done in this step: waves 1–5 (T1–T9); wave 6 — T10 migrated D1 in Vitest and the d1 global database client, T11 identity seam (interface, fake, contract suite, registry, dependency-cruiser rules)
 In progress: —
-Next: Build › Implement wave 6: T10 (Vitest applies D1 migrations; Drizzle client of DB_GLOBAL), T11 (identity seam, fake, contract suite, registry, dependency-cruiser rules)
+Next: Build › Implement wave 7: T12 (packages/ui), T13 (rate-limit store), T14 (WorkOS adapter; check locale ca), T15 (session store)
 Waiting for human: 🧑 T27 (WorkOS staging, secrets, deploy.yml step) before the staging smoke; WorkOS production billing before release
 Open questions: WorkOS Magic Auth `locale: ca` support to verify in T14 (else `es` by the fallback chain). ADR-0057 point 4 amended by the person (daab6aa); ADR-0047 gains `ca` and the fallback chain (dfece76); the ADR-0059 client reload belongs to ticket 95 (PRD 10, ticket 7).
 Updated: 2026-11-22
