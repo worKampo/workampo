@@ -11,7 +11,7 @@ The earlier policy (UI in Spanish, i18n deferred) is replaced. This decision sup
 
 ## Decision
 
-All the interface, the emails and the public content are multilingual from day one. **`en` by default** and `es` (es-ES); adding a language does not require touching code.
+All the interface, the emails and the public content are multilingual from day one. **`en` by default, `es` (es-ES) and `ca` (Catalan) from the start** (the person, 2026-11-22); adding a language does not require touching code. Where a text, email or provider has no Catalan, Spanish is used; English only when neither exists (the person, 2026-11-22).
 
 - **Active language in the app**: user preference → the company's default language → `Accept-Language` → `en`. It is not in the app URL (it is a preference; URLs stay shareable).
 - **Public pages** (marketing, help, changelog, legal): language in the path (`/`, `/es/`) with `hreflang` ([ADR-0031](0031-ui-ux-designer.md)).

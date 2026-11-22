@@ -1,0 +1,13 @@
+{
+  "errors": {
+    "invalid_email": "Escriu una adreça electrònica vàlida.",
+    "invalid_code": "El codi no és vàlid o ha caducat. Pots demanar-ne un altre.",
+    "too_many_code_requests": "Has demanat massa codis. Espera una mica abans de demanar-ne un altre.",
+    "too_many_attempts": "Massa intents. Espera una mica abans de tornar-ho a provar.",
+    "email_not_verified": "La teva adreça electrònica no està verificada. Entra amb una adreça verificada.",
+    "contact_support": "No podem obrir el teu compte amb aquest accés. Posa't en contacte amb el suport.",
+    "invalid_state": "No s'ha pogut completar l'entrada. Torna-ho a provar.",
+    "google_failed": "No s'ha pogut entrar amb Google. Torna-ho a provar.",
+    "unauthenticated": "La teva sessió ha acabat. Torna a entrar."
+  }
+}

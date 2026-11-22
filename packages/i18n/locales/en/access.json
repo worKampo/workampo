@@ -1,0 +1,13 @@
+{
+  "errors": {
+    "invalid_email": "Enter a valid email address.",
+    "invalid_code": "The code is not valid or has expired. You can ask for another one.",
+    "too_many_code_requests": "You have asked for too many codes. Wait a while before asking for another one.",
+    "too_many_attempts": "Too many attempts. Wait a while before trying again.",
+    "email_not_verified": "Your email address is not verified. Sign in with a verified email address.",
+    "contact_support": "We cannot open your account with this sign-in. Contact support.",
+    "invalid_state": "The sign-in could not be completed. Try again.",
+    "google_failed": "Signing in with Google did not work. Try again.",
+    "unauthenticated": "Your session has ended. Sign in again."
+  }
+}
