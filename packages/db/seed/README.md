@@ -12,4 +12,4 @@ Example data for local, test and staging ([ADR-0044](../../../docs/adr/0044-migr
 - Idempotent: `INSERT … ON CONFLICT DO NOTHING` (or `DO UPDATE`), so a second run changes nothing.
 - Test domains only in emails (`*.test`, `example.com`).
 
-There are no tables yet, so the set is empty and `pnpm db:seed` says there is nothing to seed. How to run it: [seeds procedure](../../../docs/procedures/seeds.md).
+`global/001-access.sql` holds the users and identities of the fake identity provider and an expired session. How to run it: [seeds procedure](../../../docs/procedures/seeds.md).
