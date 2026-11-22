@@ -1,5 +1,5 @@
 import { createLazyRoute, createRoute } from '@tanstack/react-router'
-import { ACCESS_ERROR_CODES, type AccessErrorCode } from '@workampo/domain/access/errors'
+import { type AccessErrorCode, isAccessErrorCode } from '@workampo/domain/access/errors'
 import { rootRoute } from '../../_shared/router/root-route'
 
 declare module '@tanstack/react-router' {
@@ -27,7 +27,3 @@ export const codeRoute = createRoute({ getParentRoute: () => rootRoute, path: '/
       createLazyRoute('/login/code')({ component: CodeScreen }),
     ),
 )
-
-function isAccessErrorCode(value: unknown): value is AccessErrorCode {
-  return (ACCESS_ERROR_CODES as readonly unknown[]).includes(value)
-}

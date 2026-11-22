@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { getRouteApi, useNavigate } from '@tanstack/react-router'
-import { errorKey } from '@workampo/app-core/access/errors'
+import { errorKey, errorKeyOf } from '@workampo/app-core/_shared/error-key'
 import { loginFormSchema } from '@workampo/app-core/access/sign-in/sign-in-forms'
 import { useStartCodeSignIn } from '@workampo/app-core/access/sign-in/sign-in-hooks'
 import { Button, buttonClassName } from '@workampo/ui/actions'
@@ -8,7 +8,6 @@ import { Field, Input } from '@workampo/ui/forms'
 import { CardScreen } from '@workampo/ui/layout'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
-import { errorMessageKey } from '../error-message'
 
 const loginRoute = getRouteApi('/login')
 
@@ -48,7 +47,7 @@ export function LoginScreen() {
 
   function message() {
     if (form.formState.errors.email) return t('errors.invalid_email')
-    if (startCode.error) return t(errorMessageKey(startCode.error))
+    if (startCode.error) return t(errorKeyOf(startCode.error))
     if (googleError) return t(errorKey(googleError))
 
     return undefined

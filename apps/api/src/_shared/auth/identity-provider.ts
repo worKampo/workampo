@@ -15,8 +15,6 @@ export type IdentityProvider = {
 }
 
 // Wrong or expired: the provider does not tell them apart, nor do we.
-export class InvalidCodeError extends Error {
-  readonly code = 'access.invalid_code'
-}
+export class InvalidCodeError extends Error {}
 
 export class ProviderUnavailableError extends Error {}

@@ -3,7 +3,13 @@
   "private": true,
   "type": "module",
   "exports": {
-    "./*": "./*.ts"
+    "./_shared/api-client": "./_shared/api-client.ts",
+    "./_shared/api-client-context": "./_shared/api-client-context.ts",
+    "./_shared/error-key": "./_shared/error-key.ts",
+    "./access/query-keys": "./access/query-keys.ts",
+    "./access/sign-in/sign-in-hooks": "./access/sign-in/sign-in-hooks.ts",
+    "./access/sign-in/sign-in-forms": "./access/sign-in/sign-in-forms.ts",
+    "./access/session/session-hooks": "./access/session/session-hooks.ts"
   },
   "scripts": {
     "typecheck": "tsc",
@@ -22,9 +28,10 @@
     "@biomejs/biome": "2.6.7",
     "@cloudflare/workers-types": "5.20261112.1",
     "@tanstack/react-query": "5.108.0",
-    "@testing-library/react": "16.3.3",
     "@testing-library/dom": "10.4.2",
+    "@testing-library/react": "16.3.3",
     "@types/react": "19.3.0",
+    "@workampo/api": "workspace:*",
     "jsdom": "31.0.1",
     "react": "19.1.10",
     "react-dom": "19.1.10",

@@ -1,5 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Link, Navigate, useNavigate, useRouterState } from '@tanstack/react-router'
+import { errorKeyOf } from '@workampo/app-core/_shared/error-key'
 import { codeFormSchema } from '@workampo/app-core/access/sign-in/sign-in-forms'
 import { useStartCodeSignIn, useVerifyCode } from '@workampo/app-core/access/sign-in/sign-in-hooks'
 import { Button } from '@workampo/ui/actions'
@@ -7,7 +8,6 @@ import { Field, Input } from '@workampo/ui/forms'
 import { CardScreen } from '@workampo/ui/layout'
 import { useForm } from 'react-hook-form'
 import { Trans, useTranslation } from 'react-i18next'
-import { errorMessageKey } from '../error-message'
 
 // After a reload the email is gone (it never travels in the URL): back to /login.
 export function CodeScreen() {
@@ -75,8 +75,8 @@ function CodeForm({ email }: { email: string }) {
 
   function message() {
     if (form.formState.errors.code) return t('errors.invalid_code')
-    if (verify.error) return t(errorMessageKey(verify.error))
-    if (resend.error) return t(errorMessageKey(resend.error))
+    if (verify.error) return t(errorKeyOf(verify.error))
+    if (resend.error) return t(errorKeyOf(resend.error))
 
     return undefined
   }

@@ -17,7 +17,7 @@ export const requireSession = createMiddleware<AppEnv & { Variables: SessionVari
       : undefined
 
     if (!session || !isSessionValid(session, new Date()))
-      return problemJson('access.unauthenticated')
+      return problemJson({ code: 'access.unauthenticated', status: 401 })
 
     c.set('session', { id: session.id, userId: session.userId })
     await next()

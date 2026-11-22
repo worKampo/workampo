@@ -1,8 +1,8 @@
-import { ACCESS_ERROR_CODES, type AccessErrorCode } from '@workampo/domain/access/errors'
+import type { AppType } from '@workampo/api/contract'
+import { type ErrorCode, isErrorCode } from '@workampo/domain/errors'
 import { hc } from 'hono/client'
-import type { AppType } from '../../../apps/api/src/index'
 
-export type ApiErrorCode = AccessErrorCode | 'unknown'
+export type ApiErrorCode = ErrorCode | 'unknown'
 
 // fetch is injected: the web passes the browser's, the mobile app its own, tests a fake.
 export function createApiClient({
@@ -47,9 +47,5 @@ async function problemCode(response: Answer): Promise<ApiErrorCode> {
   const body: unknown = await response.json().catch(() => null)
   const code = typeof body === 'object' && body !== null && 'code' in body ? body.code : null
 
-  return isAccessErrorCode(code) ? code : 'unknown'
-}
-
-function isAccessErrorCode(code: unknown): code is AccessErrorCode {
-  return (ACCESS_ERROR_CODES as readonly unknown[]).includes(code)
+  return isErrorCode(code) ? code : 'unknown'
 }

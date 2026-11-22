@@ -2,6 +2,9 @@
   "name": "@workampo/api",
   "private": true,
   "type": "module",
+  "exports": {
+    "./contract": "./src/contract.ts"
+  },
   "scripts": {
     "dev": "wrangler dev",
     "build": "wrangler deploy --dry-run --env prod --outdir dist && node ../../scripts/build/no-fake-provider.mjs dist",

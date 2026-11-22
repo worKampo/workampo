@@ -4,7 +4,7 @@ import { createElement, type ReactNode } from 'react'
 import { expect, it } from 'vitest'
 import { ApiClientProvider } from '../../_shared/api-client-context'
 import { fakeApi } from '../../_shared/testing/fake-api'
-import { ME_QUERY_KEY } from '../session/session-hooks'
+import { ME_QUERY_KEY } from '../query-keys'
 import { useVerifyCode } from './sign-in-hooks'
 
 it('@id:access-96-2 a verified code leaves the signed-in user in the cache', async () => {

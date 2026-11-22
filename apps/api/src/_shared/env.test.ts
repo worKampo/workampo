@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
+import type { Bindings } from './env'
 import { parseEnv } from './env'
-import type { AppEnv } from './http/app-env'
 
 const rateLimits = {
   RATE_LIMIT_CODE_REQUESTS_PER_EMAIL: '3',
@@ -8,7 +8,7 @@ const rateLimits = {
   RATE_LIMIT_CODE_ATTEMPTS_PER_EMAIL: '5',
   RATE_LIMIT_WINDOW_SECONDS: '900',
 }
-const bindings = (vars: Record<string, string>) => vars as unknown as AppEnv['Bindings']
+const bindings = (vars: Record<string, string>) => vars as unknown as Bindings
 
 describe('parseEnv', () => {
   it('reads the thresholds as numbers', () => {

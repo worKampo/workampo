@@ -11,3 +11,7 @@ export const ACCESS_ERROR_CODES = [
 ] as const
 
 export type AccessErrorCode = (typeof ACCESS_ERROR_CODES)[number]
+
+export function isAccessErrorCode(value: unknown): value is AccessErrorCode {
+  return (ACCESS_ERROR_CODES as readonly unknown[]).includes(value)
+}

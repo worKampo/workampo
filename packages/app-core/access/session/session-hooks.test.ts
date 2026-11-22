@@ -4,7 +4,8 @@ import { createElement, type ReactNode } from 'react'
 import { describe, expect, it } from 'vitest'
 import { ApiClientProvider } from '../../_shared/api-client-context'
 import { fakeApi, problem } from '../../_shared/testing/fake-api'
-import { ME_QUERY_KEY, useMe, useSignOut } from './session-hooks'
+import { ME_QUERY_KEY } from '../query-keys'
+import { useMe, useSignOut } from './session-hooks'
 
 describe('session hooks', () => {
   it('@id:access-96-2 useMe reads the signed-in user', async () => {
