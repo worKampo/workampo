@@ -19,13 +19,14 @@ The same domain and feature folders everywhere, with identical feature names in 
 ```
 packages/domain/access/          errors.ts, identity.ts     what the whole domain shares (errors, types, values)
   sign-in/  session/             pure business rules and their tests
-packages/app-core/access/sign-in/  data hooks (queries, mutations) and form schemas; no DOM; shared by web and mobile
+packages/app-core/access/        query-keys.ts: every query key of the domain
+  sign-in/  session/             data hooks (`<feature>-hooks.ts`) and form schemas; no DOM; shared by web and mobile
 packages/i18n/src/locales/<lang>/access.json   texts grouped by screen, plus `errors`; `_context/access.json` for translators
 apps/api/src/access/             routes.ts (mounts the features), errors.ts
   sign-in/  session/             the feature's routes, use cases, repos and tests
   users/                         a repo several features share
-apps/web/src/access/             routes.ts (the domain's routes)
-  sign-in/                       its routes and one file per screen (`login-screen.tsx`); screen-only components beside it until a second use promotes them to packages/ui
+apps/web/src/access/             routes.ts (gathers its features' routes)
+  sign-in/                       sign-in-routes.ts and one file per screen (`login-screen.tsx`); screen-only components beside it until a second use promotes them to packages/ui
 apps/mobile/src/access/          when the app arrives: the same feature folders, its own views, the same hooks from packages/app-core
 ```
 
@@ -33,9 +34,27 @@ apps/mobile/src/access/          when the app arrives: the same feature folders,
 
 The root of a package or app holds only configuration, generated files and the folders an external tool reads as they are (`migrations/`, `seed/`, `backfills/`, `public/`, `e2e/`, `test/` setup). Everything our code imports, code or data such as translations and styles, lives in `src/` or in the package's own grouping folders: domains in `packages/domain`, families in `packages/ui`, `schema/` in `packages/db` (the person, 2026-11-22).
 
+Exceptions (the person, 2026-11-22): `apps/web/src/route-tree.ts` sits at the root of `src/`, where the domains' routes meet, because `_shared/` may not import domains.
+
+### Web routing (the person, 2026-11-22)
+
+`main.tsx` → `_shared/providers/app-providers.tsx` → `_shared/router/` → `route-tree.ts` → `<domain>/routes.ts` → `<feature>/<feature>-routes.ts` → screens.
+
+1. A feature's routes file declares its URLs, validates search params and points to its screens with a lazy `import()`; nothing visual. The domain's `routes.ts` only gathers its features' routes; `route-tree.ts` gathers the domains.
+2. A screen is imported only by its own feature's routes file, always lazily; nothing else imports it (it would land in the importer's chunk), and a screen does not know its URL. dependency-cruiser enforces it.
+3. Moving between screens goes through typed URLs (`navigate({ to: '/login/code' })`, `<Link to>`), never by importing another screen.
+4. Data never passes between screens by import: through the app-core query cache or the URL; router history state only for values that must stay out of the URL, such as the sign-in email.
+5. A feature may use a component of another feature of its domain (home uses session's sign-out button); across domains it may not (dependency-cruiser), and the component is promoted to `_shared/components/` or `packages/ui`.
+
 ## Names
 
-A file is not named only by its kind when that name repeats in other folders: `sign-in-api.ts`, `session-hooks.ts`, `sign-in-routes.ts`, not `api.ts`, `hooks.ts`, `routes.ts` (the person, 2026-11-22). Exception: the convention files at the root of a domain keep one fixed name in every domain (`errors.ts`, and `routes.ts` in the apps), because that fixed name and place make the layout predictable.
+A file is not named only by its kind when that name repeats in other folders: `sign-in-api.ts`, `session-hooks.ts`, `sign-in-routes.ts`, not `api.ts`, `hooks.ts`, `routes.ts` (the person, 2026-11-22). Exception: the convention files at the root of a domain keep one fixed name in every domain (`errors.ts`, and `routes.ts` in the apps), because that fixed name and place make the layout predictable. The same goes for `query-keys.ts` at the root of each domain in `packages/app-core`: every TanStack Query key of the domain lives there, and hooks import keys from it, never from another feature's hooks (the person, 2026-11-22).
+
+- Hooks files are `<feature>-hooks.ts`; screens `<name>-screen.tsx` (the person, 2026-11-22).
+- No barrel `index` files: a package's entries are only those declared in its `exports`. A package exports only what other packages and apps may use; internals (`*-api.ts`) and test helpers stay unexported (the person, 2026-11-22).
+- Seeds are numbered like migrations: `NNNN-<domain>.sql`, four digits (the person, 2026-11-22).
+- Test files (the person, 2026-11-22): a unit test is `<source>.test.ts`; a feature's HTTP test `<feature>-routes.int.test.ts`, or `<spec-topic>.int.test.ts` when it covers a rule of the living spec; acceptance scenarios always in `e2e/acceptance/<topic>.e2e.ts` (`e2e/health.e2e.ts` stays as infrastructure).
+- The brand "worKampo" is not translated (the person, 2026-11-22).
 
 | What | Rule | Example |
 |---|---|---|
@@ -62,7 +81,9 @@ Use one name end to end: living-spec rule (`@id:companies-15-1`) → use case �
 
 ## Errors
 
-- Throw typed domain errors from the domain's `errors.ts`.
+- One error class per domain, with its code: `AccessError(code)` in `apps/api/src/access/errors.ts`, which also holds each code's HTTP status (the person, 2026-11-22).
+- Adapters throw neutral errors of their capability (`InvalidCodeError`, never an `access.*` code); the use case translates them into the domain's error (the person, 2026-11-22).
+- The union of every domain's codes is `packages/domain/errors.ts`; the API, app-core and the texts' test read it (the person, 2026-11-22).
 - Translate to HTTP in one place, `_shared/http/problem-json.ts`: `problem+json` (RFC 9457) with a stable `code` the interface translates.
 
 ## Data access
@@ -115,7 +136,9 @@ Use one name end to end: living-spec rule (`@id:companies-15-1`) → use case �
 ## Validation, config, imports
 
 - Zod only at the boundaries (API input, forms, environment variables). Types inferred from Zod and Drizzle, never duplicated by hand.
-- Bindings and variables typed and validated at startup in `env.ts`; no loose reads of variables elsewhere.
+- Bindings and variables typed and validated in `env.ts`; no loose reads of variables elsewhere. The environment is parsed once per request by a middleware into `c.var.env`, and its types have one source, `env.ts` (the person, 2026-11-22).
+- Utilities without I/O of one capability live in `_shared/<capability>/`: `crypto/` (random tokens, SHA-256), `auth/state-cookie.ts`, `http/request-origin.ts` with the one `RequestOrigin` type (the person, 2026-11-22).
+- The API's typed contract is `@workampo/api/contract` (type-only `AppType`); clients import that, never a path into `apps/` (the person, 2026-11-22).
 - Local secrets only in `.dev.vars` (ignored); commit `.dev.vars.example` with names, no values. Staging/production secrets via `wrangler secret` and GitHub Environments. Public config in `vars` of `wrangler.jsonc`; no `.env.<environment>` files.
 
 ## Permissions
@@ -132,6 +155,8 @@ Use one name end to end: living-spec rule (`@id:companies-15-1`) → use case �
 
 ## Interface
 
+- All CSS lives in `packages/ui/styles/`; apps import `@workampo/ui/styles.css` (the person, 2026-11-22).
+- Typography through `Text` and `TextLink` of `packages/ui`; screens carry no typography classes (the person, 2026-11-22).
 - Styles: only tokens ([`packages/ui/styles/tokens.css`](../../packages/ui/styles/tokens.css)) and Tailwind scale classes; no arbitrary values (`text-[20px]`) outside `packages/ui`.
 - Texts through i18n keys, never literals ([ADR-0047](../adr/0047-i18n-from-the-start.md)).
 - Search `packages/ui` and [`docs/design/components.md`](../design/components.md) before creating a component.
@@ -158,6 +183,7 @@ Use one name end to end: living-spec rule (`@id:companies-15-1`) → use case �
 
 ## Tests placement
 
+- Setup of a package's tests in `<package>/test/setup.ts`; helpers tests import in `src/_shared/testing/` (API: `newEmail`, `signIn`, `expectProblem`…). The fake provider's fixtures come from `fake-identities.ts`, never copied (the person, 2026-11-22).
 - Unit next to the code (`x.test.ts`), integration `*.int.test.ts` in the domain folder; strategy in [ADR-0029](../adr/0029-testing-strategy.md). Each approved living-spec example has a test that cites its `@id`.
 
 ## Blank lines

@@ -175,6 +175,14 @@ Ink background (`--text`) with `--bg` text, so they read as system feedback in b
 
 Shell, sidebar, topbar and page head are not catalogued yet.
 
+### Card screen
+
+Custom (`CardScreen` in `packages/ui/layout/`). The layout of the [card screens](patterns.md#public-pages-and-auth): sign in and its code, choose and create a company, accept an invitation, return from checkout.
+
+- Anatomy: a page header with the worKampo logo (later the company's, and the language selector at its right before sign-in), then one `Card` with the screen's `h1` title and its task; nothing else on the page.
+- Sizes: `--chrome` background at every size; header and card 384 px wide at most, centred; padding 24 at the top on phone and 64 from 640 px; 16 px from the screen edges on phone, where the card keeps its border and radius and sits at the top so the keyboard does not cover it.
+- Accessibility: the header is the `banner` landmark and the card sits in `main`; the title is the page's only `h1`.
+
 ## Brand
 
 ### Logo mark in ink
