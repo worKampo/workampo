@@ -3,7 +3,7 @@ import { currentUser, expectSignedOut, signInWithCode, signInWithGoogle } from '
 
 test.use({ locale: 'es-ES' })
 
-// The seed links these users to the fake provider's identities (plan, "WorkOS adapter and fake").
+// The seed links these users to the fake provider's identities (@id:access-96-8 to access-96-12).
 const SUPPORT = /soporte/i
 
 test('@id:access-96-8 a linked identity signs in to the same account', async ({ page }) => {
@@ -15,9 +15,11 @@ test('@id:access-96-8 a linked identity signs in to the same account', async ({ 
 
   await page.context().clearCookies()
   await signInWithGoogle(page)
+  await expect(page).toHaveURL(/\/$/)
   const google = await currentUser(page)
   await page.context().clearCookies()
   await signInWithGoogle(page)
+  await expect(page).toHaveURL(/\/$/)
   expect((await currentUser(page)).id).toBe(google.id)
 })
 
