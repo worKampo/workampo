@@ -1,5 +1,5 @@
 import { rateLimitCounters } from '@workampo/db/schema/global'
-import { sql } from 'drizzle-orm'
+import { lt, sql } from 'drizzle-orm'
 import { globalDb } from '../db/d1-global-db'
 
 export function rateLimitRepo(env: { DB_GLOBAL: D1Database }) {
@@ -21,5 +21,8 @@ export function rateLimitRepo(env: { DB_GLOBAL: D1Database }) {
 
       return row.count
     },
+
+    deleteExpired: (now: string) =>
+      db.delete(rateLimitCounters).where(lt(rateLimitCounters.expiresAt, now)),
   }
 }
