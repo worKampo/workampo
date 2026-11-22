@@ -19,14 +19,14 @@ The same domain and feature folders everywhere, with identical feature names in 
 ```
 packages/domain/access/          errors.ts, identity.ts     what the whole domain shares (errors, types, values)
   sign-in/  session/             pure business rules and their tests
-packages/client/access/sign-in/  data hooks (queries, mutations) and form schemas; no DOM; shared by web and mobile
+packages/app-core/access/sign-in/  data hooks (queries, mutations) and form schemas; no DOM; shared by web and mobile
 packages/i18n/src/locales/<lang>/access.json   texts grouped by screen, plus `errors`; `_context/access.json` for translators
 apps/api/src/access/             routes.ts (mounts the features), errors.ts
   sign-in/  session/             the feature's routes, use cases, repos and tests
   users/                         a repo several features share
 apps/web/src/access/             routes.ts (the domain's routes)
   sign-in/                       its routes and one file per screen (`login-screen.tsx`); screen-only components beside it until a second use promotes them to packages/ui
-apps/mobile/src/access/          when the app arrives: the same feature folders, its own views, the same hooks from packages/client
+apps/mobile/src/access/          when the app arrives: the same feature folders, its own views, the same hooks from packages/app-core
 ```
 
 `packages/ui` is not per domain: it is grouped by component family in folders that mirror the headings of [components.md](../design/components.md) (`actions/`, `forms/`, `content/`, `brand/`…), each component with its test beside it, and imported per family: `@workampo/ui/forms` (the person, 2026-11-22).
@@ -34,6 +34,8 @@ apps/mobile/src/access/          when the app arrives: the same feature folders,
 The root of a package or app holds only configuration, generated files and the folders an external tool reads as they are (`migrations/`, `seed/`, `backfills/`, `public/`, `e2e/`, `test/` setup). Everything our code imports, code or data such as translations and styles, lives in `src/` or in the package's own grouping folders: domains in `packages/domain`, families in `packages/ui`, `schema/` in `packages/db` (the person, 2026-11-22).
 
 ## Names
+
+A file is not named only by its kind when that name repeats in other folders: `sign-in-api.ts`, `session-hooks.ts`, `sign-in-routes.ts`, not `api.ts`, `hooks.ts`, `routes.ts` (the person, 2026-11-22). Exception: the convention files at the root of a domain keep one fixed name in every domain (`errors.ts`, and `routes.ts` in the apps), because that fixed name and place make the layout predictable.
 
 | What | Rule | Example |
 |---|---|---|
@@ -139,11 +141,11 @@ Use one name end to end: living-spec rule (`@id:companies-15-1`) → use case �
   - Translations load per language and namespace on demand; never import a locale file statically in the web.
   - The initial JS of `/login` and of the signed-in shell stays under the budget the web check enforces.
 - Where state lives (the person, 2026-11-22; [ADR-0073](../adr/0073-frontend-stack-and-rate-limiting.md) point 5):
-  - Server data: only the TanStack Query cache of `packages/client`; never copied into context or `useState`.
+  - Server data: only the TanStack Query cache of `packages/app-core`; never copied into context or `useState`.
   - Shareable or restorable state (company, filters, search, page, sort, open drawer): the URL.
   - UI state: local `useState`, lifted only as far as needed. Form state: react-hook-form in its screen.
-  - Context: only rarely-changing app-wide values not from the server (router, query and i18n providers, theme, toast queue), in `apps/web/src/_shared/providers/` with a one-line why.
-  - Shared or persisted client state: a Zustand store in `packages/client` with injected storage, versioned with a migration; never personal data, tokens or server data. No other global state library without an ADR.
+  - Context: only rarely-changing app-wide values not from the server (router, query and i18n providers, theme, toast queue), in `apps/web/src/_shared/providers/` with a one-line why. Exception: `packages/app-core/_shared/` defines the contexts of its own dependency injection (the API client); each app mounts their providers in its `_shared/providers/app-providers.tsx`.
+  - Shared or persisted client state: a Zustand store in `packages/app-core` with injected storage, versioned with a migration; never personal data, tokens or server data. No other global state library without an ADR.
 
 | Level | Where | Rule |
 |---|---|---|
