@@ -164,9 +164,10 @@ test('a real deploy migrates, builds, strips maps and deploys, always with --env
 
   const order = calls.map((c) => c.command)
   assert.ok(order.indexOf('removeMaps') < order.lastIndexOf('wrangler'))
-  // The bundle that goes out is checked for the fake identity provider first (ADR-0029).
-  assert.ok(order.indexOf('assertNoFakeProvider') < order.lastIndexOf('wrangler'))
-  assert.ok(order.indexOf('assertNoFakeProvider') > order.indexOf('wrangler'))
+  // The bundle the dry run builds is checked for the fake identity provider before it goes out (ADR-0029).
+  const dryRun = calls.findIndex((c) => c.command === 'wrangler' && c.args.includes('--dry-run'))
+  const check = order.indexOf('assertNoFakeProvider')
+  assert.ok(dryRun < check && check < order.lastIndexOf('wrangler'))
   assert.equal(calls.filter((c) => c.command === 'sentry-cli').length, 0)
 })
 
