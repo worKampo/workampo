@@ -3,7 +3,7 @@ import { act, renderHook, waitFor } from '@testing-library/react'
 import { createElement, type ReactNode } from 'react'
 import { describe, expect, it } from 'vitest'
 import { ApiClientProvider } from '../../_shared/api-client-context'
-import { fakeApi, problem } from '../../_shared/test-support'
+import { fakeApi, problem } from '../../_shared/testing/fake-api'
 import { ME_QUERY_KEY, useMe, useSignOut } from './session-hooks'
 
 describe('session hooks', () => {

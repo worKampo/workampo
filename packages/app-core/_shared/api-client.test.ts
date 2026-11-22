@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { ApiError, send } from './api-client'
-import { fakeApi, problem } from './test-support'
+import { fakeApi, problem } from './testing/fake-api'
 
 describe('the API client', () => {
   it('sends the client version on every request, to the base URL', async () => {

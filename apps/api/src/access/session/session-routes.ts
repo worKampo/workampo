@@ -1,5 +1,5 @@
 import { Hono } from 'hono'
-import { requireSession, type SessionVariables } from '../../_shared/auth/session'
+import { requireSession, type SessionVariables } from '../../_shared/auth/require-session'
 import { clearSessionCookie, readSessionCookie } from '../../_shared/auth/session-cookie'
 import type { AppEnv } from '../../_shared/http/app-env'
 import { AccessError } from '../errors'

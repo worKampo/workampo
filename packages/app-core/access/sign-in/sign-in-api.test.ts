@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { fakeApi, problem } from '../../_shared/test-support'
+import { fakeApi, problem } from '../../_shared/testing/fake-api'
 import { startCodeSignIn, verifyCode } from './sign-in-api'
 
 describe('sign-in api', () => {

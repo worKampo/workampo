@@ -3,7 +3,7 @@ import { act, renderHook } from '@testing-library/react'
 import { createElement, type ReactNode } from 'react'
 import { expect, it } from 'vitest'
 import { ApiClientProvider } from '../../_shared/api-client-context'
-import { fakeApi } from '../../_shared/test-support'
+import { fakeApi } from '../../_shared/testing/fake-api'
 import { ME_QUERY_KEY } from '../session/session-hooks'
 import { useVerifyCode } from './sign-in-hooks'
 

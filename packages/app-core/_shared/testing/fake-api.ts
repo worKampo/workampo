@@ -1,4 +1,4 @@
-import { createApiClient } from './api-client'
+import { createApiClient } from '../api-client'
 
 export type Sent = { method: string; url: string; headers: Headers; body: unknown }
 
