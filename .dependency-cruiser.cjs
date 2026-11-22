@@ -84,6 +84,13 @@ module.exports = {
       to: { path: '-screen\\.tsx$', dependencyTypesNot: ['type-only'] },
     },
     {
+      name: 'screens-loaded-lazily',
+      comment: 'Even its own routes file imports a screen only with import() (ADR-0073 point 4).',
+      severity: 'error',
+      from: { path: '^apps/web/src/', pathNot: '\\.test\\.tsx?$' },
+      to: { path: '-screen\\.tsx$', dynamic: false, dependencyTypesNot: ['type-only'] },
+    },
+    {
       name: 'screens-only-from-their-own-routes',
       severity: 'error',
       from: { path: '^(apps/web/src/.+)/[^/]+-routes\\.tsx?$' },
