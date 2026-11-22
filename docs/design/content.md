@@ -66,11 +66,16 @@ Title says **what is not there yet**; one line says **why it matters or what wil
 
 ## Internationalisation (D47)
 
-- `en` is the default; `es` (es-ES) ships from day one. Adding a locale must not require code changes.
-- **No user-visible text in code**: every string goes through the i18n library with an **English key** (e.g. `members.invite.submit`). This includes `aria-label`, tooltips, `alt`, placeholders, toasts, emails and server error messages shown to users.
+- `en` is the default; `es` (es-ES) and `ca` (Catalan) ship from day one. Adding a locale must not require code changes. Where Catalan is missing, Spanish is used; English only when neither exists.
+- **No user-visible text in code**: every string goes through the i18n library with an **English key** `domain.screen.element` (ADR-0053; e.g. `companies.members.invite_button`). This includes `aria-label`, tooltips, `alt`, placeholders, toasts, emails and server error messages shown to users.
 - Use the library's interpolation and **ICU plurals**; never concatenate translated fragments or build sentences from pieces ("Invite " + n + " people").
 - Allow for expansion: Spanish is often 20–30 % longer than English. Buttons, chips and table headers must not truncate at that length.
 - CI fails if a key is missing in any locale. Agents propose translations; they are reviewed in the PR.
+- **Files and keys** (the person, 2026-11-22). Texts live in `packages/i18n/locales/<lang>/<domain>.json`, one i18next namespace per domain, nested by screen: `access.json` → `{ "login": {…}, "code": {…}, "home": {…}, "errors": {…} }`.
+  1. **`errors` is the domain's error screen**: one key per error code of the domain (`access.invalid_code` → `access.errors.invalid_code`). A test checks that every code has its text in every language.
+  2. **Repeated texts are repeated per screen**: each keeps its context, and Catalan or Spanish may need different forms in different places.
+  3. **`common`** (`locales/<lang>/common.json`) holds only generic design-system words with the same meaning everywhere: actions (cancel, close, back, save, retry) and states (loading). When in doubt, the text stays in its screen.
+  4. **Context for translators** in `locales/_context/<domain>.json` (and `common.json`), in English, with the same structure; the app does not load it. Every screen group has a `_screen` description; notes per key are optional (length, tone, variables). `pnpm check` fails when a screen group of `en` has no `_screen`.
 - The active app locale is a user preference (then company default, then `Accept-Language`, then `en`); it is not in the app URL. Public pages carry the locale in the path (`/`, `/es/`).
 - Company landings are in the language the company chooses; their content is the company's.
 

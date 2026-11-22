@@ -1,0 +1,5 @@
+{
+  "states": {
+    "_screen": "Generic states of any screen, from the design system: loaders and busy indicators. Often read only by screen readers."
+  }
+}

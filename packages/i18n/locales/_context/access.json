@@ -1,0 +1,8 @@
+{
+  "errors": {
+    "_screen": "Error messages of signing in and of the session, shown under the field or on the sign-in screen. One per error code the API returns. Short, say what happened and what to do next; never blame the person.",
+    "too_many_code_requests": "Rate limit on asking for codes; do not give the limit or the wait time.",
+    "too_many_attempts": "Rate limit on typing codes; do not give the limit or the wait time.",
+    "contact_support": "Shown when the account cannot be opened with this identity (an email already used by another account). Do not mention the other account."
+  }
+}
