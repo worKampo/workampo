@@ -5,5 +5,5 @@
     "jsx": "react-jsx",
     "types": ["vite/client"]
   },
-  "include": ["src", "vite.config.ts", "../../packages/i18n/i18next.d.ts"]
+  "include": ["src", "vite.config.ts", "../../packages/i18n/src/i18next.d.ts"]
 }

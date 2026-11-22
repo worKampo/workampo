@@ -1,11 +1,11 @@
-// Every language of packages/i18n/locales/ has the same files and keys as en (ADR-0047), and every
+// Every language of packages/i18n/src/locales/ has the same files and keys as en (ADR-0047), and every
 // screen group of en has its description for translators in _context/ (docs/design/content.md).
 import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { ROOT } from '../db/d1.mjs'
 
-const LOCALES_DIR = join(ROOT, 'packages', 'i18n', 'locales')
+const LOCALES_DIR = join(ROOT, 'packages', 'i18n', 'src', 'locales')
 const BASE = 'en'
 const CONTEXT = '_context'
 
