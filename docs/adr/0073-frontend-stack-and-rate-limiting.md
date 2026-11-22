@@ -62,3 +62,7 @@ This resolves the "Decided later" line of [ADR-0053](0053-code-conventions.md) f
 - `apps/web` imports the API's route type for `hc`; dependency-cruiser allows that import as type-only.
 - WorkOS is called with `fetch` (three calls), not its SDK, and receives the IP and user agent of each sign-in. Its production environment asks for billing details even under the free tier: adding a card is the person's explicit decision before going to production ([ADR-0065](0065-zero-spend-and-free-tier-limits.md)).
 - Pending check: whether the `assets` block of `wrangler.jsonc` is inherited by `env.stg` and `env.prod` or must be repeated like the bindings.
+
+## Updates
+
+- 2026-11-22 (the person, ticket 96): the attempts counter counts every attempt with a code per email, right or wrong, not only the failed ones (@id:access-96-4). Counting before the provider is asked is atomic and never asks it once the limit is passed. Point 3's "failed attempts per email" reads in that sense.
