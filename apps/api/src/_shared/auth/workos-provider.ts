@@ -1,5 +1,6 @@
 import type { VerifiedIdentity } from '@workampo/domain/access/identity'
 import { z } from 'zod'
+import type { RequestOrigin } from '../http/request-origin'
 import {
   type IdentityProvider,
   InvalidCodeError,
@@ -93,8 +94,7 @@ export function workosProvider({
   }
 }
 
-type Origin = { ipAddress?: string | undefined; userAgent?: string | undefined }
-const originFields = ({ ipAddress, userAgent }: Origin) => ({
+const originFields = ({ ipAddress, userAgent }: Partial<RequestOrigin>) => ({
   ...(ipAddress && { ip_address: ipAddress }),
   ...(userAgent && { user_agent: userAgent }),
 })

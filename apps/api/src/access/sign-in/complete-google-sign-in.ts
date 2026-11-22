@@ -1,4 +1,5 @@
 import type { IdentityProvider } from '../../_shared/auth/identity-provider'
+import type { RequestOrigin } from '../../_shared/http/request-origin'
 import { AccessError } from '../errors'
 import { completeSignIn } from './complete-sign-in'
 import { isSameState } from './start-google-sign-in'
@@ -8,7 +9,6 @@ type GoogleAnswer = {
   state?: string | undefined
   error?: string | undefined
 }
-type Origin = { ipAddress: string; userAgent?: string | undefined }
 
 // Google's answer comes back through the browser: it counts only with the state this browser holds.
 export async function completeGoogleSignIn(
@@ -23,7 +23,7 @@ export async function completeGoogleSignIn(
     provider: IdentityProvider
     expectedState: string | undefined
     answer: GoogleAnswer
-    origin: Origin
+    origin: RequestOrigin
     previousSessionToken: string | undefined
   },
 ) {

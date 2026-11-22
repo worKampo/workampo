@@ -4,28 +4,20 @@ import {
   verifyCodeSchema,
 } from '@workampo/domain/access/sign-in/sign-in-code'
 import { resolveLanguage } from '@workampo/i18n/resolve-language'
-import { type Context, Hono } from 'hono'
-import { deleteCookie, getCookie, setCookie } from 'hono/cookie'
+import { Hono } from 'hono'
 import { identityProvider } from '../../_shared/auth/provider-registry'
 import { readSessionCookie, setSessionCookie } from '../../_shared/auth/session-cookie'
+import { setStateCookie, takeStateCookie } from '../../_shared/auth/state-cookie'
 import { parseEnv } from '../../_shared/env'
 import type { AppEnv } from '../../_shared/http/app-env'
 import { problemJson } from '../../_shared/http/problem-json'
+import { requestOrigin } from '../../_shared/http/request-origin'
 import { hitRateLimit } from '../../_shared/rate-limit/rate-limit'
 import { AccessError } from '../errors'
 import { completeGoogleSignIn } from './complete-google-sign-in'
 import { completeSignIn } from './complete-sign-in'
 import { startCodeSignIn } from './start-code-sign-in'
 import { startGoogleSignIn } from './start-google-sign-in'
-
-const OAUTH_STATE = 'oauth_state'
-const STATE_COOKIE = {
-  prefix: 'host',
-  httpOnly: true,
-  secure: true,
-  sameSite: 'Lax',
-  path: '/',
-} as const
 
 export const signInRoutes = new Hono<AppEnv>()
   .post(
@@ -46,7 +38,7 @@ export const signInRoutes = new Hono<AppEnv>()
         request: {
           email: c.req.valid('json').email,
           locale: resolveLanguage(c.req.header('Accept-Language')),
-          ...origin(c),
+          ...requestOrigin(c),
         },
       })
 
@@ -80,7 +72,7 @@ export const signInRoutes = new Hono<AppEnv>()
       const identity = await identityProvider(env).completeCodeSignIn({
         email,
         code,
-        ...origin(c),
+        ...requestOrigin(c),
       })
       const { user, sessionToken } = await completeSignIn(c.env, {
         identity,
@@ -94,21 +86,19 @@ export const signInRoutes = new Hono<AppEnv>()
   .get('/sessions/google', (c) => {
     const provider = identityProvider(parseEnv(c.env))
     const { state, url } = startGoogleSignIn({ provider, origin: new URL(c.req.url).origin })
-    setCookie(c, OAUTH_STATE, state, { ...STATE_COOKIE, maxAge: 600 })
+    setStateCookie(c, state)
 
     return c.redirect(url, 302)
   })
   .get('/sessions/google/callback', async (c) => {
-    const expectedState = getCookie(c, OAUTH_STATE, 'host')
-    // Used once: a second callback with the same state finds no cookie.
-    deleteCookie(c, OAUTH_STATE, STATE_COOKIE)
+    const expectedState = takeStateCookie(c)
 
     try {
       const { sessionToken } = await completeGoogleSignIn(c.env, {
         provider: identityProvider(parseEnv(c.env)),
         expectedState,
         answer: c.req.query(),
-        origin: origin(c),
+        origin: requestOrigin(c),
         previousSessionToken: readSessionCookie(c),
       })
       setSessionCookie(c, sessionToken)
@@ -121,11 +111,3 @@ export const signInRoutes = new Hono<AppEnv>()
       return c.redirect(`/login?error=${error.code}`, 302)
     }
   })
-
-// Cloudflare always sets CF-Connecting-IP; only local tools may lack it.
-function origin(c: Context) {
-  return {
-    ipAddress: c.req.header('CF-Connecting-IP') ?? 'unknown',
-    userAgent: c.req.header('User-Agent'),
-  }
-}

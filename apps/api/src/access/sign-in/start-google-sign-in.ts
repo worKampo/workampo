@@ -1,4 +1,5 @@
 import type { IdentityProvider } from '../../_shared/auth/identity-provider'
+import { randomToken } from '../../_shared/crypto/random-token'
 
 const GOOGLE_CALLBACK_PATH = '/api/sessions/google/callback'
 
@@ -16,7 +17,7 @@ export function startGoogleSignIn({
   provider: IdentityProvider
   origin: string
 }) {
-  const state = newState()
+  const state = randomToken()
   const url = provider.googleAuthorizationUrl({
     state,
     redirectUri: `${origin}${GOOGLE_CALLBACK_PATH}`,
@@ -34,13 +35,4 @@ export function isSameState(expected: string | undefined, received: string | und
   if (a.byteLength !== b.byteLength) return false
 
   return workersSubtle.timingSafeEqual(a, b)
-}
-
-function newState() {
-  const bytes = crypto.getRandomValues(new Uint8Array(32))
-
-  return btoa(String.fromCharCode(...bytes))
-    .replaceAll('+', '-')
-    .replaceAll('/', '_')
-    .replace(/=+$/, '')
 }

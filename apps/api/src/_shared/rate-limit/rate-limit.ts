@@ -1,3 +1,4 @@
+import { sha256Hex } from '../crypto/sha256-hex'
 import { rateLimitRepo } from './rate-limit-repo'
 import {
   isOverLimit,
@@ -25,6 +26,7 @@ export async function hitRateLimit(
     key: rateLimitKey({
       purpose: input.purpose,
       subjectKind: input.subjectKind,
+      // Unsalted on purpose (ADR-0073): the same email or IP must land on the same row.
       subjectHash: await sha256Hex(input.subject),
     }),
     windowStartedAt: start.toISOString(),
@@ -32,11 +34,4 @@ export async function hitRateLimit(
   })
 
   return isOverLimit(count, input.threshold)
-}
-
-// Unsalted on purpose (ADR-0073): the same email or IP must land on the same row; rows live one window.
-async function sha256Hex(text: string) {
-  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text))
-
-  return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join('')
 }
