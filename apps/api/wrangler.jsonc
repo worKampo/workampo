@@ -8,7 +8,16 @@
   // Source maps go only to Sentry (ADR-0043).
   "upload_source_maps": false,
   "version_metadata": { "binding": "CF_VERSION_METADATA" },
-  "vars": { "ENVIRONMENT": "local" },
+  // Local test values. In stg and prod the thresholds are Cloudflare secrets (AGENTS.md "No entra")
+  // and IDENTITY_PROVIDER is absent, so the real provider is the only one there.
+  "vars": {
+    "ENVIRONMENT": "local",
+    "IDENTITY_PROVIDER": "fake",
+    "RATE_LIMIT_CODE_REQUESTS_PER_EMAIL": "10",
+    "RATE_LIMIT_CODE_REQUESTS_PER_IP": "1000",
+    "RATE_LIMIT_CODE_ATTEMPTS_PER_EMAIL": "10",
+    "RATE_LIMIT_WINDOW_SECONDS": "600"
+  },
   "d1_databases": [
     {
       "binding": "DB_GLOBAL",
