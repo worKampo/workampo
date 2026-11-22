@@ -18,10 +18,12 @@ const isLanguage = (tag: string): tag is Language => (LANGUAGES as readonly stri
 // No user or company preference yet: the browser list or Accept-Language, then English (ADR-0047).
 export function resolveLanguage(preferences: readonly string[] | string | undefined): Language {
   const tags = typeof preferences === 'string' ? byWeight(preferences) : (preferences ?? [])
+
   for (const tag of tags) {
     const primary = tag.trim().toLowerCase().split('-')[0] ?? ''
     if (isLanguage(primary)) return primary
   }
+
   return DEFAULT_LANGUAGE
 }
 
@@ -31,6 +33,7 @@ function byWeight(acceptLanguage: string): string[] {
     .map((part) => {
       const [tag = '', ...params] = part.split(';')
       const q = params.map((p) => p.trim()).find((p) => p.startsWith('q='))
+
       return { tag, weight: q ? Number(q.slice(2)) : 1 }
     })
     .filter(({ weight }) => weight > 0)

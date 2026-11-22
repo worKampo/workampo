@@ -3,6 +3,7 @@ export type RateLimitSubjectKind = 'email' | 'ip'
 
 export function windowStart(now: Date, windowSeconds: number): Date {
   const windowMs = windowSeconds * 1000
+
   return new Date(Math.floor(now.getTime() / windowMs) * windowMs)
 }
 

@@ -20,22 +20,28 @@ function keysOf(texts, prefix = '') {
 // locales: { <lang>: Map<file name, parsed JSON> }
 export function keyErrors(locales) {
   const errors = []
+
   for (const [language, files] of Object.entries(locales)) {
     if (language === BASE) continue
+
     for (const [file, texts] of locales[BASE]) {
       if (!files.has(file)) {
         errors.push(`${language}/${file} is missing`)
         continue
       }
+
       const expected = new Set(keysOf(texts))
       const actual = new Set(keysOf(files.get(file)))
+
       for (const key of expected)
         if (!actual.has(key)) errors.push(`${language}/${file} misses ${key}`)
+
       for (const key of actual)
         if (!expected.has(key))
           errors.push(`${language}/${file} has ${key}, which ${BASE} does not`)
     }
   }
+
   return errors
 }
 

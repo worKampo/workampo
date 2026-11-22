@@ -16,10 +16,13 @@ export function parseArgs(argv) {
   const isData = argv.includes('--data')
   const names = argv.filter((arg) => !arg.startsWith('--'))
   const known = kinds.length + names.length + (isData ? 1 : 0)
+
   if (kinds.length !== 1 || names.length !== 1 || known !== argv.length)
     throw new Error(`Expected one database and one name. ${USAGE}`)
+
   const [name] = names
   if (!VERB_OBJECT.test(name)) throw new Error(`"${name}" is not verb_object. ${USAGE}`)
+
   return { kind: kinds[0].slice(2), isData, name }
 }
 
@@ -27,17 +30,21 @@ export function migrationNew({ kind, isData, name }, io) {
   const ticket = branchTicket(io.branch())
   if (!ticket)
     throw new Error('The branch has no ticket: the migration needs its -- ticket: header')
+
   const before = new Set(io.listMigrations(kind))
   io.drizzleKit(['generate', `--name=${name}`, ...(isData ? ['--custom'] : [])], kind)
   const created = io.listMigrations(kind).filter((file) => !before.has(file))
   if (created.length !== 1) throw new Error('No migration was generated: the schema has no changes')
+
   const [file] = created
   io.writeFile(file, `-- ticket: #${ticket}\n${io.readFile(file)}`)
+
   return file
 }
 
 function realIo(kind) {
   const dir = join(DB_DIR, 'migrations', kind)
+
   return {
     branch: () =>
       execFileSync('git', ['rev-parse', '--abbrev-ref', 'HEAD'], { encoding: 'utf8' }).trim(),

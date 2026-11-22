@@ -46,13 +46,16 @@ export function workosProvider({
       client_secret: apiKey,
       ...body,
     })
+
     // WorkOS rejects a wrong or expired code with 400 (invalid_grant).
     if (response.status === 400) throw new InvalidCodeError()
     const answer = response.ok
       ? authenticateAnswerSchema.safeParse(await response.json().catch(() => null))
       : null
+
     if (!answer?.success) throw new ProviderUnavailableError(`WorkOS answered ${response.status}`)
     const { user } = answer.data
+
     return {
       provider: 'workos',
       subject: user.id,
@@ -65,6 +68,7 @@ export function workosProvider({
     // WorkOS renders the email in en, es and ca alike (its supported locales, consulted 2026-11-22).
     async startCodeSignIn({ email, locale, ...origin }) {
       const response = await post('/magic_auth', { email, locale, ...originFields(origin) })
+
       // The answer holds the code itself: it is never read, so it cannot leave this function.
       if (!response.ok) throw new ProviderUnavailableError(`WorkOS answered ${response.status}`)
     },
@@ -86,6 +90,7 @@ export function workosProvider({
         provider: 'GoogleOAuth',
         state,
       }).toString()
+
       return url.href
     },
 

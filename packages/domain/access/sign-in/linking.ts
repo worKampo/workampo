@@ -20,13 +20,17 @@ export function decideSignIn({
 }): SignInDecision {
   if (!identity.isEmailVerified) return { kind: 'refuse', code: 'access.email_not_verified' }
   const email = normalizeEmail(identity.email)
+
   if (!userBySubject) {
     return userByEmail
       ? { kind: 'refuse', code: 'access.contact_support' }
       : { kind: 'create', email }
   }
+
   if (email === userBySubject.email) return { kind: 'open', userId: userBySubject.id }
+
   if (userByEmail && userByEmail.id !== userBySubject.id)
     return { kind: 'refuse', code: 'access.contact_support' }
+
   return { kind: 'open', userId: userBySubject.id, newEmail: email }
 }

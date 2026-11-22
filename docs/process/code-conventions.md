@@ -125,6 +125,14 @@ Use one name end to end: living-spec rule (`@id:companies-15-1`) â†’ use case â†
 
 - Unit next to the code (`x.test.ts`), integration `*.int.test.ts` in the domain folder; strategy in [ADR-0029](../adr/0029-testing-strategy.md). Each approved living-spec example has a test that cites its `@id`.
 
+## Blank lines
+
+Biome keeps blank lines but never adds them; apply this by hand (the person, 2026-11-22):
+
+- One blank line separates logical blocks: after a group of guard clauses and the values they lead to; before and after an `if`, `for`, `while`, `try` or `switch` whose body spans several lines; before the final `return` of a function with other statements before it.
+- A single-statement `if` stays on one line when it fits; otherwise Biome puts the body on its own indented line.
+- No blank line right after an opening brace or right before a closing one.
+
 ## Logs and comments
 
 - Logs: structured JSON with request id and company id, no personal data. Errors go to Sentry through its adapter, sent with `ctx.waitUntil`.

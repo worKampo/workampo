@@ -19,6 +19,7 @@ const isProblemCode = (code: unknown): code is ProblemCode =>
 // RFC 9457 with the stable `code` the interface translates.
 export function problemJson(code: ProblemCode): Response {
   const status = STATUS_BY_CODE[code]
+
   return new Response(JSON.stringify({ type: 'about:blank', status, code }), {
     status,
     headers: { 'Content-Type': 'application/problem+json' },
@@ -27,5 +28,6 @@ export function problemJson(code: ProblemCode): Response {
 
 export function toProblem(error: unknown): Response | null {
   const code = error instanceof Error && 'code' in error ? error.code : undefined
+
   return isProblemCode(code) ? problemJson(code) : null
 }

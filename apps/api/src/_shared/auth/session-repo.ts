@@ -5,6 +5,7 @@ import { globalDb } from '../db/d1-global-db'
 // Queries are returned unawaited where a caller may put them in one batch() with other writes.
 export function sessionRepo(env: { DB_GLOBAL: D1Database }) {
   const db = globalDb(env)
+
   return {
     findByTokenHash: (tokenHash: string) =>
       db

@@ -15,8 +15,10 @@ export const requireSession = createMiddleware<AppEnv & { Variables: SessionVari
     const session = token
       ? await sessionRepo(c.env).findByTokenHash(await hashSessionToken(token))
       : undefined
+
     if (!session || !isSessionValid(session, new Date()))
       return problemJson('access.unauthenticated')
+
     c.set('session', { id: session.id, userId: session.userId })
     await next()
   },
