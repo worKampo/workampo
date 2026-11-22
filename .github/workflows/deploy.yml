@@ -125,7 +125,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
       # The job records a prod deployment even when deploy.mjs deployed nothing (a stale run). The
-      # description must match NOTHING_DEPLOYED in scripts/observation/check.mjs, which then skips it.
+      # description must match NOTHING_DEPLOYED in scripts/observation/observation-check.mjs, which then skips it.
       # This run's deployment is found by its run id, not by position: deploy-all can record one for
       # the same SHA. No continue-on-error: a failure fails the job, and a failed deployment opens no
       # window either.

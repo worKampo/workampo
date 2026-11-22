@@ -54,7 +54,7 @@ jobs:
       - run: |
           args=()
           [ "$DRY_RUN" = true ] && args+=(--dry-run)
-          node scripts/observation/check.mjs "${args[@]}"
+          node scripts/observation/observation-check.mjs "${args[@]}"
         env:
           DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run }}
           SENTRY_READ_TOKEN: ${{ secrets.SENTRY_READ_TOKEN }}
