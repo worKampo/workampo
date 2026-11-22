@@ -1,5 +1,5 @@
-import { ApiError } from '@workampo/client/_shared/api-client'
-import { errorKey } from '@workampo/client/access/errors'
+import { ApiError } from '@workampo/app-core/_shared/api-client'
+import { errorKey } from '@workampo/app-core/access/errors'
 
 // The i18n key of whatever an API call failed with.
 export function errorMessageKey(error: unknown) {

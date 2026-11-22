@@ -1,8 +1,8 @@
 import { Hono } from 'hono'
 import type { AppEnv } from '../_shared/http/app-env'
 import { toProblem } from '../_shared/http/problem-json'
-import { sessionRoutes } from './session/routes'
-import { signInRoutes } from './sign-in/routes'
+import { sessionRoutes } from './session/session-routes'
+import { signInRoutes } from './sign-in/sign-in-routes'
 
 export const accessRoutes = new Hono<AppEnv>()
   .route('/', signInRoutes)

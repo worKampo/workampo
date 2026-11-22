@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { fakeApi, problem } from '../../_shared/test-support'
-import { startCodeSignIn, verifyCode } from './api'
+import { startCodeSignIn, verifyCode } from './sign-in-api'
 
 describe('sign-in api', () => {
   it('@id:access-96-1 asks for a code with the email', async () => {

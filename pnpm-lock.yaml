@@ -108,9 +108,9 @@ importers:
       '@tanstack/react-router':
         specifier: 1.170.46
         version: 1.170.46(react-dom@19.1.10(react@19.1.10))(react@19.1.10)
-      '@workampo/client':
+      '@workampo/app-core':
         specifier: workspace:*
-        version: link:../../packages/client
+        version: link:../../packages/app-core
       '@workampo/domain':
         specifier: workspace:*
         version: link:../../packages/domain
@@ -179,7 +179,7 @@ importers:
         specifier: 5.1.0
         version: 5.1.0(@opentelemetry/api@1.10.0)(jsdom@31.0.1)(vite@8.3.8(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
 
-  packages/client:
+  packages/app-core:
     dependencies:
       '@workampo/domain':
         specifier: workspace:*

@@ -1,7 +1,7 @@
 import { queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { ApiClient } from '../../_shared/api-client'
 import { useApiClient } from '../../_shared/api-client-context'
-import { getMe, signOut } from './api'
+import { getMe, signOut } from './session-api'
 
 export const ME_QUERY_KEY = ['access', 'me'] as const
 

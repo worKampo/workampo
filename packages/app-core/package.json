@@ -1,5 +1,5 @@
 {
-  "name": "@workampo/client",
+  "name": "@workampo/app-core",
   "private": true,
   "type": "module",
   "exports": {

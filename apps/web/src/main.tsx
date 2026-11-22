@@ -1,6 +1,6 @@
 import './app.css'
 import { QueryClient } from '@tanstack/react-query'
-import { createApiClient } from '@workampo/client/_shared/api-client'
+import { createApiClient } from '@workampo/app-core/_shared/api-client'
 import { createRoot } from 'react-dom/client'
 import { initI18n } from './_shared/i18n/i18n'
 import { AppProviders } from './_shared/providers/app-providers'

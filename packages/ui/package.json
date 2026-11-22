@@ -4,12 +4,12 @@
   "type": "module",
   "exports": {
     "./styles.css": "./styles/styles.css",
-    "./actions": "./actions/index.ts",
-    "./forms": "./forms/index.ts",
-    "./content": "./content/index.ts",
-    "./brand": "./brand/index.ts",
-    "./lib": "./lib/index.ts",
-    "./layout": "./layout/index.ts"
+    "./actions": "./actions/actions.ts",
+    "./forms": "./forms/forms.ts",
+    "./content": "./content/content.ts",
+    "./brand": "./brand/brand.ts",
+    "./lib": "./lib/lib.ts",
+    "./layout": "./layout/layout.ts"
   },
   "scripts": {
     "typecheck": "tsc",

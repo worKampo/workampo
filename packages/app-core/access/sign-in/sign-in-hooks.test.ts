@@ -4,8 +4,8 @@ import { createElement, type ReactNode } from 'react'
 import { expect, it } from 'vitest'
 import { ApiClientProvider } from '../../_shared/api-client-context'
 import { fakeApi } from '../../_shared/test-support'
-import { ME_QUERY_KEY } from '../session/hooks'
-import { useVerifyCode } from './hooks'
+import { ME_QUERY_KEY } from '../session/session-hooks'
+import { useVerifyCode } from './sign-in-hooks'
 
 it('@id:access-96-2 a verified code leaves the signed-in user in the cache', async () => {
   const user = { id: 'u1', email: 'ana@example.com' }

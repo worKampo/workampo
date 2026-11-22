@@ -26,7 +26,7 @@
   },
   "overrides": [
     {
-      "includes": ["packages/client/**", "!**/*.test.ts"],
+      "includes": ["packages/app-core/**", "!**/*.test.ts"],
       "linter": {
         "rules": {
           "style": {
@@ -34,10 +34,10 @@
               "level": "error",
               "options": {
                 "deniedGlobals": {
-                  "window": "packages/client is shared with the mobile app: no browser globals.",
-                  "document": "packages/client is shared with the mobile app: no browser globals.",
+                  "window": "packages/app-core is shared with the mobile app: no browser globals.",
+                  "document": "packages/app-core is shared with the mobile app: no browser globals.",
                   "localStorage": "Inject the storage (ADR-0073 point 5).",
-                  "navigator": "packages/client is shared with the mobile app: no browser globals."
+                  "navigator": "packages/app-core is shared with the mobile app: no browser globals."
                 }
               }
             }

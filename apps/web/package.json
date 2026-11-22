@@ -13,7 +13,7 @@
     "@hookform/resolvers": "7.0.7",
     "@tanstack/react-query": "5.108.0",
     "@tanstack/react-router": "1.170.46",
-    "@workampo/client": "workspace:*",
+    "@workampo/app-core": "workspace:*",
     "@workampo/domain": "workspace:*",
     "@workampo/i18n": "workspace:*",
     "@workampo/ui": "workspace:*",
