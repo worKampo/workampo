@@ -34,11 +34,11 @@ Rule: Se entra con un código que llega por email; la primera vez se crea la cue
     And veo que el código no es válido y puedo pedir otro
 
 @wip(#96)
-Rule: Las peticiones de código y los intentos fallidos tienen un límite
+Rule: Las peticiones de código y los intentos con código tienen un límite
 
   @id:access-96-4
-  Example: Tras demasiados intentos fallidos no se comprueba el código
-    Given superé el número de intentos fallidos permitido para un email
+  Example: Tras demasiados intentos no se comprueba el código
+    Given superé el número de intentos permitido para un email (cuentan todos, aciertos incluidos)
     When escribo otro código
     Then no se comprueba
     And veo que debo esperar antes de intentarlo de nuevo
