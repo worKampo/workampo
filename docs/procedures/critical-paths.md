@@ -10,6 +10,7 @@ Each line is `- ` followed by one glob in backticks, then a dash and the reason.
 
 - `packages/db/migrations/**` - schema and data migrations ([ADR-0033](../adr/0033-expand-contract-migrations.md)).
 - `apps/*/src/_shared/auth/**` - session and login.
+- `apps/*/src/_shared/rate-limit/**` - limits on sign-in codes and attempts.
 - `apps/*/src/access/**` - tenant isolation and permissions.
 - `apps/*/src/billing/**` - billing.
 - `scripts/github/app-token.mjs` - mints the agents' App token.
