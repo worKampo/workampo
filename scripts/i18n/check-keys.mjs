@@ -32,9 +32,25 @@ export function keyErrors(locales) {
         if (!expected.has(key))
           errors.push(`${language}/${file} has ${key}, which ${BASE} does not`)
     }
+
+    for (const file of files.keys())
+      if (!locales[BASE].has(file)) errors.push(`${language}/${file} has no ${BASE} counterpart`)
   }
 
   return errors
+}
+
+// Every language, en included: an empty text is a missing translation.
+export function emptyTextErrors(locales) {
+  return Object.entries(locales)
+    .filter(([language]) => !language.startsWith('_'))
+    .flatMap(([language, files]) =>
+      [...files].flatMap(([file, texts]) =>
+        keysOf(texts)
+          .filter((key) => valueAt(texts, key) === '')
+          .map((key) => `${language}/${file} has an empty text at ${key}`),
+      ),
+    )
 }
 
 export function contextErrors(locales) {
@@ -68,18 +84,21 @@ function readLocales(dir) {
   )
 }
 
-// An empty text counts as missing.
 function keysOf(texts, prefix = '') {
   return Object.entries(texts).flatMap(([key, value]) => {
     if (typeof value === 'object' && value !== null) return keysOf(value, `${prefix}${key}.`)
 
-    return value === '' ? [] : [`${prefix}${key}`]
+    return [`${prefix}${key}`]
   })
+}
+
+function valueAt(texts, key) {
+  return key.split('.').reduce((node, part) => node?.[part], texts)
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const locales = readLocales(LOCALES_DIR)
-  const errors = [...keyErrors(locales), ...contextErrors(locales)]
+  const errors = [...keyErrors(locales), ...emptyTextErrors(locales), ...contextErrors(locales)]
 
   for (const error of errors) console.error(error)
   if (errors.length > 0) process.exit(1)

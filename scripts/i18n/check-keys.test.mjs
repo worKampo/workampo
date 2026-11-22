@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { contextErrors, keyErrors } from './check-keys.mjs'
+import { contextErrors, emptyTextErrors, keyErrors } from './check-keys.mjs'
 
 const files = (entries) => new Map(Object.entries(entries))
 
@@ -33,15 +33,29 @@ test('a missing or extra key, a missing file or a language without files fail', 
   ])
 })
 
-test('an empty text counts as missing', () => {
+test('an empty text is reported in every language, en included', () => {
+  const locales = {
+    en: files({ 'access.json': { title: '', body: 'Body' } }),
+    es: files({ 'access.json': { title: '', body: 'Cuerpo' } }),
+  }
+
+  const errors = emptyTextErrors(locales)
+
+  assert.deepEqual(errors, [
+    'en/access.json has an empty text at title',
+    'es/access.json has an empty text at title',
+  ])
+})
+
+test('a file only another language has fails', () => {
   const locales = {
     en: files({ 'access.json': { title: 'Title' } }),
-    es: files({ 'access.json': { title: '' } }),
+    es: files({ 'access.json': { title: 'Título' }, 'extra.json': { x: 'X' } }),
   }
 
   const errors = keyErrors(locales)
 
-  assert.deepEqual(errors, ['es/access.json misses title'])
+  assert.deepEqual(errors, ['es/extra.json has no en counterpart'])
 })
 
 test('the translators context is not a language', () => {
