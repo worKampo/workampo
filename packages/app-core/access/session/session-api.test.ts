@@ -30,4 +30,20 @@ describe('session api', () => {
       url: 'https://app.test/api/sessions/current',
     })
   })
+
+  it('@id:access-96-14 an already expired session counts as signed out', async () => {
+    const { client } = fakeApi(() => problem({ status: 401, code: 'access.unauthenticated' }))
+
+    const signingOut = signOut(client)
+
+    await expect(signingOut).resolves.toBeUndefined()
+  })
+
+  it('a server failure while signing out stays an error', async () => {
+    const { client } = fakeApi(() => new Response('down', { status: 503 }))
+
+    const signingOut = signOut(client)
+
+    await expect(signingOut).rejects.toMatchObject({ status: 503 })
+  })
 })

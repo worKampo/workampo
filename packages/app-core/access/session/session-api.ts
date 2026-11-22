@@ -13,6 +13,13 @@ export async function getMe(client: ApiClient) {
   }
 }
 
+// A session that has already expired is already signed out: the person still leaves.
 export async function signOut(client: ApiClient) {
-  await send(() => client.api.sessions.current.$delete())
+  try {
+    await send(() => client.api.sessions.current.$delete())
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 401) return
+
+    throw error
+  }
 }

@@ -15,6 +15,10 @@ export function useVerifyCode() {
 
   return useMutation({
     mutationFn: (input: { email: string; code: string }) => verifyCode(client, input),
-    onSuccess: (user) => queryClient.setQueryData(ME_QUERY_KEY, user),
+    // A me request still in flight would otherwise overwrite what this writes.
+    onSuccess: async (user) => {
+      await queryClient.cancelQueries({ queryKey: ME_QUERY_KEY })
+      queryClient.setQueryData(ME_QUERY_KEY, user)
+    },
   })
 }

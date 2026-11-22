@@ -19,6 +19,10 @@ export function useSignOut() {
 
   return useMutation({
     mutationFn: () => signOut(client),
-    onSuccess: () => queryClient.setQueryData(ME_QUERY_KEY, null),
+    // A me request still in flight would otherwise overwrite what this writes.
+    onSuccess: async () => {
+      await queryClient.cancelQueries({ queryKey: ME_QUERY_KEY })
+      queryClient.setQueryData(ME_QUERY_KEY, null)
+    },
   })
 }
