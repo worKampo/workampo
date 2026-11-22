@@ -131,7 +131,7 @@ Decided on 2026-11-13. Operational detail lives in `docs/process/code-convention
 
 | Level | Where | What | Rules |
 |---|---|---|---|
-| **Global** | `packages/ui` | Primitives (adapted shadcn: button, fields, dialog, drawer, table, badge, tooltip…) and generic composites (data table, detail drawer, confirmation with "DELETE", filter bar, saved views, page header, KPI, empty/error/loading states, command palette, shell and sidebar) | No business knowledge: data and texts by props, no fetching from the server; accessible; with component tests; documented in `docs/design/components.md` |
+| **Global** | `packages/ui` | Primitives (adapted shadcn: button, fields, dialog, drawer, table, badge, tooltip…) and generic composites (data table, detail drawer, confirmation with "DELETE", filter bar, saved views, page header, KPI, empty/error/loading states, command palette, shell and sidebar) | No business knowledge: data and texts by props, no fetching from the server; accessible; with component tests; documented in `docs/design/components.md`; grouped by family in folders that mirror its headings (`actions/`, `forms/`…) and imported per family, `@workampo/ui/forms` (the person, 2026-11-22) |
 | **App-shared** | `apps/<app>/src/_shared/components/` | They know the app but not a domain: company selector, user menu, plan usage bar, staff banner | No logic of a specific domain |
 | **Feature** | Inside its domain (`src/companies/members/member-drawer.tsx`) | They combine global components with the domain's data and rules | Thin: no styles of their own or repeated presentation |
 

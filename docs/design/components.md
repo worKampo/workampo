@@ -11,7 +11,9 @@ General rules:
 - Disabled: background `--muted`, text `--text-3`, `cursor: not-allowed`. Prefer `aria-disabled="true"` with a tooltip that explains why when the user would otherwise not know (for example "Read-only session").
 - Selected states keep a visible outline in forced-colours mode.
 
-## Buttons
+## Actions
+
+### Buttons
 
 shadcn `Button`. Height 36 / 44, small 32 / 40, padding 0 16 (small 0 12), radius 8, 13 px weight 500, gap 8 between icon and label.
 
@@ -29,7 +31,9 @@ shadcn `Button`. Height 36 / 44, small 32 / 40, padding 0 16 (small 0 12), radiu
 - One primary per view. Discard (drop unsaved edits) is not Cancel (close without acting).
 - A link that navigates is an `<a>` styled as a button, never a button inside a link.
 
-## Fields
+## Forms
+
+### Fields
 
 shadcn `Input`, `Select`, `Textarea`, `InputGroup`, `Label`.
 
@@ -46,7 +50,7 @@ shadcn `Input`, `Select`, `Textarea`, `InputGroup`, `Label`.
 | Input group | One bordered box with a prefix (`--text-2`, e.g. a URL base) and the input; the focus ring goes on the group (`:focus-within`) |
 | Search | Input with a 16 px icon at left 12, padding-left 36, background `--chrome-control`; label visually hidden |
 
-## Choice controls
+### Choice controls
 
 | Component | shadcn | Spec |
 |---|---|---|
@@ -58,7 +62,17 @@ shadcn `Input`, `Select`, `Textarea`, `InputGroup`, `Label`.
 | Filter chip | `Toggle` | 32 high, pill, `--border`, `--surface`; selected: `--text` border, `--muted` fill, `aria-pressed="true"`. "Filters" chip on touch uses `--chrome-control` |
 | Tag | custom | 24 high pill, `--muted`; a 20 px remove button with `aria-label="Remove …"`; error variant `--neg-bg` / `--neg` (e.g. an invalid email) |
 
-## Badges and small marks
+## Content
+
+### Cards and stats
+
+shadcn `Card`.
+
+- Card: `--surface`, 1 px `--border`, radius 12. Padding 20 (16 on phone); with a header: head 16 16 8, body 0 16 16.
+- Stat (KPI): card with padding 16, label in meta, value 24/32 weight 600. When the KPI filters the list below, it is a `<button>` with `aria-pressed`; pressed shows a `--text` border + 1 px ring. The group has `aria-label="Summary, click to filter"`. A KPI that does not filter is a plain card.
+- KPI grid: 4 columns on desktop, 2 on touch, gap 16 / 12.
+
+### Badges and small marks
 
 | Component | shadcn | Spec |
 |---|---|---|
@@ -68,19 +82,13 @@ shadcn `Input`, `Select`, `Textarea`, `InputGroup`, `Label`.
 | Count | custom | 20 high pill, `#C4221A` with white text, 11 px weight 600. Notifications only. Not a token in ds.css yet: promote it when implemented. The accessible name carries the number ("Notifications, 3 unread") |
 | Staff tag | custom | "STAFF", 11 px weight 600, radius 4, 1 px `--border-hard`. Backoffice workspace button |
 
-## Avatars
+### Avatars
 
 shadcn `Avatar`. Person: circle, 32 (large 48), `--muted` background, initials 11 px weight 600 (large 15). Company: rounded square 32 radius 8 (large 48 radius 12), initials 12 px. Workspace logo in the sidebar: 32 square radius 8 in `--ui`. Avatars next to a name are decorative (`aria-hidden`); a lone avatar button has an `aria-label` ("Account: Lucía Ortega").
 
-## Cards and stats
+## Data
 
-shadcn `Card`.
-
-- Card: `--surface`, 1 px `--border`, radius 12. Padding 20 (16 on phone); with a header: head 16 16 8, body 0 16 16.
-- Stat (KPI): card with padding 16, label in meta, value 24/32 weight 600. When the KPI filters the list below, it is a `<button>` with `aria-pressed`; pressed shows a `--text` border + 1 px ring. The group has `aria-label="Summary, click to filter"`. A KPI that does not filter is a plain card.
-- KPI grid: 4 columns on desktop, 2 on touch, gap 16 / 12.
-
-## Tables and card lists
+### Tables and card lists
 
 shadcn `Table` on desktop; a card list on touch with the same rows.
 
@@ -95,15 +103,17 @@ shadcn `Table` on desktop; a card list on touch with the same rows.
 | Selection | First column with checkboxes and "Select all" |
 | Card list (touch) | `<ul>`, `--surface`, radius 12; each `<li>` padding 12: checkbox, avatar + name line, then badges and meta, row actions as a `…` icon button |
 
-## Bulk bar
+### Bulk bar
 
 Custom. Appears above the list when rows are selected: `--muted` background, radius 12, padding 8 12 8 16. Left: "2 selected" (weight 500); right: secondary small buttons for the bulk actions and a quiet "Clear selection". `role="region"` with `aria-label="Bulk actions"`.
 
-## Pager
+### Pager
 
 shadcn `Pagination`, reduced. Left: result count in `--text-2` with `aria-live="polite"` ("Showing 1–6 of 6"); right: Previous / Next secondary small buttons, disabled at the ends.
 
-## Banners
+## Feedback
+
+### Banners
 
 shadcn `Alert`. Padding 12 16, radius 12, 1 px border, icon + text (title in weight 600 inline) + optional action on the right.
 
@@ -117,23 +127,41 @@ shadcn `Alert`. Padding 12 16, radius 12, 1 px border, icon + text (title in wei
 
 `strip` modifier: full width, no radius, only a bottom border; used for banners across the top of the main column.
 
-## Drawer
+### Empty state
+
+shadcn `Empty`. Centred column, gap 12, padding 56 16, 1 px **dashed** `--border-hard`, radius 12, `--surface`. The **logo mark in ink** (below) at 40 px, `h2`/`h3` title, one paragraph `--text-2` (max 360 px), one action. Copy rules in [content.md](content.md#empty-states).
+
+### Skeleton
+
+shadcn `Skeleton`. Blocks shaped like the final content (avatars as circles, text lines at 60–100 % width), gradient `--sk1` → `--sk2`, radius 6, 1.4 s shimmer. The container has `aria-busy="true"` and `aria-label="Loading"`. No animation with `prefers-reduced-motion`.
+
+### Progress and usage bar
+
+shadcn `Progress`. Progress 8 high radius 4; compact usage bar (sidebar "Members 4 of 5") 6 high radius 3. Track `--muted`, fill `--ui`; warning fill `--warn-dot` when close to a limit (≥ 80 % suggested). Always show the number in text next to it ("4 of 5"); give the bar `aria-valuenow`/`aria-valuemax` or hide it from assistive tech when the text says the same.
+
+### App loader
+
+Custom. The logo mark in ink, 48 px, centred on `--bg`, with a bead cut into the arc that slides along it and back (1.6 s, ease-in-out). Only while there is no layout to draw yet: the first load, after sign-in and when switching company; it appears after about 300 ms. Inside a screen, a skeleton. `role="status"` with `aria-label="Loading"`. With `prefers-reduced-motion` the bead stays still at the top of the arc.
+
+## Overlays
+
+### Drawer
 
 shadcn `Sheet` (`side="right"`). Width min(480 px, 100 %), full width on phone. `--drawer` background, left border, `--shadow-drawer`, over the `--scrim`. Head (padding 24 24 16, bottom border): title, meta, close button. Body (padding 24, gap 24, scrolls). Foot (padding 16 24, top border): actions. Phone: side padding 16. `role="dialog"`, `aria-modal`, `aria-labelledby` the title; focus moves in on open and returns to the trigger on close; Esc closes (with the unsaved-changes guard).
 
-## Dialog
+### Dialog
 
 shadcn `Dialog` / `AlertDialog` (destructive confirmations). Max width 480 (wide 600), `--surface`, radius 12, `--shadow-modal`, centred over the `--scrim`. Head padding 24 24 0 with title and close; body 16 24 24, gap 16; foot 16 24 with top border, actions right-aligned (secondary, then primary). On phone the same component becomes a **bottom sheet**: anchored to the bottom, full width, top corners 16. Same a11y as the drawer.
 
-## Popover and menu
+### Popover and menu
 
 shadcn `Popover`, `DropdownMenu`. `--surface`, 1 px `--border`, radius 12, `--shadow-pop`, padding 4, min width 200. Menu item: 36 high, padding 0 10, radius 8, 13 px `--text-1`; hover / highlighted `--surface-hover` + `--text`; danger item `--neg`; separator 1 px `--border` with 4 px margin. Radio items (saved views) use `menuitemradio` + `aria-checked`.
 
-## Command palette
+### Command palette
 
 shadcn `Command` inside a `Dialog`. Opened with Ctrl K (Cmd K on macOS), the sidebar Search item or the topbar search button. Panel max width 600, radius 12, `--shadow-modal`, 96 px from the top (12 px on phone). Input 52 high, 15 px, search icon at the left, placeholder "Search pages, members, actions…". Groups with overline headings: Pages, Actions (actions can show their shortcut as kbd). Footer hint: "↑↓ to move · Enter to open · Esc to close". First result highlighted. `role="dialog"`, `aria-label="Command palette"`.
 
-## Inverted surfaces: toast, tooltip, save bar
+### Inverted surfaces: toast, tooltip, save bar
 
 Ink background (`--text`) with `--bg` text, so they read as system feedback in both themes.
 
@@ -143,22 +171,12 @@ Ink background (`--text`) with `--bg` text, so they read as system feedback in b
 | Tooltip | `Tooltip` | 12/16, padding 6 8, radius 8, below the trigger with 6 px gap. Shown on hover and keyboard focus. Mandatory on icon-only buttons; text equals the `aria-label` |
 | Save bar | custom | Sticky 16 above the bottom of the page, centred, padding 12 12 12 16, radius 12, `--shadow-float`. "2 unsaved changes" + Discard (outlined in `--bg`) + Save (filled `--bg`, text `--text`). `role="region"`, `aria-label="Unsaved changes"` |
 
-## Empty state
+## Layout
 
-shadcn `Empty`. Centred column, gap 12, padding 56 16, 1 px **dashed** `--border-hard`, radius 12, `--surface`. The **logo mark in ink** (below) at 40 px, `h2`/`h3` title, one paragraph `--text-2` (max 360 px), one action. Copy rules in [content.md](content.md#empty-states).
+Shell, sidebar, topbar and page head are not catalogued yet.
 
-## Logo mark in ink
+## Brand
+
+### Logo mark in ink
 
 Custom. The minimal logo (`logo-mono-*.svg` in [brand/](brand/)) inlined as an SVG filled with `currentColor` on `--text`, so it follows the theme: the circle with the K, the arc and the dot cut out. Sizes: 40 px in empty states, 48 px in the app loader, 56 px on system pages. Decorative: `aria-hidden="true"`, the text next to it carries the meaning. Never in colour inside the app: no orange dot, which would read as a warning (`--warn`) or a notification.
-
-## App loader
-
-Custom. The logo mark in ink, 48 px, centred on `--bg`, with a bead cut into the arc that slides along it and back (1.6 s, ease-in-out). Only while there is no layout to draw yet: the first load, after sign-in and when switching company; it appears after about 300 ms. Inside a screen, a skeleton. `role="status"` with `aria-label="Loading"`. With `prefers-reduced-motion` the bead stays still at the top of the arc.
-
-## Skeleton
-
-shadcn `Skeleton`. Blocks shaped like the final content (avatars as circles, text lines at 60–100 % width), gradient `--sk1` → `--sk2`, radius 6, 1.4 s shimmer. The container has `aria-busy="true"` and `aria-label="Loading"`. No animation with `prefers-reduced-motion`.
-
-## Progress and usage bar
-
-shadcn `Progress`. Progress 8 high radius 4; compact usage bar (sidebar "Members 4 of 5") 6 high radius 3. Track `--muted`, fill `--ui`; warning fill `--warn-dot` when close to a limit (≥ 80 % suggested). Always show the number in text next to it ("4 of 5"); give the bar `aria-valuenow`/`aria-valuemax` or hide it from assistive tech when the text says the same.

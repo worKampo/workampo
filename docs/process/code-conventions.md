@@ -29,6 +29,8 @@ apps/web/src/access/             routes.ts (the domain's routes)
 apps/mobile/src/access/          when the app arrives: the same feature folders, its own views, the same hooks from packages/client
 ```
 
+`packages/ui` is not per domain: it is grouped by component family in folders that mirror the headings of [components.md](../design/components.md) (`actions/`, `forms/`, `content/`, `brand/`…), each component with its test beside it, and imported per family: `@workampo/ui/forms` (the person, 2026-11-22).
+
 ## Names
 
 | What | Rule | Example |
