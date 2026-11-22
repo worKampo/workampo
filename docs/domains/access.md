@@ -7,7 +7,7 @@ Quién puede entrar y cómo: inicio de sesión, sesión, códigos de un solo uso
 ## Rules
 
 ```gherkin
-@wip(#96)
+@issue(#96)
 Rule: Se entra con un código que llega por email; la primera vez se crea la cuenta
 
   @id:access-96-1
@@ -33,7 +33,7 @@ Rule: Se entra con un código que llega por email; la primera vez se crea la cue
     Then no tengo sesión
     And veo que el código no es válido y puedo pedir otro
 
-@wip(#96)
+@issue(#96)
 Rule: Las peticiones de código y los intentos con código tienen un límite
 
   @id:access-96-4
@@ -50,7 +50,7 @@ Rule: Las peticiones de código y los intentos con código tienen un límite
     Then no se envía
     And veo que debo esperar antes de pedir otro
 
-@wip(#96)
+@issue(#96)
 Rule: Se entra con Google
 
   @id:access-96-6
@@ -65,7 +65,7 @@ Rule: Se entra con Google
     When llega la respuesta
     Then no se crea ninguna sesión
 
-@wip(#96)
+@issue(#96)
 Rule: Una identidad abre solo su cuenta enlazada; un email igual nunca enlaza solo
 
   @id:access-96-8
@@ -104,7 +104,7 @@ Rule: Una identidad abre solo su cuenta enlazada; un email igual nunca enlaza so
     And ninguna de las dos cuentas cambia
     And veo un mensaje que me pide contactar con soporte
 
-@wip(#96)
+@issue(#96)
 Rule: La sesión es nueva en cada entrada, dura 30 días y se revoca al salir
 
   @id:access-96-13
@@ -126,7 +126,7 @@ Rule: La sesión es nueva en cada entrada, dura 30 días y se revoca al salir
     When abro una página de la app
     Then vuelvo a /login
 
-@wip(#96)
+@issue(#96)
 Rule: Las pantallas de entrada son nuestras, sin contraseña y en el idioma del navegador
 
   @id:access-96-16
