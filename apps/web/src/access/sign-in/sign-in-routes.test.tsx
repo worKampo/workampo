@@ -40,6 +40,16 @@ describe('signing in with a code', () => {
     expect(screen.getByRole('button', { name: 'Reenviar código' })).toBeTruthy()
   })
 
+  it('@id:access-96-2 the right code signs in and shows the empty state', async () => {
+    renderApp('/login')
+    await userEvent.type(await screen.findByRole('textbox'), 'ana@example.com')
+    await userEvent.click(screen.getByRole('button', { name: 'Continuar' }))
+
+    await userEvent.type(await screen.findByRole('textbox'), '424242{Enter}')
+
+    expect(await screen.findByText('Aún no perteneces a ninguna empresa')).toBeTruthy()
+  })
+
   it('@id:access-96-15 without a session / goes to /login', async () => {
     const { router } = renderApp('/')
 
@@ -64,12 +74,13 @@ function renderApp(path: string) {
     clientVersion: 'test',
     fetch: async (input, init) => answer(new Request(input, init)),
   })
+  const queryClient = new QueryClient()
   const router = createAppRouter({
     routeTree,
-    context: { queryClient: new QueryClient(), apiClient },
+    context: { queryClient, apiClient },
     history: createMemoryHistory({ initialEntries: [path] }),
   })
-  render(<AppProviders queryClient={new QueryClient()} apiClient={apiClient} router={router} />)
+  render(<AppProviders queryClient={queryClient} apiClient={apiClient} router={router} />)
 
   return { router }
 }

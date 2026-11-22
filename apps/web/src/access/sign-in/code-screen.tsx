@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Navigate, useNavigate, useRouterState } from '@tanstack/react-router'
+import { Navigate, useNavigate, useRouter } from '@tanstack/react-router'
 import { errorKeyOf } from '@workampo/app-core/_shared/error-key'
 import { codeFormSchema } from '@workampo/app-core/access/sign-in/sign-in-forms'
 import { useStartCodeSignIn, useVerifyCode } from '@workampo/app-core/access/sign-in/sign-in-hooks'
@@ -7,13 +7,16 @@ import { Button } from '@workampo/ui/actions'
 import { Text } from '@workampo/ui/content'
 import { Field, Input } from '@workampo/ui/forms'
 import { CardScreen } from '@workampo/ui/layout'
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Trans, useTranslation } from 'react-i18next'
 import { RouterTextLink } from '../../_shared/router/router-text-link'
 
-// After a reload the email is gone (it never travels in the URL): back to /login.
+// After a reload the email is gone (it never travels in the URL): back to /login. Read once, on
+// arrival: while the next screen loads, the current location already lacks it.
 export function CodeScreen() {
-  const email = useRouterState({ select: (state) => state.location.state.signInEmail })
+  const router = useRouter()
+  const [email] = useState(() => router.state.location.state.signInEmail)
   if (!email) return <Navigate to="/login" />
 
   return <CodeForm email={email} />
