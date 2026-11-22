@@ -8,7 +8,6 @@
     "./forms": "./forms/forms.ts",
     "./content": "./content/content.ts",
     "./brand": "./brand/brand.ts",
-    "./lib": "./lib/lib.ts",
     "./layout": "./layout/layout.ts"
   },
   "scripts": {

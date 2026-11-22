@@ -9,7 +9,7 @@ export function Input({ className, ...props }: ComponentProps<'input'>) {
         'h-9 w-full rounded-lg border border-field-border bg-field-bg px-3 text-[13px] text-text',
         'pointer-coarse:h-11 pointer-coarse:text-base hover:border-field-hover-border',
         'focus:bg-field-focus focus:shadow-[0_0_0_1px_var(--ui),0_0_0_4px_var(--focus-halo)] focus:outline-none',
-        'aria-invalid:border-neg',
+        'aria-invalid:border-neg disabled:cursor-not-allowed disabled:bg-muted disabled:text-text-3',
         className,
       )}
       {...props}
