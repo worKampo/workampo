@@ -7,7 +7,8 @@
       "!docs",
       "!**/worker-configuration.d.ts",
       "!.github/ISSUE_TEMPLATE",
-      "!.claude/agents"
+      "!.claude/agents",
+      "!packages/db/migrations/*/meta"
     ]
   },
   "formatter": { "indentStyle": "space", "indentWidth": 2, "lineEnding": "lf", "lineWidth": 100 },
