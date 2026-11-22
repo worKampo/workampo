@@ -14,7 +14,11 @@ const homeRoute = createRoute({
   ),
 })
 
-export const router = createRouter({ routeTree: rootRoute.addChildren([homeRoute]) })
+export const router = createRouter({
+  routeTree: rootRoute.addChildren([homeRoute]),
+  // Hovering or focusing a link downloads its screen (ADR-0073 point 4).
+  defaultPreload: 'intent',
+})
 
 declare module '@tanstack/react-router' {
   interface Register {
