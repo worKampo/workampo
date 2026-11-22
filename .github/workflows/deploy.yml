@@ -48,6 +48,14 @@ jobs:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
       - if: steps.deploy.outputs.deployed == 'true'
         run: node scripts/smoke/smoke.mjs https://app-stg.workampo.workers.dev "$GITHUB_SHA"
+      # Sign-in smoke (@id:access-96-18): a Magic Auth code from the WorkOS API, typed in the real screens.
+      - if: steps.deploy.outputs.deployed == 'true'
+        run: pnpm --filter @workampo/api exec playwright install --with-deps chromium
+      - if: steps.deploy.outputs.deployed == 'true'
+        run: pnpm --filter @workampo/api exec playwright test --grep @smoke
+        env:
+          E2E_BASE_URL: https://app-stg.workampo.workers.dev
+          WORKOS_API_KEY: ${{ secrets.WORKOS_API_KEY }}
       - if: steps.deploy.outputs.deployed == 'true'
         run: node scripts/smoke/verification-comment.mjs stg https://app-stg.workampo.workers.dev "$GITHUB_SHA" "$FROM_SHA"
         # A failed comment must not block production.
