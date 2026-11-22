@@ -47,6 +47,9 @@ importers:
 
   apps/api:
     dependencies:
+      '@hono/zod-validator':
+        specifier: 0.9.1
+        version: 0.9.1(hono@4.13.18)(zod@4.6.7)
       '@sentry/cloudflare':
         specifier: 11.12.0
         version: 11.12.0(@cloudflare/workers-types@5.20261112.1)(vite@8.3.8(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))(wrangler@4.161.0(@cloudflare/workers-types@5.20261112.1))
@@ -943,6 +946,12 @@ packages:
 
   '@fontsource/ibm-plex-sans@5.3.0':
     resolution: {integrity: sha512-CbE4CbbEEZJX860XyUiRpsksXIQR8Rp2XDva2VO53NJox9tVNtusrysd2x5YkUEY3ErQ66W1IiiQL8/wihhw5w==}
+
+  '@hono/zod-validator@0.9.1':
+    resolution: {integrity: sha512-iiv6w0qrIc0arfvCtUqBWsvl4fXjzaTcQcCJTTtCnkawF9HHGE+KjEl0ox3gQJ6rKZEgE3mLExlQCF72M+mNuw==}
+    peerDependencies:
+      hono: '>=4.11.2'
+      zod: ^3.25.0 || ^4.0.0
 
   '@img/colour@1.1.0':
     resolution: {integrity: sha512-Td76q7j57o/tLVdgS746cYARfSyxk8iEfRxewL9h4OMzYhbW4TAcppl0mT4eyqXddh6L/jwoM75mo7ixa/pCeQ==}
@@ -3538,6 +3547,11 @@ snapshots:
   '@exodus/bytes@1.16.0': {}
 
   '@fontsource/ibm-plex-sans@5.3.0': {}
+
+  '@hono/zod-validator@0.9.1(hono@4.13.18)(zod@4.6.7)':
+    dependencies:
+      hono: 4.13.18
+      zod: 4.6.7
 
   '@img/colour@1.1.0': {}
 

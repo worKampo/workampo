@@ -1,7 +1,7 @@
 import type { VerifiedIdentity } from '@workampo/domain/access/identity'
 import type { Language } from '@workampo/i18n'
 
-type RequestOrigin = { ipAddress?: string; userAgent?: string }
+type RequestOrigin = { ipAddress?: string | undefined; userAgent?: string | undefined }
 
 // Our own seam over the identity provider (ADR-0071): it verifies who the person is, nothing more.
 export type IdentityProvider = {

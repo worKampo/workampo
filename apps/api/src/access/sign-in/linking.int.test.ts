@@ -4,7 +4,7 @@ import { expect, it } from 'vitest'
 // Emails and subjects of the fake identity provider (plan, "WorkOS adapter and fake").
 const VALID_CODE = '424242'
 
-it.fails('@id:access-96-8 a linked identity signs in to the same account with a code', async () => {
+it('@id:access-96-8 a linked identity signs in to the same account with a code', async () => {
   const first = await signIn('linked@example.com')
   const second = await signIn('linked@example.com')
 
@@ -14,14 +14,14 @@ it.fails('@id:access-96-8 a linked identity signs in to the same account with a 
   expect(await rows('SELECT id FROM users WHERE email = ?', 'linked@example.com')).toHaveLength(1)
 })
 
-it.fails('@id:access-96-9 an identity without a verified email answers 403', async () => {
+it('@id:access-96-9 an identity without a verified email answers 403', async () => {
   const response = await signIn('unverified@example.com')
 
   await expectProblem(response, { status: 403, code: 'access.email_not_verified' })
   expect(await rows('SELECT id FROM users WHERE email = ?', 'unverified@example.com')).toEqual([])
 })
 
-it.fails('@id:access-96-10 a new identity with the email of another account answers 409 and links nothing', async () => {
+it('@id:access-96-10 a new identity with the email of another account answers 409 and links nothing', async () => {
   await insertLinkedUser('taken@example.com', 'fake|taken-old')
 
   const response = await signIn('taken@example.com')
@@ -33,7 +33,7 @@ it.fails('@id:access-96-10 a new identity with the email of another account answ
   ).toEqual([])
 })
 
-it.fails('@id:access-96-11 a new verified email is saved in the account on sign-in', async () => {
+it('@id:access-96-11 a new verified email is saved in the account on sign-in', async () => {
   await insertLinkedUser('renamed.old@example.com', 'fake|renamed')
 
   const response = await signIn('renamed@example.com')
@@ -43,7 +43,7 @@ it.fails('@id:access-96-11 a new verified email is saved in the account on sign-
   expect(await rows('SELECT id FROM users WHERE email = ?', 'renamed.old@example.com')).toEqual([])
 })
 
-it.fails('@id:access-96-12 a new verified email of another account answers 409 and changes nothing', async () => {
+it('@id:access-96-12 a new verified email of another account answers 409 and changes nothing', async () => {
   await insertLinkedUser('linked@example.com', 'fake|linked')
   await insertLinkedUser('clash@example.com', 'fake|clash')
   const users = 'SELECT * FROM users WHERE email IN (?, ?) ORDER BY email'

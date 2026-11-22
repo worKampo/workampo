@@ -4,7 +4,7 @@ import { expect, it } from 'vitest'
 const VALID_CODE = '424242'
 const DAY_MS = 24 * 60 * 60 * 1000
 
-it.fails('@id:access-96-13 the session cookie is __Host-, HttpOnly, Secure, SameSite=Lax, Path=/ and has no Domain', async () => {
+it('@id:access-96-13 the session cookie is __Host-, HttpOnly, Secure, SameSite=Lax, Path=/ and has no Domain', async () => {
   const response = await signIn(newEmail())
 
   const cookie = (response.headers.get('Set-Cookie') ?? '')
@@ -17,7 +17,7 @@ it.fails('@id:access-96-13 the session cookie is __Host-, HttpOnly, Secure, Same
   expect(cookie).not.toMatch(/Domain=/i)
 })
 
-it.fails('@id:access-96-13 signing in again replaces the session the browser had', async () => {
+it('@id:access-96-13 signing in again replaces the session the browser had', async () => {
   const email = newEmail()
   const previous = sessionToken(await signIn(email))
 
@@ -28,7 +28,7 @@ it.fails('@id:access-96-13 signing in again replaces the session the browser had
   expect((await me(current)).status).toBe(200)
 })
 
-it.fails('@id:access-96-14 signing out revokes the session and deletes the cookie', async () => {
+it('@id:access-96-14 signing out revokes the session and deletes the cookie', async () => {
   const token = sessionToken(await signIn(newEmail()))
 
   const response = await exports.default.fetch('https://app.test/api/sessions/current', {
@@ -41,20 +41,20 @@ it.fails('@id:access-96-14 signing out revokes the session and deletes the cooki
   await expectUnauthenticated(token)
 })
 
-it.fails('@id:access-96-15 the expired session of the seed answers 401', async () => {
+it('@id:access-96-15 the expired session of the seed answers 401', async () => {
   await insertSession('seed-expired-session', new Date('2026-01-01T00:00:00.000Z'))
 
   await expectUnauthenticated('seed-expired-session')
 })
 
-it.fails('@id:access-96-15 a session created 30 days and 1 second ago answers 401', async () => {
+it('@id:access-96-15 a session created 30 days and 1 second ago answers 401', async () => {
   const token = crypto.randomUUID()
   await insertSession(token, new Date(Date.now() - 30 * DAY_MS - 1000))
 
   await expectUnauthenticated(token)
 })
 
-it.fails('@id:access-96-15 a session created 29 days ago is still valid', async () => {
+it('@id:access-96-15 a session created 29 days ago is still valid', async () => {
   const token = crypto.randomUUID()
   await insertSession(token, new Date(Date.now() - 29 * DAY_MS))
 

@@ -6,20 +6,20 @@ const VALID_CODE = '424242'
 // Thresholds are environment variables (AGENTS.md "No entra"): try until the limit shows up.
 const MAX_TRIES = 100
 
-it.fails('@id:access-96-1 requesting a code answers 202 without the code', async () => {
+it('@id:access-96-1 requesting a code answers 202 without the code', async () => {
   const response = await post('/api/sign-in-codes', { email: newEmail() })
 
   expect(response.status).toBe(202)
   expect(await response.text()).toBe('')
 })
 
-it.fails('@id:access-96-1 an invalid email answers 400 access.invalid_email', async () => {
+it('@id:access-96-1 an invalid email answers 400 access.invalid_email', async () => {
   const response = await post('/api/sign-in-codes', { email: 'not-an-email' })
 
   await expectProblem(response, { status: 400, code: 'access.invalid_email' })
 })
 
-it.fails('@id:access-96-2 the right code of an email without an account creates it and signs in', async () => {
+it('@id:access-96-2 the right code of an email without an account creates it and signs in', async () => {
   const email = newEmail()
   await post('/api/sign-in-codes', { email })
 
@@ -36,7 +36,7 @@ it.fails('@id:access-96-2 the right code of an email without an account creates 
   expect(await countUsers(email)).toBe(1)
 })
 
-it.fails('@id:access-96-2 the email is stored trimmed and in lower case', async () => {
+it('@id:access-96-2 the email is stored trimmed and in lower case', async () => {
   const email = newEmail()
 
   const response = await post('/api/sessions', {
@@ -48,7 +48,7 @@ it.fails('@id:access-96-2 the email is stored trimmed and in lower case', async 
   expect(await countUsers(email)).toBe(1)
 })
 
-it.fails('@id:access-96-2 two simultaneous sign-ins of a new email create one user', async () => {
+it('@id:access-96-2 two simultaneous sign-ins of a new email create one user', async () => {
   const email = newEmail()
 
   const responses = await Promise.all([
@@ -60,7 +60,7 @@ it.fails('@id:access-96-2 two simultaneous sign-ins of a new email create one us
   expect(await countUsers(email)).toBe(1)
 })
 
-it.fails('@id:access-96-3 a wrong or expired code answers 400 access.invalid_code without a cookie', async () => {
+it('@id:access-96-3 a wrong or expired code answers 400 access.invalid_code without a cookie', async () => {
   const email = newEmail()
   await post('/api/sign-in-codes', { email })
 
@@ -73,7 +73,7 @@ it.fails('@id:access-96-3 a wrong or expired code answers 400 access.invalid_cod
   expect(await countUsers(email)).toBe(0)
 })
 
-it.fails('@id:access-96-3 a code with letters or without six digits answers 400', async () => {
+it('@id:access-96-3 a code with letters or without six digits answers 400', async () => {
   for (const code of ['42424a', '42424', '4242424']) {
     const response = await post('/api/sessions', { email: newEmail(), code })
 
@@ -81,7 +81,7 @@ it.fails('@id:access-96-3 a code with letters or without six digits answers 400'
   }
 })
 
-it.fails('@id:access-96-4 after too many attempts even the right code answers 429', async () => {
+it('@id:access-96-4 after too many attempts even the right code answers 429', async () => {
   const email = newEmail()
   await post('/api/sign-in-codes', { email })
 
@@ -96,7 +96,7 @@ it.fails('@id:access-96-4 after too many attempts even the right code answers 42
   expect(await countUsers(email)).toBe(0)
 })
 
-it.fails('@id:access-96-4 successful attempts count towards the limit too', async () => {
+it('@id:access-96-4 successful attempts count towards the limit too', async () => {
   const email = newEmail()
 
   const limited = await postUntil429({
@@ -107,7 +107,7 @@ it.fails('@id:access-96-4 successful attempts count towards the limit too', asyn
   await expectProblem(limited, { status: 429, code: 'access.too_many_attempts' })
 })
 
-it.fails('@id:access-96-5 too many code requests for an email answer 429', async () => {
+it('@id:access-96-5 too many code requests for an email answer 429', async () => {
   const email = newEmail()
 
   const limited = await postUntil429({ path: '/api/sign-in-codes', body: () => ({ email }) })
@@ -115,7 +115,7 @@ it.fails('@id:access-96-5 too many code requests for an email answer 429', async
   await expectProblem(limited, { status: 429, code: 'access.too_many_code_requests' })
 })
 
-it.fails('@id:access-96-5 too many code requests from an IP answer 429', async () => {
+it('@id:access-96-5 too many code requests from an IP answer 429', async () => {
   const ip = newIp()
 
   const limited = await postUntil429({

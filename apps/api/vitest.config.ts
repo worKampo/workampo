@@ -17,7 +17,10 @@ export default defineConfig({
   plugins: [
     cloudflareTest({
       wrangler: { configPath: './wrangler.jsonc' },
-      miniflare: { bindings: { TEST_MIGRATIONS: migrations } },
+      // The local per-IP limit is high for E2E, where every request comes from one IP.
+      miniflare: {
+        bindings: { TEST_MIGRATIONS: migrations, RATE_LIMIT_CODE_REQUESTS_PER_IP: '20' },
+      },
     }),
   ],
   test: { exclude: [...configDefaults.exclude, 'e2e/**'], setupFiles: ['./test/setup.ts'] },
