@@ -1,12 +1,13 @@
-import { env, exports } from 'cloudflare:workers'
+import { env } from 'cloudflare:workers'
 import { expect, it } from 'vitest'
+import { expectProblem, signIn } from '../../_shared/testing/api-requests'
 
-// Emails and subjects of the fake identity provider (plan, "WorkOS adapter and fake").
-const VALID_CODE = '424242'
+// The emails and subjects come from the fake identity provider (_shared/auth/fake-identities.ts).
 
 it('@id:access-96-8 a linked identity signs in to the same account with a code', async () => {
-  const first = await signIn('linked@example.com')
-  const second = await signIn('linked@example.com')
+  const first = await signIn({ email: 'linked@example.com' })
+
+  const second = await signIn({ email: 'linked@example.com' })
 
   expect(second.status).toBe(201)
   const { user } = await second.json<{ user: { id: string } }>()
@@ -15,16 +16,16 @@ it('@id:access-96-8 a linked identity signs in to the same account with a code',
 })
 
 it('@id:access-96-9 an identity without a verified email answers 403', async () => {
-  const response = await signIn('unverified@example.com')
+  const response = await signIn({ email: 'unverified@example.com' })
 
   await expectProblem(response, { status: 403, code: 'access.email_not_verified' })
   expect(await rows('SELECT id FROM users WHERE email = ?', 'unverified@example.com')).toEqual([])
 })
 
 it('@id:access-96-10 a new identity with the email of another account answers 409 and links nothing', async () => {
-  await insertLinkedUser('taken@example.com', 'fake|taken-old')
+  await insertLinkedUser({ email: 'taken@example.com', subject: 'fake|taken-old' })
 
-  const response = await signIn('taken@example.com')
+  const response = await signIn({ email: 'taken@example.com' })
 
   await expectProblem(response, { status: 409, code: 'access.contact_support' })
   expect(await rows('SELECT id FROM users WHERE email = ?', 'taken@example.com')).toHaveLength(1)
@@ -34,9 +35,9 @@ it('@id:access-96-10 a new identity with the email of another account answers 40
 })
 
 it('@id:access-96-11 a new verified email is saved in the account on sign-in', async () => {
-  await insertLinkedUser('renamed.old@example.com', 'fake|renamed')
+  await insertLinkedUser({ email: 'renamed.old@example.com', subject: 'fake|renamed' })
 
-  const response = await signIn('renamed@example.com')
+  const response = await signIn({ email: 'renamed@example.com' })
 
   expect(response.status).toBe(201)
   expect(await response.json()).toMatchObject({ user: { email: 'renamed.new@example.com' } })
@@ -44,35 +45,18 @@ it('@id:access-96-11 a new verified email is saved in the account on sign-in', a
 })
 
 it('@id:access-96-12 a new verified email of another account answers 409 and changes nothing', async () => {
-  await insertLinkedUser('linked@example.com', 'fake|linked')
-  await insertLinkedUser('clash@example.com', 'fake|clash')
+  await insertLinkedUser({ email: 'linked@example.com', subject: 'fake|linked' })
+  await insertLinkedUser({ email: 'clash@example.com', subject: 'fake|clash' })
   const users = 'SELECT * FROM users WHERE email IN (?, ?) ORDER BY email'
   const before = await rows(users, 'linked@example.com', 'clash@example.com')
 
-  const response = await signIn('clash@example.com')
+  const response = await signIn({ email: 'clash@example.com' })
 
   await expectProblem(response, { status: 409, code: 'access.contact_support' })
   expect(await rows(users, 'linked@example.com', 'clash@example.com')).toEqual(before)
 })
 
-function signIn(email: string) {
-  return exports.default.fetch('https://app.test/api/sessions', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, code: VALID_CODE }),
-  })
-}
-
-async function expectProblem(
-  response: Response,
-  { status, code }: { status: number; code: string },
-) {
-  expect(response.status).toBe(status)
-  expect(await response.json()).toMatchObject({ code })
-  expect(response.headers.get('Set-Cookie') ?? '').not.toContain('__Host-session=')
-}
-
-async function insertLinkedUser(email: string, subject: string) {
+async function insertLinkedUser({ email, subject }: { email: string; subject: string }) {
   const at = new Date().toISOString()
 
   await env.DB_GLOBAL.batch([
@@ -85,9 +69,10 @@ async function insertLinkedUser(email: string, subject: string) {
   ])
 }
 
-const rows = async (sql: string, ...values: string[]) =>
-  (
-    await env.DB_GLOBAL.prepare(sql)
-      .bind(...values)
-      .all()
-  ).results
+async function rows(sql: string, ...values: string[]) {
+  const { results } = await env.DB_GLOBAL.prepare(sql)
+    .bind(...values)
+    .all()
+
+  return results
+}

@@ -44,11 +44,13 @@ export function workosProvider({
 
     // WorkOS rejects a wrong or expired code with 400 (invalid_grant).
     if (response.status === 400) throw new InvalidCodeError()
+
     const answer = response.ok
       ? authenticateAnswerSchema.safeParse(await response.json().catch(() => null))
       : null
 
     if (!answer?.success) throw new ProviderUnavailableError(`WorkOS answered ${response.status}`)
+
     const { user } = answer.data
 
     return {

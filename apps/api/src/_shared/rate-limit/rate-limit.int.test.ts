@@ -1,9 +1,11 @@
 import { env } from 'cloudflare:workers'
 import { describe, expect, it } from 'vitest'
+import { newEmail } from '../testing/api-requests'
 import { hitRateLimit } from './rate-limit'
 
 const HOUR = 3600
 const NOW = new Date('2026-11-22T10:15:00.000Z')
+// Storage is shared by the tests of a file: each test counts its own subject (newEmail).
 
 describe('hitRateLimit', () => {
   it('@id:access-96-5 is over the limit once the hits in a window pass the threshold', async () => {
@@ -62,11 +64,6 @@ describe('hitRateLimit', () => {
     expect(JSON.stringify(results)).not.toContain(email)
   })
 })
-
-// Storage is shared by the tests of a file: each test counts its own subject.
-function newEmail() {
-  return `${crypto.randomUUID()}@example.com`
-}
 
 function hit({ subject, at = NOW }: { subject: string; at?: Date }) {
   return hitRateLimit(env, {

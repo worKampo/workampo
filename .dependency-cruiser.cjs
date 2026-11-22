@@ -57,7 +57,14 @@ module.exports = {
       name: 'identity-provider-seam',
       comment: 'Only _shared/auth/ picks and uses an identity provider implementation (ADR-0071).',
       severity: 'error',
-      from: { pathNot: '^apps/api/src/_shared/auth/' },
+      // Tests and their helpers may use the fake's fixed fixtures.
+      from: {
+        pathNot: [
+          '^apps/api/src/_shared/auth/',
+          '^apps/api/src/_shared/testing/',
+          '\\.test\\.tsx?$',
+        ],
+      },
       to: { path: '^apps/api/src/_shared/auth/(workos|fake)-' },
     },
     {

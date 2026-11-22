@@ -3,7 +3,7 @@ import { type AccessErrorCode, isAccessErrorCode } from '@workampo/domain/access
 import { rootRoute } from '../../_shared/router/root-route'
 
 declare module '@tanstack/react-router' {
-  // The email reaches the code screen in memory, never in the URL (plan, "SPA build and serving").
+  // The email reaches the code screen in memory: personal data never goes in a URL (@id:access-96-1).
   interface HistoryState {
     signInEmail?: string
   }

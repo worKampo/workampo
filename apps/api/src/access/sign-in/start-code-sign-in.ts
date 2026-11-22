@@ -33,6 +33,7 @@ export async function startCodeSignIn(
       threshold: limits.perIp,
     }),
   ])
+
   if (overLimit.some(Boolean)) throw new AccessError('access.too_many_code_requests')
 
   await provider.startCodeSignIn(request)

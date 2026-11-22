@@ -1,6 +1,7 @@
 import { env } from 'cloudflare:workers'
 import { describe, expect, it } from 'vitest'
 import type { IdentityProvider } from '../../_shared/auth/identity-provider'
+import { newEmail, newIp } from '../../_shared/testing/api-requests'
 import { AccessError } from '../errors'
 import { startCodeSignIn } from './start-code-sign-in'
 
@@ -68,12 +69,4 @@ function recordingProvider() {
 
 function requestOf(email: string) {
   return { email, locale: 'en' as const, ipAddress: newIp() }
-}
-
-function newEmail() {
-  return `new-${crypto.randomUUID()}@example.com`
-}
-
-function newIp() {
-  return `2001:db8::${crypto.randomUUID().slice(0, 4)}`
 }

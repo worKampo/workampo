@@ -39,6 +39,7 @@ async function signInOnce(env: Env, { identity, previousSessionToken }: SignIn) 
     userBySubject: userBySubject ?? null,
     userByEmail: userByEmail ?? null,
   })
+
   if (decision.kind === 'refuse') throw new AccessError(decision.code)
 
   const user = userOf({ decision, now, current: userBySubject })

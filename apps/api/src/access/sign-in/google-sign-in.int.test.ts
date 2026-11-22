@@ -1,20 +1,25 @@
 import { exports } from 'cloudflare:workers'
 import { expect, it } from 'vitest'
+import { me, sessionCookie } from '../../_shared/testing/api-requests'
 
-const STATE_COOKIE = /__Host-oauth_state=([^;]+)/
-
-it('@id:access-96-6 Google start redirects with a state cookie and the callback signs in', async () => {
+it('@id:access-96-6 Google start redirects to the provider with a state cookie', async () => {
   const { response, state, location } = await startGoogle()
 
   expect(response.status).toBe(302)
   expect(state).toBeDefined()
   expect(new URL(location).searchParams.get('state')).toBe(state)
+})
 
-  const back = await callback(location, state)
+it('@id:access-96-6 the callback with that state signs in and goes to /', async () => {
+  const { state, location } = await startGoogle()
+
+  const back = await callback({ url: location, stateCookie: state })
 
   expect(back.status).toBe(302)
   expect(new URL(back.headers.get('Location') ?? '', 'https://app.test').pathname).toBe('/')
-  expect(await me(sessionCookie(back))).toMatchObject({ email: 'google@example.com' })
+  expect(await (await me(sessionCookie(back))).json()).toMatchObject({
+    email: 'google@example.com',
+  })
 })
 
 it('@id:access-96-7 a state that does not match the cookie creates no session', async () => {
@@ -22,9 +27,14 @@ it('@id:access-96-7 a state that does not match the cookie creates no session', 
   const forged = new URL(location)
   forged.searchParams.set('state', 'forged')
 
-  for (const back of [await callback(forged.href, state), await callback(location)]) {
-    expect(back.status).toBe(302)
+  const answers = [
+    await callback({ url: forged.href, stateCookie: state }),
+    await callback({ url: location }),
+  ]
+
+  for (const back of answers) {
     const target = new URL(back.headers.get('Location') ?? '', 'https://app.test')
+    expect(back.status).toBe(302)
     expect(`${target.pathname}${target.search}`).toBe('/login?error=access.invalid_state')
     expect(sessionCookie(back)).toBeUndefined()
   }
@@ -32,42 +42,33 @@ it('@id:access-96-7 a state that does not match the cookie creates no session', 
 
 it('@id:access-96-8 a linked identity signs in to the same account with Google', async () => {
   const first = await me(sessionCookie(await signInWithGoogle()))
+
   const second = await me(sessionCookie(await signInWithGoogle()))
 
-  expect(first.email).toBe('google@example.com')
-  expect(second.id).toBe(first.id)
+  const firstUser = await first.json<{ id: string; email: string }>()
+  expect(firstUser.email).toBe('google@example.com')
+  expect((await second.json<{ id: string }>()).id).toBe(firstUser.id)
 })
 
-/** Starts Google sign-in; the fake's authorization URL points back to our callback. */
+// The fake's authorization URL points straight back to our callback.
 async function startGoogle() {
   const response = await exports.default.fetch('https://app.test/api/sessions/google', {
     redirect: 'manual',
   })
-  const state = STATE_COOKIE.exec(response.headers.get('Set-Cookie') ?? '')?.[1]
+  const state = /__Host-oauth_state=([^;]+)/.exec(response.headers.get('Set-Cookie') ?? '')?.[1]
 
   return { response, state, location: response.headers.get('Location') ?? '' }
 }
 
-function callback(url: string, cookie?: string) {
+function callback({ url, stateCookie }: { url: string; stateCookie?: string | undefined }) {
   return exports.default.fetch(url, {
     redirect: 'manual',
-    headers: cookie ? { Cookie: `__Host-oauth_state=${cookie}` } : {},
+    headers: stateCookie ? { Cookie: `__Host-oauth_state=${stateCookie}` } : {},
   })
 }
-
-const sessionCookie = (response: Response) =>
-  /__Host-session=([^;]+)/.exec(response.headers.get('Set-Cookie') ?? '')?.[1]
 
 async function signInWithGoogle() {
   const { state, location } = await startGoogle()
 
-  return callback(location, state)
-}
-
-async function me(token: string | undefined) {
-  const response = await exports.default.fetch('https://app.test/api/me', {
-    headers: { Cookie: `__Host-session=${token}` },
-  })
-
-  return response.json<{ id: string; email: string }>()
+  return callback({ url: location, stateCookie: state })
 }

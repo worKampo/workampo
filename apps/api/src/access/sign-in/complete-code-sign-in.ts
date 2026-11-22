@@ -35,6 +35,7 @@ export async function completeCodeSignIn(
     windowSeconds: limits.windowSeconds,
     now: new Date(),
   })
+
   if (isOverLimit) throw new AccessError('access.too_many_attempts')
 
   const identity = await provider
