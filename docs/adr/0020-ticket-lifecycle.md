@@ -112,3 +112,4 @@ The eleven named steps still exist for the agent. The table is the full path (L 
 - Nothing is fixed without a task.
 - Rounds opened by the person at moment 2 do not count toward the Implement ↔ Verify limit of 3.
 - If the test list turns out long, the ticket was too big: the slicer cuts finer and it becomes a learning.
+- 2026-11-23 (the person, ticket 135): the review rounds of a PR (CodeRabbit, CodeQL and other automated reviewers) also stop at 3; what is left goes to an issue with a milestone, except an open CodeQL alert or a "No entra" finding ([review](../process/review.md#no-entra)), which are fixed first ([cycle](../process/cycle.md#pr-review)).

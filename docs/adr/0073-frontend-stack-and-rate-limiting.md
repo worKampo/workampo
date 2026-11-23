@@ -67,3 +67,4 @@ This resolves the "Decided later" line of [ADR-0053](0053-code-conventions.md) f
 
 - 2026-11-22 (the person, ticket 96): the attempts counter counts every attempt with a code per email, right or wrong, not only the failed ones (@id:access-96-4). Counting before the provider is asked is atomic and never asks it once the limit is passed. Point 3's "failed attempts per email" reads in that sense.
 - 2026-11-23 (the person, ticket 131): the code of `packages/domain`, `packages/app-core` and `packages/ui` moved into their `src/`; paths above such as `packages/app-core/_shared/` now read `packages/app-core/src/_shared/`.
+- 2026-11-23 (the person, ticket 135): texts are one JSON file per language and domain (`packages/i18n/src/locales/<lang>/<domain>.json`), loaded per language and namespace, as point 4 and [content](../design/content.md) say; point 1's "one JSON file per language" reads in that sense.

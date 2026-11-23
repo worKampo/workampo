@@ -40,3 +40,7 @@ The project handles several kinds of database change and data, each with differe
 ## Consequences
 
 See Decision.
+
+## Updates
+
+- 2026-11-23 (the person, ticket 135): the seed format ("In TypeScript on the same Drizzle schema") is superseded by [ADR-0074](0074-seeds-in-sql.md): seeds are SQL. The other seed rules stand.

@@ -117,6 +117,7 @@ Every architectural and process decision of worKampo, one file per decision ([MA
 | [ADR-0071](0071-identity-providers.md) | Identity providers as plug-ins; WorkOS for the MVP | accepted |
 | [ADR-0072](0072-organization-units-and-scoped-roles.md) | Organization units in a tree and roles scoped to a branch | accepted |
 | [ADR-0073](0073-frontend-stack-and-rate-limiting.md) | Frontend stack of the SPA and rate limiting on D1 | accepted |
+| [ADR-0074](0074-seeds-in-sql.md) | Seeds in SQL | accepted (replaces ADR-0044's seed format) |
 
 ## Notes
 
