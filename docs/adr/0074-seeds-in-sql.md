@@ -16,5 +16,5 @@ Seeds are SQL files `NNNN-<domain>.sql` in `packages/db/seed/{global,shard}/`, r
 
 ## Consequences
 
-- The compile-time check is gone. A schema change that breaks a seed fails instead when the seed runs on the migrated database: the e2e suite seeds before it starts (`apps/api/playwright.config.ts`), in CI on every PR and in `pnpm work verify`.
+- The compile-time check is gone. A schema change that breaks a seed fails instead when the seed runs on the migrated database: the e2e suite seeds before it starts (`apps/api/playwright.config.ts`). CI runs it on every PR whose affected tasks include an app's e2e, which any change in `packages/db` does, since the API depends on it; `pnpm work verify` seeds too, except with `--keep-data` on an already seeded database.
 - Seeds read like the migrations they follow, and the engine change studied in issue 112 must translate them too.
