@@ -37,3 +37,7 @@ Several of these options are chosen when the resource or the account is created 
 - Pending check: confirm with WorkOS whether an EU region exists, before "Access and first company". PostHog EU cloud to verify at sign-up.
 
 - **2026-11-17**: verified against the current Cloudflare docs: KV supports an EU jurisdiction for durable storage (the cache can be anywhere). `landings-*` are created with `--jurisdiction eu`. The rule "never personal data in KV" stays.
+
+## Updates
+
+- 2026-11-23 (the person, ticket 132): `apps/api/src/_shared/auth/` is now `_shared/identity/` (the identity provider seam and its adapters); the session code moved to `apps/api/src/access/session/` and `access/require-session.ts`. `VerifiedIdentity`, `IdentityProviderKey` and `chooseProvider` moved to `packages/domain/src/_shared/`.
