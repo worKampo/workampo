@@ -42,7 +42,7 @@ Kept from the previous design (option 1):
 - **12 px** radius for modals and other overlays.
 - Accessibility fixes over the reference: no text or controls at 40–50 % opacity (contrast), select chevrons in a token colour instead of a fixed `#888`, and `aria-modal` with labelled dialogs and drawers.
 
-The values live in `packages/ui/src/styles/tokens.css`; components, patterns and copy rules in `docs/design/`.
+The values live in `packages/ui/styles/tokens.css`; components, patterns and copy rules in `docs/design/`.
 
 ### Consequences
 
@@ -81,3 +81,7 @@ The values live in `packages/ui/src/styles/tokens.css`; components, patterns and
 - [`docs/design/`](../design/README.md): tokens, components, patterns, content.
 - Design canvas "SaaS Base · Pantallas" (private): <https://claude.ai/artifact/5b46Drc9rY8rk95LY5XBAi>
 - [ADR-0031](0031-ui-ux-designer.md) (UI/UX designer, accessibility, SEO), [ADR-0047](0047-i18n-from-the-start.md) (internationalisation), [ADR-0050](0050-enter-as-staff-impersonation.md) ("Enter as"), [ADR-0032](0032-security-reviewer.md) (no third-party scripts on `/login`).
+
+## Updates
+
+- 2026-11-23 (the person, ticket 131): the code of `packages/domain`, `packages/app-core` and `packages/ui` moved into their `src/`; paths above such as `packages/ui/styles/tokens.css` now read `packages/ui/src/styles/tokens.css`.

@@ -48,7 +48,7 @@ Decided by the person in ticket 96 (2026-11-22).
    - What can be shared or restored goes in the URL: company, filters, search, page, sort, open drawer.
    - UI state is local (`useState`), lifted only as far as needed.
    - Form state lives in react-hook-form inside its screen.
-   - React context only for app-wide values that change rarely and do not come from the server: library providers (router, query, i18n), theme, toast queue. Each lives in `apps/web/src/_shared/providers/` with a one-line why. Exception: `packages/app-core/src/_shared/` may define the React contexts of its own dependency injection (the API client context); each app mounts the provider in its `_shared/providers/app-providers.tsx` (the person, 2026-11-22).
+   - React context only for app-wide values that change rarely and do not come from the server: library providers (router, query, i18n), theme, toast queue. Each lives in `apps/web/src/_shared/providers/` with a one-line why. Exception: `packages/app-core/_shared/` may define the React contexts of its own dependency injection (the API client context); each app mounts the provider in its `_shared/providers/app-providers.tsx` (the person, 2026-11-22).
    - Client state that is not server data and must be shared across distant parts of the app, or kept in browser storage between sessions (preferences, dismissed hints, drafts), uses **Zustand**, with its `persist` middleware for storage. The store is defined in `packages/app-core` with the storage injected (web: `localStorage` through `createJSONStorage`; mobile: its own), so web and mobile share it. Never persisted: personal data, tokens or anything the server owns (the session stays in the HttpOnly cookie). Every persisted store has a version and a migration. No other global state library without an ADR. Zustand is added with the first store that needs it.
    - The mobile app follows the same rules with the same hooks and stores of `packages/app-core`.
 
@@ -66,3 +66,4 @@ This resolves the "Decided later" line of [ADR-0053](0053-code-conventions.md) f
 ## Updates
 
 - 2026-11-22 (the person, ticket 96): the attempts counter counts every attempt with a code per email, right or wrong, not only the failed ones (@id:access-96-4). Counting before the provider is asked is atomic and never asks it once the limit is passed. Point 3's "failed attempts per email" reads in that sense.
+- 2026-11-23 (the person, ticket 131): the code of `packages/domain`, `packages/app-core` and `packages/ui` moved into their `src/`; paths above such as `packages/app-core/_shared/` now read `packages/app-core/src/_shared/`.
