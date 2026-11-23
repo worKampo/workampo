@@ -6,9 +6,9 @@ Rules an implementer applies. Why: [ADR-0053](../adr/0053-code-conventions.md) (
 
 - The top level of each app's `src/` is directly the domains (same names as [`docs/domains/`](../domains/README.md)). Every folder there is a domain except `_shared/`. No technical-layer folders (`controllers/`, `services/`).
 - A domain holds routes, use cases, repos, `errors.ts` and tests side by side. One use case per file.
-- `_shared/` holds code no single domain owns: `http/problem-json.ts`, `tenancy/`, `ids/`, and the adapters. It imports no domain.
+- `_shared/` holds code no single domain owns: `http/problem-json.ts`, `ids/`, the adapters and technical capabilities such as `rate-limit/`, which may have their own repo (the person, 2026-11-23); `tenancy/` arrives with the company shard. It imports no domain.
 - Example: `apps/api/src/companies/routes.ts`, `companies/invitations/invite-member.ts`, `invitation-repo.ts`.
-- Pure core (no I/O, shared by API, web and the future mobile app) goes in `packages/domain/<domain>/`: Zod schemas, rules, permissions (`can`), error codes, values (`Email`, `Slug`, `Money`). It imports no Hono, Drizzle, React, `fetch` or `apps/`. `apps/api` keeps routes, use cases and repos; `apps/web` keeps screens and hooks. Web data hooks do not touch the DOM.
+- Pure core (no I/O, shared by API, web and the future mobile app) goes in `packages/domain/<domain>/`: Zod schemas, rules, permissions (`can`), error codes, values (`Email`, `Slug`, `Money`). It imports no Hono, Drizzle, React, `fetch` or `apps/`. `apps/api` keeps routes, use cases and repos; `apps/web` keeps screens; data hooks live in `packages/app-core` and do not touch the DOM.
 - A domain imports only the top-level files of another domain, never its internals.
 - Internal packages by name (`@workampo/â€¦`); no barrel files that re-export everything; no cycles.
 
@@ -60,13 +60,13 @@ A file is not named only by its kind when that name repeats in other folders: `s
 - Hooks files are `<feature>-hooks.ts`; screens `<name>-screen.tsx` (the person, 2026-11-22).
 - No barrel `index` files: a package's entries are only those declared in its `exports`. A package exports only what other packages and apps may use; internals (`*-api.ts`) and test helpers stay unexported (the person, 2026-11-22).
 - Seeds are numbered like migrations: `NNNN-<domain>.sql`, four digits (the person, 2026-11-22).
-- Test files (the person, 2026-11-22): a unit test is `<source>.test.ts`; a feature's HTTP test `<feature>-routes.int.test.ts`, or `<spec-topic>.int.test.ts` when it covers a rule of the living spec; acceptance scenarios always in `e2e/acceptance/<topic>.e2e.ts` (`e2e/health.e2e.ts` stays as infrastructure).
+- Test files (the person, 2026-11-22): a unit test is `<source>.test.ts`; a feature's HTTP test `<feature>-routes.int.test.ts`, or `<spec-topic>.int.test.ts` when it covers a rule of the living spec; a use case's test `<use-case>.int.test.ts` in its folder (the person, 2026-11-23); acceptance scenarios always in `e2e/acceptance/<topic>.e2e.ts` (`e2e/health.e2e.ts` stays as infrastructure); those of the web live in `apps/api/e2e/`, because the API Worker serves the web (the person, 2026-11-23).
 - The brand "worKampo" is not translated (the person, 2026-11-22).
 
 | What | Rule | Example |
 |---|---|---|
 | Files, folders | `kebab-case` (only exception: `_shared/`) | `invite-member.ts` |
-| Tests | same name + `.test.ts`; integration `.int.test.ts` | `routes.int.test.ts` |
+| Tests | same name + `.test.ts`; integration `.int.test.ts` | `sign-in-routes.int.test.ts` |
 | Components | `PascalCase`, file in kebab | `MemberDrawer` in `member-drawer.tsx` |
 | Hooks | `use` + camelCase | `useMembers` |
 | Functions, variables | `camelCase`; verb for actions | `inviteMember()` |
@@ -97,7 +97,7 @@ Use one name end to end: living-spec rule (`@id:companies-15-1`) â†’ use case â†
 ## Data access
 
 - Always through the domain's `*-repo.ts`; explicit columns, never `SELECT *`; every list has a maximum page size; no queries in a loop.
-- Repos receive the company's database client from `_shared/tenancy/`; never use the D1 binding directly.
+- Repos receive the company's database client from `_shared/tenancy/` once the company shard exists (today `_shared/db/d1-global-db.ts`); never use the D1 binding directly.
 - Drizzle builder only; no SQLite-specific SQL (`strftime`, JSON functions, `ROWID`, `AUTOINCREMENT`). If unavoidable, isolate it and comment why.
 - Split long lists (many parameters, big `batch()`) inside the repo (D1 limits).
 - Text search through a normalized lowercase column, not `COLLATE NOCASE`; escape `LIKE` wildcards. Alphabetical order by the normalized column.
@@ -118,7 +118,7 @@ Use one name end to end: living-spec rule (`@id:companies-15-1`) â†’ use case â†
 | References | `<entity>_id` singular; the company is always `tenant_id`; across databases only the ID, no foreign key |
 | Booleans | `is_` / `has_` |
 | Instants, dates | `_at` instants (ISO text, UTC); `_on` dates without time |
-| `created_at` | On every table, set by the app |
+| `created_at` | On every table, set by the app; technical tables such as rate-limit counters go without it (the person, 2026-11-23) |
 | `updated_at`, `updated_by` | On tables people edit; equal to creation the first time |
 | Author | No generic `created_by`; only domain-named authors the product shows (`invited_by`) |
 | `status` | Only with a lifecycle, domain values, and a `CHECK` |
@@ -151,7 +151,8 @@ Use one name end to end: living-spec rule (`@id:companies-15-1`) â†’ use case â†
 
 ## Permissions
 
-- Roles and the action â†’ allowed-roles map live in code in the `companies` domain, with one `can(member, action)`; the API decides, the interface uses the same function only to show or hide. Read the role from the database on every request, never from the JWT or a session cache. A unit test walks the whole matrix ([ADR-0054](../adr/0054-roles-and-permissions.md)).
+- Actions are born in code with their scope (company or unit) and an immutable key; roles and what they allow live in the database; assignments tie a member, a role and a unit ([ADR-0072](../adr/0072-organization-units-and-scoped-roles.md)) (the person, 2026-11-23).
+- Effective permissions are the union of the active assignments on the unit and its ancestors, computed on each request and never stored. `can(member, action, unit)` is a pure function in `packages/domain`; the API loads the data and decides, the interface uses the same function only to show or hide. A company-scope action is checked on the root.
 
 ## External dependencies
 
@@ -204,7 +205,7 @@ Biome keeps blank lines but never adds them; apply this by hand (the person, 202
 
 ## Code shape
 
-Rules of the person (2026-11-22). Biome enforces 3, 4 and 6 (`noUselessElse`, `useMaxParams` with `max: 2`, `noNestedTernary`) outside `scripts/`, whose older tooling predates them; the rest is by hand.
+Rules of the person (2026-11-22). Biome enforces 3, 4 and 6 (`noUselessElse`, `useMaxParams` with `max: 2`, `noNestedTernary`); in `scripts/`, whose older tooling predates them, only 3 applies; the rest is by hand.
 
 1. **File order**: imports, constants, then what the file exports, then its private helpers.
    ```ts
@@ -253,4 +254,4 @@ Rules of the person (2026-11-22). Biome enforces 3, 4 and 6 (`noUselessElse`, `u
 
 ## Decided later
 
-Router, server state and forms of the frontend; pagination, filters and ordering of the API; use of feature flags in code. Do not invent a convention for these: it is decided with the first PRD that needs it.
+Pagination, filters and ordering of the API; use of feature flags in code. Do not invent a convention for these: it is decided with the first PRD that needs it.

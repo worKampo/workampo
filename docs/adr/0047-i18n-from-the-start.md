@@ -24,3 +24,7 @@ All the interface, the emails and the public content are multilingual from day o
 ## Consequences
 
 See Decision.
+
+## Updates
+
+- 2026-11-23 (the person, ticket 135): the i18n library is decided in [ADR-0073](0073-frontend-stack-and-rate-limiting.md): i18next.

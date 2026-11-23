@@ -108,6 +108,14 @@ module.exports = {
       },
       to: { path: ['(^|node_modules/)drizzle-orm(/|$)', '^apps/[^/]+/src/_shared/db/'] },
     },
+    {
+      name: 'no-tests-in-production',
+      comment:
+        'Production code never imports a test, an e2e scenario or a contract suite (ADR-0029).',
+      severity: 'error',
+      from: { pathNot: ['\\.(test|e2e|contract)\\.tsx?$', '/_shared/testing/', '/e2e/', '/test/'] },
+      to: { path: '\\.(test|e2e|contract)\\.tsx?$' },
+    },
   ],
   options: {
     doNotFollow: { path: 'node_modules' },

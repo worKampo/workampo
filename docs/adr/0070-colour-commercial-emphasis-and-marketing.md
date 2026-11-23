@@ -28,3 +28,7 @@ This supersedes in part ADR-0066: "Ink is the only accent", "no brand colour in 
 - Contrast, measured: ink on sky 7.43:1; `--commercial-border` 3.84:1 on white and 3.47:1 on the chrome; `--commercial-text` 5.45:1 and 4.92:1; sky on the dark surface 7.68:1.
 - Sky sits apart from `--info` (indigo `#2C48A8`) by hue and by shape, so a business moment does not read as information.
 - The design canvas shows the commercial emphasis in the sidebar trial and the recommended plan.
+
+## Updates
+
+- 2026-11-23 (the person, ticket 135): the tokens live in `packages/ui/src/styles/tokens.css`, not `docs/design/tokens.css`.

@@ -54,3 +54,7 @@ Trophy shape: the bulk are integration tests against the real runtime. TDD is ma
 ## More information
 
 Related: [ADR-0030](0030-test-designer.md), [ADR-0031](0031-ui-ux-designer.md).
+
+## Updates
+
+- 2026-11-23 (the person, ticket 135): the `make<Entity>` factories arrive with the first company table (issue 90); until then tests use the fake provider's fixtures and helpers such as `newEmail`. dependency-cruiser now enforces that production code imports no `*.test.ts`.

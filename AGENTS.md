@@ -83,4 +83,4 @@ The repo is public ([ADR-0043](docs/adr/0043-public-repo.md)). None of this ente
 | Exact anti-abuse thresholds                                                                                                                     | Environment variables                                                                |
 | Source maps of the web                                                                                                                          | Sentry only                                                                          |
 
-Emails allowed: the project's noreply and the seed test domains (`*.test`, `example.com`). Before writing anything to the repo, an issue or a PR, check it against this list. If the person asks to include something on it, that is a mandatory stop: say why and where it goes instead.
+Emails allowed: the project's noreply and the test domains listed in [review](docs/process/review.md#no-entra). Before writing anything to the repo, an issue or a PR, check it against this list. If the person asks to include something on it, that is a mandatory stop: say why and where it goes instead.

@@ -40,3 +40,7 @@ The project handles several kinds of database change and data, each with differe
 ## Consequences
 
 See Decision.
+
+## Updates
+
+- 2026-11-23 (the person, ticket 135): seeds are SQL files `NNNN-<domain>.sql` in `packages/db/seed/{global,shard}/` ([seeds](../procedures/seeds.md)), not TypeScript.

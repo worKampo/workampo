@@ -8,7 +8,7 @@ SQL files in [`packages/db/seed/`](../../packages/db/seed/README.md): `global/` 
 
 - Deterministic: fixed IDs (constant UUIDv7) and fixed dates.
 - Idempotent: `ON CONFLICT DO NOTHING` or `DO UPDATE`; a second run changes nothing.
-- Emails only on the test domains (`*.test`, `example.com`); no real people.
+- Emails only on the test domains of [review](../process/review.md#no-entra); no real people.
 - Reference data (plans, flag definitions) is a data migration, not a seed.
 
 ## Local: `pnpm db:seed`
