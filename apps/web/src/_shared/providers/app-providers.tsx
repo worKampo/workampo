@@ -1,7 +1,7 @@
 import { type QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { type RegisteredRouter, RouterProvider } from '@tanstack/react-router'
-import type { ApiClient } from '@workampo/app-core/_shared/api-client'
-import { ApiClientProvider } from '@workampo/app-core/_shared/api-client-context'
+import type { ApiClient } from '@workampo/app-core/api-client'
+import { ApiClientProvider } from '@workampo/app-core/api-client-context'
 import { StrictMode } from 'react'
 
 // Library providers only (ADR-0073 point 5): the query cache, the API client and the router.

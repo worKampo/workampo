@@ -17,9 +17,9 @@ Rules an implementer applies. Why: [ADR-0053](../adr/0053-code-conventions.md) (
 The same domain and feature folders everywhere, with identical feature names in every package and app (the person, 2026-11-22). Example, `access` with its features `sign-in` and `session`:
 
 ```
-packages/domain/access/          errors.ts, identity.ts     what the whole domain shares (errors, types, values)
+packages/domain/src/access/      errors.ts, identity.ts     what the whole domain shares (errors, types, values)
   sign-in/  session/             pure business rules and their tests
-packages/app-core/access/        query-keys.ts: every query key of the domain
+packages/app-core/src/access/    query-keys.ts: every query key of the domain
   sign-in/  session/             data hooks (`<feature>-hooks.ts`) and form schemas; no DOM; shared by web and mobile
 packages/i18n/src/locales/<lang>/access.json   texts grouped by screen, plus `errors`; `_context/access.json` for translators
 apps/api/src/access/             routes.ts (mounts the features), errors.ts
@@ -30,11 +30,13 @@ apps/web/src/access/             routes.ts (gathers its features' routes)
 apps/mobile/src/access/          when the app arrives: the same feature folders, its own views, the same hooks from packages/app-core
 ```
 
-`packages/ui` is not per domain: it is grouped by component family in folders that mirror the headings of [components.md](../design/components.md) (`actions/`, `forms/`, `content/`, `brand/`â€¦), each component with its test beside it, and imported per family: `@workampo/ui/forms` (the person, 2026-11-22).
+`packages/ui/src/` is not per domain: it is grouped by component family in folders that mirror the headings of [components.md](../design/components.md) (`actions/`, `forms/`, `content/`, `brand/`â€¦), each component with its test beside it, and imported per family: `@workampo/ui/forms` (the person, 2026-11-22).
 
-The root of a package or app holds only configuration, generated files and the folders an external tool reads as they are (`migrations/`, `seed/`, `backfills/`, `public/`, `e2e/`, `test/` setup). Everything our code imports, code or data such as translations and styles, lives in `src/` or in the package's own grouping folders: domains in `packages/domain`, families in `packages/ui`, `schema/` in `packages/db` (the person, 2026-11-22).
+The root of a package or app holds only configuration, generated files and the folders an external tool reads as they are (`migrations/`, `seed/`, `backfills/`, `public/`, `e2e/`, `test/` setup) (the person, 2026-11-22). Everything our code imports, code or data such as translations and styles, lives in `src/`, in every package and app; inside `src/` there are only `_shared/` and one folder per domain (or per family in `packages/ui`), so the tree reads the same however many domains there are (the person, 2026-11-23). `packages/db` keeps `schema/` at its root while the spike of issue 112 decides how the schema is declared.
 
-Exceptions (the person, 2026-11-22): `apps/web/src/route-tree.ts` sits at the root of `src/`, where the domains' routes meet, because `_shared/` may not import domains.
+The root of `src/` also holds the files that gather every domain, because `_shared/` may not import domains: `apps/web/src/route-tree.ts` (the person, 2026-11-22), `apps/api/src/index.ts` and `contract.ts`, and `packages/domain/src/errors.ts` with the union of every domain's error codes (the person, 2026-11-23).
+
+A folder with more than 8 code files, tests not counted, is split into subfolders by feature or use case (the person, 2026-11-23).
 
 ### Web routing (the person, 2026-11-22)
 
@@ -83,7 +85,8 @@ Use one name end to end: living-spec rule (`@id:companies-15-1`) â†’ use case â†
 
 - One error class per domain, with its code: `AccessError(code)` in `apps/api/src/access/errors.ts`, which also holds each code's HTTP status (the person, 2026-11-22).
 - Adapters throw neutral errors of their capability (`InvalidCodeError`, never an `access.*` code); the use case translates them into the domain's error (the person, 2026-11-22).
-- The union of every domain's codes is `packages/domain/errors.ts`; the API, app-core and the texts' test read it (the person, 2026-11-22).
+- The union of every domain's codes is `packages/domain/src/errors.ts`; the API, app-core and the texts' test read it (the person, 2026-11-22).
+- The web and the mobile app call the API only through the hooks of `packages/app-core`, never `fetch` or the `hc` client in a screen. Every failure reaches them as an `ApiError` with a domain code (`_shared/api-error.ts`); a screen only turns it into its text with `errorKeyOf`, from the public entry `@workampo/app-core/errors` (the person, 2026-11-23).
 - Translate to HTTP in one place, `_shared/http/problem-json.ts`: `problem+json` (RFC 9457) with a stable `code` the interface translates.
 
 ## Data access
@@ -155,9 +158,9 @@ Use one name end to end: living-spec rule (`@id:companies-15-1`) â†’ use case â†
 
 ## Interface
 
-- All CSS lives in `packages/ui/styles/`; apps import `@workampo/ui/styles.css` (the person, 2026-11-22).
+- All CSS lives in `packages/ui/src/styles/`; apps import `@workampo/ui/styles.css` (the person, 2026-11-22).
 - Typography through `Text` and `TextLink` of `packages/ui`; screens carry no typography classes (the person, 2026-11-22).
-- Styles: only tokens ([`packages/ui/styles/tokens.css`](../../packages/ui/styles/tokens.css)) and Tailwind scale classes; no arbitrary values (`text-[20px]`) outside `packages/ui`.
+- Styles: only tokens ([`packages/ui/src/styles/tokens.css`](../../packages/ui/src/styles/tokens.css)) and Tailwind scale classes; no arbitrary values (`text-[20px]`) outside `packages/ui`.
 - Texts through i18n keys, never literals ([ADR-0047](../adr/0047-i18n-from-the-start.md)).
 - Search `packages/ui` and [`docs/design/components.md`](../design/components.md) before creating a component.
 - Load only what a screen needs (the person, 2026-11-22; [ADR-0073](../adr/0073-frontend-stack-and-rate-limiting.md) point 4):
@@ -169,7 +172,7 @@ Use one name end to end: living-spec rule (`@id:companies-15-1`) â†’ use case â†
   - Server data: only the TanStack Query cache of `packages/app-core`; never copied into context or `useState`.
   - Shareable or restorable state (company, filters, search, page, sort, open drawer): the URL.
   - UI state: local `useState`, lifted only as far as needed. Form state: react-hook-form in its screen.
-  - Context: only rarely-changing app-wide values not from the server (router, query and i18n providers, theme, toast queue), in `apps/web/src/_shared/providers/` with a one-line why. Exception: `packages/app-core/_shared/` defines the contexts of its own dependency injection (the API client); each app mounts their providers in its `_shared/providers/app-providers.tsx`.
+  - Context: only rarely-changing app-wide values not from the server (router, query and i18n providers, theme, toast queue), in `apps/web/src/_shared/providers/` with a one-line why. Exception: `packages/app-core/src/_shared/` defines the contexts of its own dependency injection (the API client); each app mounts their providers in its `_shared/providers/app-providers.tsx`.
   - Shared or persisted client state: a Zustand store in `packages/app-core` with injected storage, versioned with a migration; never personal data, tokens or server data. No other global state library without an ADR.
 
 | Level | Where | Rule |

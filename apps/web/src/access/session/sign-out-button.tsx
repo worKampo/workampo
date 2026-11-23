@@ -1,6 +1,6 @@
 import { useNavigate } from '@tanstack/react-router'
-import { errorKeyOf } from '@workampo/app-core/_shared/error-key'
 import { useSignOut } from '@workampo/app-core/access/session/session-hooks'
+import { errorKeyOf } from '@workampo/app-core/errors'
 import { Button } from '@workampo/ui/actions'
 import { Text } from '@workampo/ui/content'
 import { useTranslation } from 'react-i18next'

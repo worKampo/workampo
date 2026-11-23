@@ -1,4 +1,5 @@
-import { type ApiClient, ApiError, send } from '../../_shared/api-client'
+import type { ApiClient } from '../../_shared/api-client'
+import { ApiError, send } from '../../_shared/api-error'
 
 // No session is a normal state, not an error: the guard sends the person to /login.
 export async function getMe(client: ApiClient) {

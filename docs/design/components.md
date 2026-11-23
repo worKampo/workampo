@@ -2,7 +2,7 @@
 
 This is the catalogue of global components, which live in `packages/ui` (D53). Before creating a component, look here and in `packages/ui`. Domain components compose these; a component born in one domain moves to `packages/ui` (or the app's `_shared/components/`) when a second domain needs it.
 
-Each component adapts a shadcn/ui component (or is a small custom one) to the tokens in [tokens.css](../../packages/ui/styles/tokens.css). Sizes are desktop / touch (tablet and phone). Radii: 8 px controls, 12 px cards and overlays, 999 px pills; 4 px only for kbd and tags, 6 px for inner segments and skeletons, 16 px for the top corners of a phone bottom sheet.
+Each component adapts a shadcn/ui component (or is a small custom one) to the tokens in [tokens.css](../../packages/ui/src/styles/tokens.css). Sizes are desktop / touch (tablet and phone). Radii: 8 px controls, 12 px cards and overlays, 999 px pills; 4 px only for kbd and tags, 6 px for inner segments and skeletons, 16 px for the top corners of a phone bottom sheet.
 
 General rules:
 
@@ -177,7 +177,7 @@ Shell, sidebar, topbar and page head are not catalogued yet.
 
 ### Card screen
 
-Custom (`CardScreen` in `packages/ui/layout/`). The layout of the [card screens](patterns.md#public-pages-and-auth): sign in and its code, choose and create a company, accept an invitation, return from checkout.
+Custom (`CardScreen` in `packages/ui/src/layout/`). The layout of the [card screens](patterns.md#public-pages-and-auth): sign in and its code, choose and create a company, accept an invitation, return from checkout.
 
 - Anatomy: a page header with the worKampo logo (later the company's, and the language selector at its right before sign-in), then one `Card` with the screen's `h1` title and its task; nothing else on the page.
 - Sizes: `--chrome` background at every size; header and card 384 px wide at most, centred; padding 24 at the top on phone and 64 from 640 px; 16 px from the screen edges on phone, where the card keeps its border and radius and sits at the top so the keyboard does not cover it.
