@@ -14,6 +14,8 @@ Issue numbers are written `15` or `#15`; docs use the form without `#`. Commands
 | `pnpm work pr [--title "<t>"] [--body-file <f>]` | On a ticket branch: runs `pnpm check`, turns `@wip(#n)` into `@issue(#n)`, removes `.work/` in one commit, pushes, opens the PR (`PRD #`, `Ticket #`, `type:` `area:` `size:` labels), posts the "Plan" and "Progress" comments, moves the card to Review |
 | `pnpm work close <n> [--learning "<text>"]` | Closes the issue as completed with a comment (and the proposed learning), moves the card to Done. An unknown option fails; a learning that starts with `--` goes as `--learning=<text>` |
 | `pnpm work verify <n>` | Local check of moment 2 ([verify](#verify)) |
+| `pnpm work review <pr> [--wait]` | Step 8 ([review](#review)): says whether CodeRabbit or CodeQL is still reviewing (`--wait` re-checks every 30 s, up to 20 min), then lists its unanswered threads and the findings of its latest review body, and the round |
+| `pnpm work review <pr> --reply <id> --commit <sha> --text "<t>"` | Answers the thread "Fixed in <sha>: <t>"; refuses if the commit is not on the PR on GitHub. `--not-applicable "<reason>"` instead answers "Not applicable: <reason>" |
 
 ## Identity
 
@@ -43,5 +45,14 @@ The error names the command that fixes each problem. Pushes with a token go to `
 **`--keep-data`** keeps the database of the previous run, so a fix can be checked on the data already created: it skips the delete and the seed and applies only the migrations not yet applied. It keeps a database only if its seed finished (a `.seeded` mark written after the seed); otherwise, or with no previous database, it starts a fresh one. If a new migration does not apply to the kept data, it stops and says to run `verify` without `--keep-data`. The new code is the branch's pushed code, as always.
 
 It prints the command that stops the server: `taskkill /PID <pid> /T /F` on Windows, `kill <pid>` elsewhere. Remove the folder when done with `git worktree remove ../workampo-verify-<n>`.
+
+## Review
+
+`pnpm work review <pr>` serves the review loop of step 8 ([cycle](../process/cycle.md#pr-review)):
+
+- **Waiting**: it reads the check runs named `CodeRabbit` and `CodeQL` on the PR's head commit (or commit statuses of those names). Not completed counts as still reviewing; a missing `CodeRabbit` too, a missing `CodeQL` not (not every change runs it): without `--wait` it says so and exits 0; with `--wait` it re-checks every 30 s and fails after 20 minutes.
+- **Listing**: only the reviewers' own comments count: CodeRabbit (`coderabbitai[bot]`), CodeQL (`github-advanced-security[bot]`) and the person's account; anyone else may comment on a public repo. A thread is listed until the agents' App replies, and again when the person replies after it, as `<id> <path>:<line> · <reviewer> · <severity> · <title>`. A new reviewer is one more entry in the reviewers list of `scripts/work/review.mjs`. From the latest CodeRabbit review body it lists each item of its sections ("Nitpick comments", "Outside diff range comments", "Minor comments"…) and the names of the failed pre-merge checks. The reviewers' prompts for agents, code blocks and HTML are never printed.
+- **Round**: the number of CodeRabbit reviews on the PR; from the third it warns that what is left goes to an issue with a milestone.
+- **Replying**: `--reply` with `--commit` posts only if the sha (7 to 40 hex) starts one of the PR's commits on GitHub, so a reply never cites a commit that failed or was not pushed. A reply needs the agents' App token in `GH_TOKEN`, so it never goes out as the person; without it nothing is posted. It never resolves the thread. `--dry-run` prints the reply instead.
 
 The observation window that closes tickets after the prod deploy is not part of `pnpm work`: [deploy runbook](../runbooks/deploy.md#release-observation-window).
