@@ -216,9 +216,8 @@ function failedChecks(body) {
 function visibleLines(markdown) {
   const text = markdown
     .replace(/<!-- ai-agent-prompt:start -->[\s\S]*?<!-- ai-agent-prompt:end -->/g, '')
-    // shortcut: a fence closes at the next fence of the same character, ignoring CommonMark's
-    // length rule; enough for review bodies, upgrade if a nested fence ever leaks a finding.
-    .replace(/(```|~~~)[\s\S]*?\1/g, '')
+    // A fence closes only at a line of the same character at least as long (CommonMark).
+    .replace(/^[ \t>]*((`|~)\2{2,})[^\n]*\n[\s\S]*?^[ \t>]*\1\2*[ \t]*$/gm, '')
     // A space, not '', so removing a tag can never join its neighbours into a new one.
     .replace(/<!--[\s\S]*?-->/g, ' ')
     .replace(/<[^>]*>/g, ' ')
@@ -263,6 +262,11 @@ function ghList(io, { path, jq = '.[]' }) {
 function reply({ args, repository, io }) {
   const [number] = args.numbers
   const pull = `repos/${repository}/pulls/${number}`
+  if (!args.dryRun && !io.env?.GH_TOKEN)
+    throw new Error(
+      "Replies go as the agents' App, so the command can tell them from the person's: GH_TOKEN=$(node scripts/github/app-token.mjs). Nothing was posted.",
+    )
+
   const isFix = args.notApplicable === undefined
   if (isFix && !isOnPull(io, { pull, commit: args.commit }))
     throw new Error(

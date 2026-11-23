@@ -108,6 +108,7 @@ function fakeIo(responses) {
     calls,
     output,
     sleeps,
+    env: { GH_TOKEN: 'app-token' },
     log: (text) => output.push(text),
     sleep: async (ms) => {
       sleeps.push(ms)
@@ -326,6 +327,31 @@ test('review: an example inside a tilde fence is not a finding', () => {
   ].join('\n')
 
   assert.deepEqual(bodyFindings(body), [])
+})
+
+test('review: a short fence inside a longer one does not close it', () => {
+  const body = [
+    '**Nitpick comments: 1**',
+    '',
+    'a.mjs: 1',
+    '',
+    '````markdown',
+    '```js',
+    '`10-10`: **Example finding.**',
+    '```',
+    '````',
+  ].join('\n')
+
+  assert.deepEqual(bodyFindings(body), [])
+})
+
+test('review: --reply without the App token posts nothing', async () => {
+  const io = fakeIo(prResponses())
+  io.env = {}
+  const args = { numbers: [7], reply: '101', notApplicable: 'out of scope' }
+
+  await assert.rejects(review(args, CONFIG, io), /agents' App/)
+  assert.deepEqual(posts(io), [])
 })
 
 test('review: a finding whose title sits on its own line keeps that title', () => {

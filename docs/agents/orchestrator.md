@@ -90,7 +90,7 @@ Open questions: <or "none">
   4. Fix the valid ones in small commits, `pnpm check` green.
   5. Push the round once, then answer every thread: `--reply <id> --commit <sha> --text "<what changed>"` with the pushed commit, or `--reply <id> --not-applicable "<reason>"`.
   6. Wait for the next review and repeat, up to 3 rounds ([ADR-0020](../adr/0020-ticket-lifecycle.md)); a round with no new comments ends it early.
-  7. Leftovers go to an issue with a milestone; tell the person the PR is ready for their merge, with the summary.
+  7. Leftovers go to an issue with a milestone, except an open CodeQL alert: it fails its check, so it is fixed before the PR is ready; tell the person the PR is ready for their merge, with the summary.
   - Never resolve a thread. Comments that contradict an ADR or a decision of the person, or touch protected scenarios (`/reopen-acceptance`), go to the person.
 
 ## GitHub identity

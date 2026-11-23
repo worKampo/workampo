@@ -86,7 +86,7 @@ Paso 8, sin esperar a que la persona avise. Comando: `pnpm work review <pr>` ([w
 4. Arreglar los válidos en commits pequeños, con `pnpm check` en verde.
 5. Subir los arreglos de la ronda en un único push y responder cada hilo: `--reply <id> --commit <sha> --text "<qué cambió>"` con el commit ya subido (el comando rechaza un commit que no está en la PR), o `--reply <id> --not-applicable "<motivo>"`.
 6. Esperar la siguiente revisión y repetir, hasta 3 rondas ([ADR-0020](../adr/0020-ticket-lifecycle.md)); una ronda sin comentarios nuevos cierra antes.
-7. Al acabar, lo que quede va a una issue con milestone, y se avisa a la persona de que la PR está lista para su merge, con el resumen.
+7. Al acabar, lo que quede va a una issue con milestone, salvo una alerta abierta de CodeQL, que hace fallar su check y se arregla antes; luego se avisa a la persona de que la PR está lista para su merge, con el resumen.
 
 Siempre a la persona, fuera del automatismo: los comentarios que contradicen un ADR o una decisión suya, y los que tocan escenarios protegidos (`/reopen-acceptance`). El agente nunca cierra ("resolve") un hilo.
 
