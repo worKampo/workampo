@@ -44,8 +44,9 @@ export async function review(args, config, io) {
   const repository = config.github.repository
   if (args.reply) return reply({ args, repository, io })
 
+  let check
   for (let tries = 1; ; tries++) {
-    const check = coderabbitCheck(io, { repository, number })
+    check = coderabbitCheck(io, { repository, number })
     if (check.isDone) break
     if (!args.wait)
       return io.log(
@@ -61,11 +62,19 @@ export async function review(args, config, io) {
   const reviews = ghList(io, { path: `${pull}/reviews` }).filter(isCodeRabbit)
   const comments = ghList(io, { path: `${pull}/comments` })
 
-  io.log(reviewReport({ number, reviews, comments }))
+  // The same identities as trustedAuthors() in work.mjs, which imports this module.
+  const trusted = [config.github.account, `${config.github.agentsApp.name}[bot]`]
+
+  io.log(reviewReport({ number, sha: check.sha, reviews, comments, trusted }))
 }
 
-export function unansweredThreads(comments) {
-  const answered = new Set(comments.map((c) => c.in_reply_to_id).filter(Boolean))
+// Only a reply by the project's own identities answers a thread: anyone can comment on a public repo.
+export function unansweredThreads(comments, trusted) {
+  const answered = new Set(
+    comments
+      .filter((c) => c.in_reply_to_id && trusted.includes(c.user?.login))
+      .map((c) => c.in_reply_to_id),
+  )
   return comments
     .filter((c) => isCodeRabbit(c) && !c.in_reply_to_id && !answered.has(c.id))
     .map((c) => {
@@ -107,7 +116,7 @@ export function bodyFindings(body) {
     const rest = lines.slice(i + 1, i + 12)
     const where = inFile ? `${file ?? '?'}:${inFile[1]}` : located[1]
     const severity = [inFile?.[2] ?? '', ...rest].join('\n').match(SEVERITY)?.[1] ?? '?'
-    findings.push(`${section}: ${where} · ${severity} · ${titleOf(rest)}`)
+    findings.push(`${section}: ${where} · ${severity} · ${titleOf([inFile?.[2] ?? '', ...rest])}`)
   }
 
   return [...findings, ...failedChecks(body).map((name) => `Failed pre-merge check: ${name}`)]
@@ -123,20 +132,23 @@ function coderabbitCheck(io, { repository, number }) {
   const run = ghList(io, { path: `${commit}/check-runs`, jq: '.check_runs[]' }).find(
     (r) => r.name === CHECK_NAME,
   )
-  if (run) return { isDone: run.status === 'completed', state: run.status }
+  if (run) return { sha, isDone: run.status === 'completed', state: run.status }
 
   const status = ghList(io, { path: `${commit}/statuses` }).find((s) => s.context === CHECK_NAME)
-  if (status) return { isDone: status.state !== 'pending', state: status.state }
+  if (status) return { sha, isDone: status.state !== 'pending', state: status.state }
 
-  return { isDone: false, state: 'not started' }
+  return { sha, isDone: false, state: 'not started' }
 }
 
-function reviewReport({ number, reviews, comments }) {
+function reviewReport({ number, sha, reviews, comments, trusted }) {
   const rounds = reviews.length
-  const threads = unansweredThreads(comments)
+  const threads = unansweredThreads(comments, trusted)
   const latest = reviews.at(-1)
   const findings = latest ? bodyFindings(latest.body ?? '') : []
-  const lines = [`PR #${number} · CodeRabbit round ${rounds} (limit ${MAX_ROUNDS})`]
+  // The head whose CodeRabbit check finished: a push after it is not in this report.
+  const lines = [
+    `PR #${number} · head ${sha.slice(0, 7)} · CodeRabbit round ${rounds} (limit ${MAX_ROUNDS})`,
+  ]
 
   if (rounds >= MAX_ROUNDS)
     lines.push(
@@ -179,14 +191,18 @@ function failedChecks(body) {
 
 // Drops the agent prompts, code blocks, HTML comments and tags; keeps non-empty text lines.
 function visibleLines(markdown) {
-  return markdown
-    .replace(/<!-- ai-agent-prompt:start -->[\s\S]*?<!-- ai-agent-prompt:end -->/g, '')
-    .replace(/```[\s\S]*?```/g, '')
-    .replace(/<!--[\s\S]*?-->/g, '')
-    .replace(/<[^>]*>/g, '')
-    .split(/\r?\n/)
-    .map((line) => line.replace(/^(?:>\s*)+/, '').trim())
-    .filter(Boolean)
+  return (
+    markdown
+      .replace(/<!-- ai-agent-prompt:start -->[\s\S]*?<!-- ai-agent-prompt:end -->/g, '')
+      .replace(/```[\s\S]*?```/g, '')
+      .replace(/<!--[\s\S]*?-->/g, '')
+      .replace(/<[^>]*>/g, '')
+      // Nested leftovers such as `<<!---->!--` would survive one pass; no angle bracket is needed here.
+      .replace(/[<>]/g, '')
+      .split(/\r?\n/)
+      .map((line) => line.replace(/^(?:>\s*)+/, '').trim())
+      .filter(Boolean)
+  )
 }
 
 // A finding's title is its first bold-only sentence; labels like "**Security Misconfiguration**"

@@ -3,7 +3,13 @@ import { test } from 'node:test'
 import { bodyFindings, checkReviewArgs, review, unansweredThreads } from './review.mjs'
 import { parseArgs } from './work.mjs'
 
-const CONFIG = { github: { repository: 'worKampo/workampo' } }
+const CONFIG = {
+  github: {
+    repository: 'worKampo/workampo',
+    account: 'workampo-dev',
+    agentsApp: { name: 'workampo-agents' },
+  },
+}
 const REPO = 'repos/worKampo/workampo'
 const HEAD = 'c0f6638dd0e99824b302c8839547abb7f73c2683'
 const CODERABBIT = { login: 'coderabbitai[bot]', type: 'Bot' }
@@ -189,7 +195,7 @@ test('review: lists unanswered threads, review-body findings and the round, neve
   await review({ numbers: [7] }, CONFIG, io)
 
   const report = io.output.join('\n')
-  assert.match(report, /^PR #7 · CodeRabbit round 2 \(limit 3\)/)
+  assert.match(report, /^PR #7 · head \w{7} · CodeRabbit round 2 \(limit 3\)/)
   assert.match(
     report,
     /101 scripts\/work\/work\.mjs:1091 · Minor · Mark the seed as complete before keeping the database\./,
@@ -217,9 +223,34 @@ test('review: a thread with a reply, or by someone else, is not listed', () => {
   }
   const impostor = { ...INLINE, id: 103, user: { login: 'coderabbitai[bot]', type: 'User' } }
 
-  const threads = unansweredThreads([INLINE, reply, impostor])
+  const threads = unansweredThreads([INLINE, reply, impostor], ['workampo-agents[bot]'])
 
   assert.deepEqual(threads, [])
+})
+
+test('review: a reply by an account outside the project leaves the thread listed', () => {
+  const outsider = { id: 104, in_reply_to_id: 101, user: { login: 'someone', type: 'User' } }
+
+  const threads = unansweredThreads([INLINE, outsider], ['workampo-dev', 'workampo-agents[bot]'])
+
+  assert.deepEqual(
+    threads.map((t) => t.id),
+    [101],
+  )
+})
+
+test('review: a finding whose title sits on its own line keeps that title', () => {
+  const body = [
+    '**Nitpick comments: 1**',
+    '',
+    'a.mjs: 1',
+    '',
+    '`10-10`: **Correct the condition.**',
+  ].join('\n')
+
+  const findings = bodyFindings(body)
+
+  assert.match(findings[0], /a\.mjs:10-10 · \? · Correct the condition\.$/)
 })
 
 test('review: a review body with no findings gives none', () => {
