@@ -25,6 +25,7 @@ const api = app.route('/api', accessRoutes)
 // The typed contract of hc (ADR-0019); clients import it as a type only.
 export type AppType = typeof api
 
+// Deploy metadata comes from the raw bindings, so /health answers even when the configuration fails to parse.
 app.get('/health', (c) =>
   c.json({
     status: 'ok',
@@ -34,8 +35,8 @@ app.get('/health', (c) =>
   }),
 )
 
-app.get('/__debug/error', (c) => {
-  if (c.env.ENABLE_DEBUG_ERROR !== 'true') return c.notFound()
+app.get('/__debug/error', parsedEnv, (c) => {
+  if (c.var.env.ENABLE_DEBUG_ERROR !== 'true') return c.notFound()
   throw new Error('Debug error to verify error tracking')
 })
 

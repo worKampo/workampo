@@ -5,7 +5,7 @@ import { useStartCodeSignIn } from '@workampo/app-core/access/sign-in/sign-in-ho
 import { errorKey, errorKeyOf } from '@workampo/app-core/errors'
 import { Button, buttonClassName } from '@workampo/ui/actions'
 import { Text } from '@workampo/ui/content'
-import { Field, Input } from '@workampo/ui/forms'
+import { Field, Form, Input } from '@workampo/ui/forms'
 import { CardScreen } from '@workampo/ui/layout'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
@@ -28,7 +28,7 @@ export function LoginScreen() {
 
   return (
     <CardScreen title={t('login.title')}>
-      <form onSubmit={submit} noValidate className="flex flex-col gap-4">
+      <Form onSubmit={submit}>
         <Field label={t('login.email_label')} error={message()}>
           {(control) => (
             <Input type="email" autoComplete="email" {...control} {...form.register('email')} />
@@ -37,7 +37,7 @@ export function LoginScreen() {
         <Button type="submit" disabled={startCode.isPending}>
           {t('login.continue')}
         </Button>
-      </form>
+      </Form>
       <Text size="xs" tone="muted" align="center">
         {t('login.or')}
       </Text>

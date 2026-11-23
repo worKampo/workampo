@@ -1,5 +1,5 @@
 import type { ComponentProps } from 'react'
-import { cx } from '../lib/cx'
+import { cx } from '../_shared/cx'
 
 // docs/design/components.md, "Cards and stats": padding 20, 16 on phone.
 export function Card({ className, ...props }: ComponentProps<'div'>) {

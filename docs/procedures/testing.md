@@ -2,9 +2,9 @@
 
 Strategy and layers: [ADR-0029](../adr/0029-testing-strategy.md). Test designer: [ADR-0030](../adr/0030-test-designer.md).
 
-## `pnpm test:new <domain> <name>`
+## `pnpm test:new <domain>/<feature>/<use-case>`
 
-Creates `apps/api/src/<domain>/<name>.int.test.ts` (both in kebab-case) with one `it.fails` test against `/health`. It never overwrites a file. Then:
+Creates `apps/api/src/<domain>/<feature>/<use-case>/<use-case>.int.test.ts` (every part in kebab-case), beside the use case it tests with one `it.fails` test against `/health`. It never overwrites a file. Then:
 
 1. Replace the title with `@id:<domain>-<issue>-<n> <example text>`, the id from [living specs](living-specs.md).
 2. Replace the body with the example's steps and expectation.

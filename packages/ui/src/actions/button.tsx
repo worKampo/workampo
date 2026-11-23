@@ -1,5 +1,5 @@
 import type { ComponentProps } from 'react'
-import { cx } from '../lib/cx'
+import { cx } from '../_shared/cx'
 
 // docs/design/components.md, "Buttons": 36 / 44 high, small 32 / 40, 13 px weight 500, radius 8.
 const VARIANTS = {
@@ -22,7 +22,7 @@ type ButtonStyle = {
 
 export function buttonClassName({ variant = 'primary', size = 'default' }: ButtonStyle = {}) {
   return cx(
-    'inline-flex items-center justify-center gap-2 rounded-lg text-[13px] font-medium',
+    'inline-flex items-center justify-center gap-2 rounded-lg text-body font-medium',
     'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui',
     'disabled:cursor-not-allowed disabled:bg-muted disabled:text-text-3',
     VARIANTS[variant],
