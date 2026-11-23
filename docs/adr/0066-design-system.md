@@ -42,7 +42,7 @@ Kept from the previous design (option 1):
 - **12 px** radius for modals and other overlays.
 - Accessibility fixes over the reference: no text or controls at 40–50 % opacity (contrast), select chevrons in a token colour instead of a fixed `#888`, and `aria-modal` with labelled dialogs and drawers.
 
-The values live in `packages/ui/styles/tokens.css`; components, patterns and copy rules in `docs/design/`.
+The values live in `packages/ui/src/styles/tokens.css`; components, patterns and copy rules in `docs/design/`.
 
 ### Consequences
 
