@@ -1,6 +1,6 @@
 import { env, exports } from 'cloudflare:workers'
 import { expect } from 'vitest'
-import { FAKE_VALID_CODE } from '../auth/fake-identities'
+import { FAKE_VALID_CODE } from '../identity/fake-identities'
 
 // Requests and checks the HTTP integration tests share; they talk to the Worker as a browser would.
 

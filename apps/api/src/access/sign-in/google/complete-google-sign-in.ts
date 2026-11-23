@@ -1,7 +1,7 @@
-import type { IdentityProvider } from '../../_shared/auth/identity-provider'
-import type { RequestOrigin } from '../../_shared/http/request-origin'
-import { AccessError } from '../errors'
-import { completeSignIn } from './complete-sign-in'
+import type { RequestOrigin } from '../../../_shared/http/request-origin'
+import type { IdentityProvider } from '../../../_shared/identity/identity-provider'
+import { AccessError } from '../../errors'
+import { completeSignIn } from '../complete-sign-in'
 import { isSameState } from './start-google-sign-in'
 
 type GoogleAnswer = {

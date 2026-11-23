@@ -1,5 +1,5 @@
-import type { IdentityProviderKey } from '@workampo/domain/access/identity'
-import { chooseProvider } from '@workampo/domain/access/sign-in/choose-provider'
+import { chooseProvider } from '@workampo/domain/_shared/choose-provider'
+import type { IdentityProviderKey } from '@workampo/domain/_shared/identity'
 import type { Hono } from 'hono'
 import type { ParsedEnv } from '../env'
 import type { AppEnv } from '../http/app-env'

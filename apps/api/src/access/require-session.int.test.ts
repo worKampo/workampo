@@ -1,10 +1,10 @@
 import { env } from 'cloudflare:workers'
 import { Hono } from 'hono'
 import { describe, expect, it } from 'vitest'
-import type { AppEnv } from '../http/app-env'
+import type { AppEnv } from '../_shared/http/app-env'
 import { requireSession, type SessionVariables } from './require-session'
-import { sessionRepo } from './session-repo'
-import { hashSessionToken, newSessionToken } from './session-token'
+import { sessionRepo } from './session/session-repo'
+import { hashSessionToken, newSessionToken } from './session/session-token'
 
 const app = new Hono<AppEnv & { Variables: SessionVariables }>()
   .use(requireSession)

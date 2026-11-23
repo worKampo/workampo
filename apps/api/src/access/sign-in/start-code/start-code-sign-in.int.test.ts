@@ -1,8 +1,8 @@
 import { env } from 'cloudflare:workers'
 import { describe, expect, it } from 'vitest'
-import type { IdentityProvider } from '../../_shared/auth/identity-provider'
-import { newEmail, newIp } from '../../_shared/testing/api-requests'
-import { AccessError } from '../errors'
+import type { IdentityProvider } from '../../../_shared/identity/identity-provider'
+import { newEmail, newIp } from '../../../_shared/testing/api-requests'
+import { AccessError } from '../../errors'
 import { startCodeSignIn } from './start-code-sign-in'
 
 const LIMITS = { perEmail: 2, perIp: 3, windowSeconds: 600 }

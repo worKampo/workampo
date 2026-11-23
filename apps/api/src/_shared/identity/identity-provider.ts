@@ -1,4 +1,4 @@
-import type { VerifiedIdentity } from '@workampo/domain/access/identity'
+import type { VerifiedIdentity } from '@workampo/domain/_shared/identity'
 import type { Language } from '@workampo/i18n'
 import type { RequestOrigin } from '../http/request-origin'
 

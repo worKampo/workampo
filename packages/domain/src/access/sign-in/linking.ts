@@ -1,4 +1,4 @@
-import type { VerifiedIdentity } from '../identity'
+import type { VerifiedIdentity } from '../../_shared/identity'
 import { normalizeEmail } from './email'
 
 type User = { id: string; email: string }

@@ -4,7 +4,7 @@ import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 
-// The same text as MARK in apps/api/src/_shared/auth/fake-provider.ts.
+// The same text as MARK in apps/api/src/_shared/identity/fake-provider.ts.
 export const FAKE_PROVIDER_MARK = 'workampo-fake-identity-provider'
 
 export function assertNoFakeProvider(dir) {

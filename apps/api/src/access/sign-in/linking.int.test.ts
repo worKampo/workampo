@@ -2,7 +2,7 @@ import { env } from 'cloudflare:workers'
 import { expect, it } from 'vitest'
 import { expectProblem, signIn } from '../../_shared/testing/api-requests'
 
-// The emails and subjects come from the fake identity provider (_shared/auth/fake-identities.ts).
+// The emails and subjects come from the fake identity provider (_shared/identity/fake-identities.ts).
 
 it('@id:access-96-8 a linked identity signs in to the same account with a code', async () => {
   const first = await signIn({ email: 'linked@example.com' })

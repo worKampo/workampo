@@ -1,5 +1,5 @@
-import type { IdentityProvider } from '../../_shared/auth/identity-provider'
-import { randomToken } from '../../_shared/crypto/random-token'
+import { randomToken } from '../../../_shared/crypto/random-token'
+import type { IdentityProvider } from '../../../_shared/identity/identity-provider'
 
 const GOOGLE_CALLBACK_PATH = '/api/sessions/google/callback'
 

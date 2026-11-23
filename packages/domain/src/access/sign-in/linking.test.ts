@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { VerifiedIdentity } from '../identity'
+import type { VerifiedIdentity } from '../../_shared/identity'
 import { decideSignIn } from './linking'
 
 const identity = (overrides: Partial<VerifiedIdentity> = {}): VerifiedIdentity => ({
