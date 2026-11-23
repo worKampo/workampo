@@ -42,13 +42,14 @@ shadcn `Input`, `Select`, `Textarea`, `InputGroup`, `Label`.
 | Label | Above the field, 12/16 weight 500 `--text-1`, gap 6 |
 | Input, select | 36 / 44, padding 0 12, radius 8, 1 px `--field-border`, background `--field-bg`, text 13 px (16 px on touch to avoid zoom on iOS) |
 | Hover | Border `--field-hover-border` |
-| Focus | Background `--field-focus`, no outline, ring `0 0 0 1px --ui, 0 0 0 4px --focus-halo` |
+| Focus | Background `--field-focus`, no outline, ring `--shadow-focus` (`0 0 0 1px --ui, 0 0 0 4px --focus-halo`) |
 | Error | Border `--neg`; message below in 12/16 `--neg` with an icon; `aria-invalid="true"` and `aria-describedby` to the message |
 | Help | 12/16 `--text-2`, linked with `aria-describedby` |
 | Textarea | Min height 88, padding 8 12, line height 1.5, vertical resize |
 | Select | Chevron at the right, padding-right 32 |
 | Input group | One bordered box with a prefix (`--text-2`, e.g. a URL base) and the input; the focus ring goes on the group (`:focus-within`) |
 | Search | Input with a 16 px icon at left 12, padding-left 36, background `--chrome-control`; label visually hidden |
+| Form | `Form` stacks its fields and actions 16 px apart and turns off the browser's validation; our messages show the errors |
 
 ### Choice controls
 
