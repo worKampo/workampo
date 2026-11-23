@@ -1,4 +1,4 @@
--- Users and identities of the fake identity provider (apps/api/src/_shared/auth/fake-identities.ts),
+-- Users and identities of the fake identity provider (apps/api/src/_shared/identity/fake-identities.ts),
 -- and one expired session: the fixtures of the access tests and E2E.
 INSERT INTO users (id, email, created_at, updated_at) VALUES
   ('01940000-0000-7000-8000-000000000001', 'linked@example.com', '2026-01-01T00:00:00.000Z', '2026-01-01T00:00:00.000Z'),

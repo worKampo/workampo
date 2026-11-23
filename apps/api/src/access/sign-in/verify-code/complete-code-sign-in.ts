@@ -1,9 +1,9 @@
-import type { IdentityProvider } from '../../_shared/auth/identity-provider'
-import { InvalidCodeError } from '../../_shared/auth/identity-provider'
-import type { RequestOrigin } from '../../_shared/http/request-origin'
-import { hitRateLimit } from '../../_shared/rate-limit/rate-limit'
-import { AccessError } from '../errors'
-import { completeSignIn } from './complete-sign-in'
+import type { RequestOrigin } from '../../../_shared/http/request-origin'
+import type { IdentityProvider } from '../../../_shared/identity/identity-provider'
+import { InvalidCodeError } from '../../../_shared/identity/identity-provider'
+import { hitRateLimit } from '../../../_shared/rate-limit/rate-limit'
+import { AccessError } from '../../errors'
+import { completeSignIn } from '../complete-sign-in'
 
 type Limits = { perEmail: number; windowSeconds: number }
 

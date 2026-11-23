@@ -1,6 +1,6 @@
 import { exports } from 'cloudflare:workers'
 import { expect, it } from 'vitest'
-import { me, sessionCookie } from '../../_shared/testing/api-requests'
+import { me, sessionCookie } from '../../../_shared/testing/api-requests'
 
 it('@id:access-96-6 Google start redirects to the provider with a state cookie', async () => {
   const { response, state, location } = await startGoogle()

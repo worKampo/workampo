@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest'
-import { FAKE_EXPIRED_CODE, FAKE_VALID_CODE } from '../../_shared/auth/fake-identities'
+import { FAKE_EXPIRED_CODE, FAKE_VALID_CODE } from '../../../_shared/identity/fake-identities'
 import {
   countUsers,
   expectProblem,
@@ -8,7 +8,7 @@ import {
   newIp,
   postJson,
   sessionCookie,
-} from '../../_shared/testing/api-requests'
+} from '../../../_shared/testing/api-requests'
 
 // Thresholds are environment variables (AGENTS.md "No entra"): try until the limit shows up.
 const MAX_TRIES = 100

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { IdentityProvider } from '../../_shared/auth/identity-provider'
+import type { IdentityProvider } from '../../../_shared/identity/identity-provider'
 import { isSameState, startGoogleSignIn } from './start-google-sign-in'
 
 describe('startGoogleSignIn', () => {

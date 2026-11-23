@@ -22,8 +22,9 @@ packages/domain/src/access/      errors.ts, identity.ts     what the whole domai
 packages/app-core/src/access/    query-keys.ts: every query key of the domain
   sign-in/  session/             data hooks (`<feature>-hooks.ts`) and form schemas; no DOM; shared by web and mobile
 packages/i18n/src/locales/<lang>/access.json   texts grouped by screen, plus `errors`; `_context/access.json` for translators
-apps/api/src/access/             routes.ts (mounts the features), errors.ts
-  sign-in/  session/             the feature's routes, use cases, repos and tests
+apps/api/src/access/             routes.ts (lists the features), errors.ts, require-session.ts (what other domains use)
+  sign-in/                       sign-in-routes.ts (lists the endpoints) and what its use cases share (repos)
+    start-code/                  start-code-route.ts (POST /sign-in-codes), the use case and its tests
   users/                         a repo several features share
 apps/web/src/access/             routes.ts (gathers its features' routes)
   sign-in/                       sign-in-routes.ts and one file per screen (`login-screen.tsx`); screen-only components beside it until a second use promotes them to packages/ui
@@ -37,6 +38,10 @@ The root of a package or app holds only configuration, generated files and the f
 The root of `src/` also holds the files that gather every domain, because `_shared/` may not import domains: `apps/web/src/route-tree.ts` (the person, 2026-11-22), `apps/api/src/index.ts` and `contract.ts`, and `packages/domain/src/errors.ts` with the union of every domain's error codes (the person, 2026-11-23).
 
 A folder with more than 8 code files, tests not counted, is split into subfolders by feature or use case (the person, 2026-11-23).
+
+### API routing (the person, 2026-11-23)
+
+`index.ts` → `<domain>/routes.ts` → `<feature>/<feature>-routes.ts` → `<use-case>/<use-case>-route.ts`. The first two only list; an endpoint's file is a Hono sub-app with its one route (validate, call the use case, answer) beside the use case and its tests. A flow whose endpoints go together, such as the Google redirect and its callback, may share one `-routes.ts` file in its folder.
 
 ### Web routing (the person, 2026-11-22)
 
@@ -150,7 +155,7 @@ Use one name end to end: living-spec rule (`@id:companies-15-1`) → use case �
 
 ## External dependencies
 
-- Provider services and libraries (auth, payments, email, error tracking, analytics, Cloudflare non-database APIs): behind our own adapter per capability, named for what it does (`_shared/auth/`, `_shared/payments/`, `_shared/email/`, `_shared/error-tracking/`). Expose our own types, ship a fake for tests. Adapters live in `apps/<app>/src/_shared/<capability>/`; they move to `packages/integrations/` when several apps need them.
+- Provider services and libraries (auth, payments, email, error tracking, analytics, Cloudflare non-database APIs): behind our own adapter per capability, named for what it does (`_shared/identity/`, `_shared/payments/`, `_shared/email/`, `_shared/error-tracking/`). Expose our own types, ship a fake for tests. Adapters live in `apps/<app>/src/_shared/<capability>/`; they move to `packages/integrations/` when several apps need them.
 - Base frameworks (Hono, React, Zod, Drizzle, router, frontend state): use directly. UI components come only from `packages/ui`.
 - Utilities (dates, IDs, money, slugs): own helpers in `_shared/` over `Intl` and `crypto`; no library unless needed.
 - Classify every new dependency in the PR: provider (with an adapter and a dependency-cruiser rule) or base (with a reason).

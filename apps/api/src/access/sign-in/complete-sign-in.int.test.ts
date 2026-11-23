@@ -1,8 +1,8 @@
 import { env } from 'cloudflare:workers'
-import type { VerifiedIdentity } from '@workampo/domain/access/identity'
+import type { VerifiedIdentity } from '@workampo/domain/_shared/identity'
 import { describe, expect, it } from 'vitest'
-import { hashSessionToken } from '../../_shared/auth/session-token'
 import { AccessError } from '../errors'
+import { hashSessionToken } from '../session/session-token'
 import { completeSignIn } from './complete-sign-in'
 
 describe('completeSignIn', () => {

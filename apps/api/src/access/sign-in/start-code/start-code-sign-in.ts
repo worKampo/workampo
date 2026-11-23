@@ -1,8 +1,8 @@
 import type { Language } from '@workampo/i18n'
-import type { IdentityProvider } from '../../_shared/auth/identity-provider'
-import type { RequestOrigin } from '../../_shared/http/request-origin'
-import { hitRateLimit } from '../../_shared/rate-limit/rate-limit'
-import { AccessError } from '../errors'
+import type { RequestOrigin } from '../../../_shared/http/request-origin'
+import type { IdentityProvider } from '../../../_shared/identity/identity-provider'
+import { hitRateLimit } from '../../../_shared/rate-limit/rate-limit'
+import { AccessError } from '../../errors'
 
 type CodeRequest = { email: string; locale: Language } & RequestOrigin
 type Limits = { perEmail: number; perIp: number; windowSeconds: number }

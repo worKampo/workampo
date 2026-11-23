@@ -1,4 +1,4 @@
-import type { VerifiedIdentity } from '@workampo/domain/access/identity'
+import type { VerifiedIdentity } from '@workampo/domain/_shared/identity'
 
 // Fixed contract of the fake provider: integration tests, E2E and the seed rely on it.
 export const FAKE_VALID_CODE = '424242'

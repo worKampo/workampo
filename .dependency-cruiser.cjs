@@ -43,8 +43,9 @@ module.exports = {
       name: 'shared-not-from-domains',
       comment: 'Everything in src/ is a domain except _shared/, which imports no domain (D53).',
       severity: 'error',
-      from: { path: '^(apps|packages)/([^/]+)/src/_shared/' },
-      to: { path: '^$1/$2/src/[^_][^/]*/' },
+      from: { path: '^(apps|packages)/[^/]+/src/_shared/' },
+      // packages/ui's folders are component families, not domains.
+      to: { path: '^(apps|packages)/[^/]+/src/[^_][^/]*/', pathNot: '^packages/ui/' },
     },
     {
       name: 'no-domain-internals',
@@ -55,17 +56,18 @@ module.exports = {
     },
     {
       name: 'identity-provider-seam',
-      comment: 'Only _shared/auth/ picks and uses an identity provider implementation (ADR-0071).',
+      comment:
+        'Only _shared/identity/ picks and uses an identity provider implementation (ADR-0071).',
       severity: 'error',
       // Tests and their helpers may use the fake's fixed fixtures.
       from: {
         pathNot: [
-          '^apps/api/src/_shared/auth/',
+          '^apps/api/src/_shared/identity/',
           '^apps/api/src/_shared/testing/',
           '\\.test\\.tsx?$',
         ],
       },
-      to: { path: '^apps/api/src/_shared/auth/(workos|fake)-' },
+      to: { path: '^apps/api/src/_shared/identity/(workos|fake)-' },
     },
     {
       name: 'error-tracking-seam',
