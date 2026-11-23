@@ -1,5 +1,5 @@
 import type { ComponentProps } from 'react'
-import { cx } from '../lib/cx'
+import { cx } from '../_shared/cx'
 
 // An inline link in body text; routers wrap it (TanStack Router: createLink(TextLink)).
 export function TextLink({ className, ...props }: ComponentProps<'a'>) {

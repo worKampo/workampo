@@ -1,5 +1,5 @@
 import type { ComponentProps } from 'react'
-import { cx } from '../lib/cx'
+import { cx } from '../_shared/cx'
 
 const SIZES = { sm: 'text-sm', xs: 'text-xs' }
 const TONES = { default: 'text-text-1', muted: 'text-text-2', negative: 'text-neg' }

@@ -58,7 +58,7 @@ A folder with more than 8 code files, tests not counted, is split into subfolder
 A file is not named only by its kind when that name repeats in other folders: `sign-in-api.ts`, `session-hooks.ts`, `sign-in-routes.ts`, not `api.ts`, `hooks.ts`, `routes.ts` (the person, 2026-11-22). Exception: the convention files at the root of a domain keep one fixed name in every domain (`errors.ts`, and `routes.ts` in the apps), because that fixed name and place make the layout predictable. The same goes for `query-keys.ts` at the root of each domain in `packages/app-core`: every TanStack Query key of the domain lives there, and hooks import keys from it, never from another feature's hooks (the person, 2026-11-22).
 
 - Hooks files are `<feature>-hooks.ts`; screens `<name>-screen.tsx` (the person, 2026-11-22).
-- No barrel `index` files: a package's entries are only those declared in its `exports`. A package exports only what other packages and apps may use; internals (`*-api.ts`) and test helpers stay unexported (the person, 2026-11-22).
+- No barrel `index` files: a package's entries are only those declared in its `exports`. A package exports only what other packages and apps may use; internals (`*-api.ts`) and test helpers stay unexported (the person, 2026-11-22). Every entry is named in `exports`, never a `"./*"` pattern; the only re-exporting files are the entry of each `packages/ui` family (`forms.ts`, `actions.ts`â€¦) (the person, 2026-11-23).
 - Seeds are numbered like migrations: `NNNN-<domain>.sql`, four digits (the person, 2026-11-22).
 - Test files (the person, 2026-11-22): a unit test is `<source>.test.ts`; a feature's HTTP test `<feature>-routes.int.test.ts`, or `<spec-topic>.int.test.ts` when it covers a rule of the living spec; a use case's test `<use-case>.int.test.ts` in its folder (the person, 2026-11-23); acceptance scenarios always in `e2e/acceptance/<topic>.e2e.ts` (`e2e/health.e2e.ts` stays as infrastructure); those of the web live in `apps/api/e2e/`, because the API Worker serves the web (the person, 2026-11-23).
 - The brand "worKampo" is not translated (the person, 2026-11-22).
@@ -144,7 +144,7 @@ Use one name end to end: living-spec rule (`@id:companies-15-1`) â†’ use case â†
 ## Validation, config, imports
 
 - Zod only at the boundaries (API input, forms, environment variables). Types inferred from Zod and Drizzle, never duplicated by hand.
-- Bindings and variables typed and validated in `env.ts`; no loose reads of variables elsewhere. The environment is parsed once per request by a middleware into `c.var.env`, and its types have one source, `env.ts` (the person, 2026-11-22).
+- Bindings and variables typed and validated in `env.ts`; no loose reads of variables elsewhere. The environment is parsed once per request by a middleware into `c.var.env`, and its types have one source, `env.ts` (the person, 2026-11-22). Only the deploy metadata (`ENVIRONMENT`, `APP_VERSION`, `GIT_SHA`, `CF_VERSION_METADATA`) is read from the raw bindings, by `/health`, the version header and error tracking, so they answer even when the configuration fails to parse (the person, 2026-11-23).
 - Utilities without I/O of one capability live in `_shared/<capability>/`: `crypto/` (random tokens, SHA-256), `auth/state-cookie.ts`, `http/request-origin.ts` with the one `RequestOrigin` type (the person, 2026-11-22).
 - The API's typed contract is `@workampo/api/contract` (type-only `AppType`); clients import that, never a path into `apps/` (the person, 2026-11-22).
 - Local secrets only in `.dev.vars` (ignored); commit `.dev.vars.example` with names, no values. Staging/production secrets via `wrangler secret` and GitHub Environments. Public config in `vars` of `wrangler.jsonc`; no `.env.<environment>` files.
@@ -165,8 +165,8 @@ Use one name end to end: living-spec rule (`@id:companies-15-1`) â†’ use case â†
 ## Interface
 
 - All CSS lives in `packages/ui/src/styles/`; apps import `@workampo/ui/styles.css` (the person, 2026-11-22).
-- Typography through `Text` and `TextLink` of `packages/ui`; screens carry no typography classes (the person, 2026-11-22).
-- Styles: only tokens ([`packages/ui/src/styles/tokens.css`](../../packages/ui/src/styles/tokens.css)) and Tailwind scale classes; no arbitrary values (`text-[20px]`) outside `packages/ui`.
+- Typography through `Text` and `TextLink` of `packages/ui`; screens carry no typography classes (the person, 2026-11-22). Nor layout classes: a form is `Form` of `packages/ui` (fields 16 px apart, the browser's validation off) (the person, 2026-11-23).
+- Styles: only tokens ([`packages/ui/src/styles/tokens.css`](../../packages/ui/src/styles/tokens.css)) and Tailwind scale classes; no arbitrary values (`text-[20px]`), in `packages/ui` either: a size or shadow the scale lacks becomes a token (`text-body`, `--shadow-focus`) (the person, 2026-11-23). What `packages/ui` uses inside, such as `cx`, lives in its `src/_shared/`.
 - Texts through i18n keys, never literals ([ADR-0047](../adr/0047-i18n-from-the-start.md)).
 - Search `packages/ui` and [`docs/design/components.md`](../design/components.md) before creating a component.
 - Load only what a screen needs (the person, 2026-11-22; [ADR-0073](../adr/0073-frontend-stack-and-rate-limiting.md) point 4):

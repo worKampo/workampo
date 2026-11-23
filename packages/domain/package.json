@@ -3,7 +3,14 @@
   "private": true,
   "type": "module",
   "exports": {
-    "./*": "./src/*.ts"
+    "./_shared/choose-provider": "./src/_shared/choose-provider.ts",
+    "./_shared/identity": "./src/_shared/identity.ts",
+    "./access/errors": "./src/access/errors.ts",
+    "./access/session/session": "./src/access/session/session.ts",
+    "./access/sign-in/email": "./src/access/sign-in/email.ts",
+    "./access/sign-in/linking": "./src/access/sign-in/linking.ts",
+    "./access/sign-in/sign-in-code": "./src/access/sign-in/sign-in-code.ts",
+    "./errors": "./src/errors.ts"
   },
   "scripts": {
     "typecheck": "tsc",

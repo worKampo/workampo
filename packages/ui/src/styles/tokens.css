@@ -97,6 +97,7 @@
   --shadow-modal: 0 24px 60px -20px rgba(0, 0, 0, 0.45);
   --shadow-drawer: -16px 0 40px -16px rgba(0, 0, 0, 0.35);
   --shadow-float: 0 12px 28px -12px rgba(0, 0, 0, 0.4);
+  --shadow-focus: 0 0 0 1px var(--ui), 0 0 0 4px var(--focus-halo);
   --scrim: rgba(0, 0, 0, 0.36);
 
   /* shadcn mapping */
@@ -207,6 +208,9 @@
 /* Tailwind utilities: bg-chrome, text-text-2, border-border-hard, bg-pos-bg, shadow-pop… */
 @theme inline {
   --font-sans: "IBM Plex Sans", system-ui, sans-serif;
+  /* Body (app base) of the type scale, docs/design/README.md: text-body. */
+  --text-body: 13px;
+  --text-body--line-height: 20px;
 
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);

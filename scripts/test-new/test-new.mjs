@@ -1,4 +1,4 @@
-// Scaffolds apps/api/src/<domain>/<name>.int.test.ts and never overwrites (ADR-0029).
+// Scaffolds apps/api/src/<domain>/<feature>/<use-case>/<use-case>.int.test.ts and never overwrites (ADR-0029).
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -16,10 +16,12 @@ it.fails('@id:${domain}-<issue>-<n> replace with the example text', async () => 
 })
 `
 
-export function newTest(domain, name, root = ROOT) {
-  for (const part of [domain, name])
-    if (!KEBAB.test(part ?? '')) throw new Error(`"${part}" is not kebab-case`)
-  const file = join(root, 'apps/api/src', domain, `${name}.int.test.ts`)
+export function newTest(path, root = ROOT) {
+  const parts = (path ?? '').split('/')
+  if (parts.length !== 3) throw new Error(`"${path}" is not <domain>/<feature>/<use-case>`)
+  for (const part of parts) if (!KEBAB.test(part)) throw new Error(`"${part}" is not kebab-case`)
+  const [domain, , useCase] = parts
+  const file = join(root, 'apps/api/src', ...parts, `${useCase}.int.test.ts`)
   if (existsSync(file)) throw new Error(`${file} already exists`)
   mkdirSync(dirname(file), { recursive: true })
   writeFileSync(file, template(domain))
@@ -28,9 +30,9 @@ export function newTest(domain, name, root = ROOT) {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   try {
-    console.log(`created ${newTest(process.argv[2], process.argv[3])}`)
+    console.log(`created ${newTest(process.argv[2])}`)
   } catch (error) {
-    console.error(`${error.message}\nusage: test:new <domain> <name>`)
+    console.error(`${error.message}\nusage: test:new <domain>/<feature>/<use-case>`)
     process.exit(1)
   }
 }

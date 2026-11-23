@@ -5,7 +5,7 @@ import { useStartCodeSignIn, useVerifyCode } from '@workampo/app-core/access/sig
 import { errorKeyOf } from '@workampo/app-core/errors'
 import { Button } from '@workampo/ui/actions'
 import { Text } from '@workampo/ui/content'
-import { Field, Input } from '@workampo/ui/forms'
+import { Field, Form, Input } from '@workampo/ui/forms'
 import { CardScreen } from '@workampo/ui/layout'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
@@ -49,7 +49,7 @@ function CodeForm({ email }: { email: string }) {
           components={{ strong: <strong /> }}
         />
       </Text>
-      <form onSubmit={submit} noValidate className="flex flex-col gap-4">
+      <Form onSubmit={submit}>
         <Field
           label={t('code.code_label')}
           error={message()}
@@ -76,7 +76,7 @@ function CodeForm({ email }: { email: string }) {
         >
           {t('code.resend')}
         </Button>
-      </form>
+      </Form>
       <Text align="center">
         <RouterTextLink to="/login">{t('code.other_email')}</RouterTextLink>
       </Text>
