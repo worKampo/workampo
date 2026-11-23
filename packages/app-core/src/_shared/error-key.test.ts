@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest'
-import { ApiError } from './api-client'
+import { ApiError } from './api-error'
 import { errorKey, errorKeyOf } from './error-key'
 
 it('an error code names its text in its domain namespace, an unknown one the generic text', () => {

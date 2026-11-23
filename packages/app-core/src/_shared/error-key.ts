@@ -1,5 +1,5 @@
 import type { ErrorCode } from '@workampo/domain/errors'
-import { ApiError } from './api-client'
+import { ApiError } from './api-error'
 
 type ErrorKey = ErrorCode extends `${infer Domain}.${infer Reason}`
   ? `${Domain}:errors.${Reason}`

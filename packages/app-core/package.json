@@ -3,13 +3,13 @@
   "private": true,
   "type": "module",
   "exports": {
-    "./_shared/api-client": "./_shared/api-client.ts",
-    "./_shared/api-client-context": "./_shared/api-client-context.ts",
-    "./_shared/error-key": "./_shared/error-key.ts",
-    "./access/query-keys": "./access/query-keys.ts",
-    "./access/sign-in/sign-in-hooks": "./access/sign-in/sign-in-hooks.ts",
-    "./access/sign-in/sign-in-forms": "./access/sign-in/sign-in-forms.ts",
-    "./access/session/session-hooks": "./access/session/session-hooks.ts"
+    "./api-client": "./src/_shared/api-client.ts",
+    "./api-client-context": "./src/_shared/api-client-context.ts",
+    "./errors": "./src/_shared/error-key.ts",
+    "./access/query-keys": "./src/access/query-keys.ts",
+    "./access/sign-in/sign-in-hooks": "./src/access/sign-in/sign-in-hooks.ts",
+    "./access/sign-in/sign-in-forms": "./src/access/sign-in/sign-in-forms.ts",
+    "./access/session/session-hooks": "./src/access/session/session-hooks.ts"
   },
   "scripts": {
     "typecheck": "tsc",

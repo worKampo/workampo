@@ -1,4 +1,5 @@
-import { type ApiClient, send } from '../../_shared/api-client'
+import type { ApiClient } from '../../_shared/api-client'
+import { send } from '../../_shared/api-error'
 
 export async function startCodeSignIn(client: ApiClient, { email }: { email: string }) {
   await send(() => client.api['sign-in-codes'].$post({ json: { email } }))

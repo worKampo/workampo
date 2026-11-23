@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { ApiError, send } from './api-client'
+import { ApiError, send } from './api-error'
 import { fakeApi, problem } from './testing/fake-api'
 
 describe('the API client', () => {

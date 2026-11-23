@@ -1,7 +1,7 @@
 import { QueryClient } from '@tanstack/react-query'
 import { createMemoryHistory } from '@tanstack/react-router'
 import { render } from '@testing-library/react'
-import { createApiClient } from '@workampo/app-core/_shared/api-client'
+import { createApiClient } from '@workampo/app-core/api-client'
 import { routeTree } from '../../route-tree'
 import { AppProviders } from '../providers/app-providers'
 import { createAppRouter } from '../router/create-app-router'

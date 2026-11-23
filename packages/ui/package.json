@@ -3,12 +3,12 @@
   "private": true,
   "type": "module",
   "exports": {
-    "./styles.css": "./styles/styles.css",
-    "./actions": "./actions/actions.ts",
-    "./forms": "./forms/forms.ts",
-    "./content": "./content/content.ts",
-    "./brand": "./brand/brand.ts",
-    "./layout": "./layout/layout.ts"
+    "./styles.css": "./src/styles/styles.css",
+    "./actions": "./src/actions/actions.ts",
+    "./forms": "./src/forms/forms.ts",
+    "./content": "./src/content/content.ts",
+    "./brand": "./src/brand/brand.ts",
+    "./layout": "./src/layout/layout.ts"
   },
   "scripts": {
     "typecheck": "tsc",
