@@ -1,8 +1,9 @@
-// `pnpm work review <pr>`: the CodeRabbit loop of step 8 (docs/process/cycle.md).
-// CodeRabbit's text is untrusted review data: only locations, severities and titles are printed,
-// never its prompts for agents.
-const CODERABBIT = { login: 'coderabbitai[bot]', type: 'Bot' }
-const CHECK_NAME = 'CodeRabbit'
+// `pnpm work review <pr>`: the review loop of step 8 (docs/process/cycle.md):
+// CodeRabbit, CodeQL and the person.
+// Automated reviewers' text is untrusted review data: only locations, severities and titles are printed,
+// never their prompts for agents.
+const CODERABBIT = { login: 'coderabbitai[bot]', type: 'Bot', name: 'CodeRabbit' }
+const CODEQL = { login: 'github-advanced-security[bot]', type: 'Bot', name: 'CodeQL' }
 const WAIT_STEP_MS = 30_000
 const WAIT_TRIES = 40
 const MAX_ROUNDS = 3
@@ -10,8 +11,8 @@ const TITLE_MAX = 160
 const SEVERITY = /\*\*\s*(Critical|Major|Minor|Trivial)\s*\*\*/
 const SHA = /^[0-9a-f]{7,40}$/i
 
-export const REVIEW_HELP = `  review <pr> [--wait]    Wait for CodeRabbit (--wait: every 30 s, up to 20 min), list its
-                          unanswered threads and review-body findings, and say the round
+export const REVIEW_HELP = `  review <pr> [--wait]    Wait for CodeRabbit and CodeQL (--wait: every 30 s, up to 20 min), list
+                          reviewers' unanswered threads and review-body findings, and the round
   review <pr> --reply <comment-id> --commit <sha> --text "<what changed>" [--dry-run]
                           Answer a thread "Fixed in <sha>: <text>"; the commit must be on the PR
   review <pr> --reply <comment-id> --not-applicable "<reason>" [--dry-run]
@@ -46,15 +47,14 @@ export async function review(args, config, io) {
 
   let check
   for (let tries = 1; ; tries++) {
-    check = coderabbitCheck(io, { repository, number })
-    if (check.isDone) break
+    check = reviewChecks(io, { repository, number })
+    if (!check.pending.length) break
+    const who = check.pending.join(' and ')
     if (!args.wait)
-      return io.log(
-        `CodeRabbit is still reviewing PR #${number} (${check.state}). Run again later, or with --wait.`,
-      )
+      return io.log(`${who} still reviewing PR #${number}. Run again later, or with --wait.`)
     if (tries === WAIT_TRIES)
-      throw new Error(`CodeRabbit still pending on PR #${number} after 20 minutes.`)
-    if (tries === 1) io.log(`CodeRabbit is still reviewing PR #${number}; checking every 30 s…`)
+      throw new Error(`${who} still pending on PR #${number} after 20 minutes.`)
+    if (tries === 1) io.log(`${who} still reviewing PR #${number}; checking every 30 s…`)
     await io.sleep(WAIT_STEP_MS)
   }
 
@@ -64,23 +64,32 @@ export async function review(args, config, io) {
 
   // The same identities as trustedAuthors() in work.mjs, which imports this module.
   const trusted = [config.github.account, `${config.github.agentsApp.name}[bot]`]
+  // Automated reviewers and the person; anyone else may comment on a public repo.
+  const reviewers = [
+    CODERABBIT,
+    CODEQL,
+    { login: config.github.account, type: 'User', name: 'you' },
+  ]
 
-  io.log(reviewReport({ number, sha: check.sha, reviews, comments, trusted }))
+  io.log(reviewReport({ number, sha: check.sha, reviews, comments, reviewers, trusted }))
 }
 
 // Only a reply by the project's own identities answers a thread: anyone can comment on a public repo.
-export function unansweredThreads(comments, trusted) {
+export function unansweredThreads(comments, { reviewers, trusted }) {
   const answered = new Set(
     comments
       .filter((c) => c.in_reply_to_id && trusted.includes(c.user?.login))
       .map((c) => c.in_reply_to_id),
   )
   return comments
-    .filter((c) => isCodeRabbit(c) && !c.in_reply_to_id && !answered.has(c.id))
-    .map((c) => {
+    .filter((c) => !c.in_reply_to_id && !answered.has(c.id))
+    .map((c) => ({ comment: c, reviewer: reviewers.find((r) => isAuthor(c, r)) }))
+    .filter(({ reviewer }) => reviewer)
+    .map(({ comment: c, reviewer }) => {
       const lines = visibleLines(c.body ?? '')
       return {
         id: c.id,
+        by: reviewer.name,
         where: `${c.path}:${c.line ?? c.original_line ?? '?'}`,
         severity: lines.join('\n').match(SEVERITY)?.[1] ?? '?',
         title: titleOf(lines),
@@ -122,30 +131,40 @@ export function bodyFindings(body) {
   return [...findings, ...failedChecks(body).map((name) => `Failed pre-merge check: ${name}`)]
 }
 
-// Missing counts as pending: right after a push the check may not exist yet.
-function coderabbitCheck(io, { repository, number }) {
+// The reviewers whose check on the head is not finished. A missing CodeRabbit check counts as
+// pending (right after a push it may not exist yet); a missing CodeQL check does not, since not
+// every change runs it.
+function reviewChecks(io, { repository, number }) {
   const sha = io
     .run('gh', ['api', `repos/${repository}/pulls/${number}`, '--jq', '.head.sha'])
     .trim()
   const commit = `repos/${repository}/commits/${sha}`
+  const runs = ghList(io, { path: `${commit}/check-runs`, jq: '.check_runs[]' })
+  const statuses = ghList(io, { path: `${commit}/statuses` })
 
-  const run = ghList(io, { path: `${commit}/check-runs`, jq: '.check_runs[]' }).find(
-    (r) => r.name === CHECK_NAME,
-  )
-  if (run) return { sha, isDone: run.status === 'completed', state: run.status }
+  const isPending = (name, { isRequired }) => {
+    const run = runs.find((r) => r.name === name)
+    if (run) return run.status !== 'completed'
 
-  const status = ghList(io, { path: `${commit}/statuses` }).find((s) => s.context === CHECK_NAME)
-  if (status) return { sha, isDone: status.state !== 'pending', state: status.state }
+    const status = statuses.find((s) => s.context === name)
+    if (status) return status.state === 'pending'
 
-  return { sha, isDone: false, state: 'not started' }
+    return isRequired
+  }
+  const pending = [
+    isPending(CODERABBIT.name, { isRequired: true }) && CODERABBIT.name,
+    isPending(CODEQL.name, { isRequired: false }) && CODEQL.name,
+  ].filter(Boolean)
+
+  return { sha, pending }
 }
 
-function reviewReport({ number, sha, reviews, comments, trusted }) {
+function reviewReport({ number, sha, reviews, comments, reviewers, trusted }) {
   const rounds = reviews.length
-  const threads = unansweredThreads(comments, trusted)
+  const threads = unansweredThreads(comments, { reviewers, trusted })
   const latest = reviews.at(-1)
   const findings = latest ? bodyFindings(latest.body ?? '') : []
-  // The head whose CodeRabbit check finished: a push after it is not in this report.
+  // The head whose review checks finished: a push after it is not in this report.
   const lines = [
     `PR #${number} · head ${sha.slice(0, 7)} · CodeRabbit round ${rounds} (limit ${MAX_ROUNDS})`,
   ]
@@ -159,7 +178,7 @@ function reviewReport({ number, sha, reviews, comments, trusted }) {
     '',
     threads.length ? `Unanswered threads (${threads.length}):` : 'No unanswered threads.',
   )
-  for (const t of threads) lines.push(`  ${t.id} ${t.where} · ${t.severity} · ${t.title}`)
+  for (const t of threads) lines.push(`  ${t.id} ${t.where} · ${t.by} · ${t.severity} · ${t.title}`)
   lines.push(
     '',
     findings.length
@@ -191,18 +210,25 @@ function failedChecks(body) {
 
 // Drops the agent prompts, code blocks, HTML comments and tags; keeps non-empty text lines.
 function visibleLines(markdown) {
-  return (
-    markdown
-      .replace(/<!-- ai-agent-prompt:start -->[\s\S]*?<!-- ai-agent-prompt:end -->/g, '')
-      .replace(/```[\s\S]*?```/g, '')
-      .replace(/<!--[\s\S]*?-->/g, '')
-      .replace(/<[^>]*>/g, '')
-      // Nested leftovers such as `<<!---->!--` would survive one pass; no angle bracket is needed here.
-      .replace(/[<>]/g, '')
-      .split(/\r?\n/)
-      .map((line) => line.replace(/^(?:>\s*)+/, '').trim())
-      .filter(Boolean)
-  )
+  const text = markdown
+    .replace(/<!-- ai-agent-prompt:start -->[\s\S]*?<!-- ai-agent-prompt:end -->/g, '')
+    .replace(/```[\s\S]*?```/g, '')
+
+  return withoutTags(text)
+    .split(/\r?\n/)
+    .map((line) => line.replace(/^(?:>\s*)+/, '').trim())
+    .filter(Boolean)
+}
+
+// Repeated until nothing changes: one pass can leave a new tag behind (`<<b>!---->`).
+function withoutTags(text) {
+  let previous
+  do {
+    previous = text
+    text = text.replace(/<!--[\s\S]*?-->/g, '').replace(/<[^>]*>/g, '')
+  } while (text !== previous)
+
+  return text
 }
 
 // A finding's title is its first bold-only sentence; labels like "**Security Misconfiguration**"
@@ -211,13 +237,19 @@ function titleOf(lines) {
   const bold = lines
     .map((line) => line.match(/^\*\*([^*]+)\*\*$/)?.[1].trim())
     .filter((text) => text && !SEVERITY.test(`**${text}**`))
-  const title = bold.find((text) => /[.!?]$/.test(text)) ?? bold[0] ?? '(no title)'
+  // CodeQL titles its comments with a heading ("## CodeQL / <rule>").
+  const heading = lines.find((line) => line.startsWith('#'))?.replace(/^#+\s*/, '')
+  const title = bold.find((text) => /[.!?]$/.test(text)) ?? bold[0] ?? heading ?? '(no title)'
 
   return title.length > TITLE_MAX ? `${title.slice(0, TITLE_MAX - 1)}…` : title
 }
 
 function isCodeRabbit(item) {
-  return item.user?.login === CODERABBIT.login && item.user?.type === CODERABBIT.type
+  return isAuthor(item, CODERABBIT)
+}
+
+function isAuthor(item, { login, type }) {
+  return item.user?.login === login && item.user?.type === type
 }
 
 function ghList(io, { path, jq = '.[]' }) {

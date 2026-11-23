@@ -13,6 +13,12 @@ const CONFIG = {
 const REPO = 'repos/worKampo/workampo'
 const HEAD = 'c0f6638dd0e99824b302c8839547abb7f73c2683'
 const CODERABBIT = { login: 'coderabbitai[bot]', type: 'Bot' }
+const REVIEWERS = [
+  { ...CODERABBIT, name: 'CodeRabbit' },
+  { login: 'github-advanced-security[bot]', type: 'Bot', name: 'CodeQL' },
+  { login: 'workampo-dev', type: 'User', name: 'you' },
+]
+const TRUSTED = ['workampo-dev', 'workampo-agents[bot]']
 const PICTURE = '<picture><img src="https://example.com/amber-16.svg" alt=""></picture>'
 
 const INLINE = {
@@ -145,7 +151,7 @@ test('review: a pending CodeRabbit check without --wait says it is still reviewi
 
   await review({ numbers: [7] }, CONFIG, io)
 
-  assert.match(io.output.join('\n'), /still reviewing PR #7 \(in_progress\).*--wait/)
+  assert.match(io.output.join('\n'), /CodeRabbit still reviewing PR #7\..*--wait/)
   assert.equal(io.sleeps.length, 0)
 })
 
@@ -154,7 +160,7 @@ test('review: a missing check counts as pending', async () => {
 
   await review({ numbers: [7] }, CONFIG, io)
 
-  assert.match(io.output.join('\n'), /still reviewing PR #7 \(not started\)/)
+  assert.match(io.output.join('\n'), /CodeRabbit still reviewing PR #7/)
 })
 
 test('review: a commit status named CodeRabbit is read when there is no check run', async () => {
@@ -198,7 +204,7 @@ test('review: lists unanswered threads, review-body findings and the round, neve
   assert.match(report, /^PR #7 · head \w{7} · CodeRabbit round 2 \(limit 3\)/)
   assert.match(
     report,
-    /101 scripts\/work\/work\.mjs:1091 · Minor · Mark the seed as complete before keeping the database\./,
+    /101 scripts\/work\/work\.mjs:1091 · CodeRabbit · Minor · Mark the seed as complete before keeping the database\./,
   )
   assert.match(
     report,
@@ -223,15 +229,69 @@ test('review: a thread with a reply, or by someone else, is not listed', () => {
   }
   const impostor = { ...INLINE, id: 103, user: { login: 'coderabbitai[bot]', type: 'User' } }
 
-  const threads = unansweredThreads([INLINE, reply, impostor], ['workampo-agents[bot]'])
+  const threads = unansweredThreads([INLINE, reply, impostor], {
+    reviewers: REVIEWERS,
+    trusted: ['workampo-agents[bot]'],
+  })
 
   assert.deepEqual(threads, [])
+})
+
+test('review: CodeQL and the person are listed with who wrote each thread; others are not', () => {
+  const codeql = {
+    id: 201,
+    path: 'a.mjs',
+    line: 3,
+    user: { login: 'github-advanced-security[bot]', type: 'Bot' },
+    body: '## CodeQL / Incomplete multi-character sanitization\n\nThis string may still contain <!--.',
+  }
+  const person = {
+    id: 202,
+    path: 'b.mjs',
+    line: 9,
+    user: { login: 'workampo-dev', type: 'User' },
+    body: '**Rename this to match the feature.**',
+  }
+  const stranger = { ...person, id: 203, user: { login: 'someone', type: 'User' } }
+
+  const threads = unansweredThreads([INLINE, codeql, person, stranger], {
+    reviewers: REVIEWERS,
+    trusted: TRUSTED,
+  })
+
+  assert.deepEqual(
+    threads.map((t) => [t.id, t.by]),
+    [
+      [101, 'CodeRabbit'],
+      [201, 'CodeQL'],
+      [202, 'you'],
+    ],
+  )
+  assert.equal(threads[1].title, 'CodeQL / Incomplete multi-character sanitization')
+})
+
+test('review: a pending CodeQL check is waited for; a missing one is not', async () => {
+  const pending = fakeIo(
+    prResponses({
+      checks: [
+        { name: 'CodeRabbit', status: 'completed' },
+        { name: 'CodeQL', status: 'in_progress' },
+      ],
+    }),
+  )
+  const missing = fakeIo(prResponses())
+
+  await review({ numbers: [7] }, CONFIG, pending)
+  await review({ numbers: [7] }, CONFIG, missing)
+
+  assert.match(pending.output.join('\n'), /CodeQL still reviewing PR #7/)
+  assert.match(missing.output.join('\n'), /CodeRabbit round 2/)
 })
 
 test('review: a reply by an account outside the project leaves the thread listed', () => {
   const outsider = { id: 104, in_reply_to_id: 101, user: { login: 'someone', type: 'User' } }
 
-  const threads = unansweredThreads([INLINE, outsider], ['workampo-dev', 'workampo-agents[bot]'])
+  const threads = unansweredThreads([INLINE, outsider], { reviewers: REVIEWERS, trusted: TRUSTED })
 
   assert.deepEqual(
     threads.map((t) => t.id),
