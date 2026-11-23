@@ -299,6 +299,35 @@ test('review: a reply by an account outside the project leaves the thread listed
   )
 })
 
+test('review: a later reply by the person reopens a thread the App answered', () => {
+  const app = { id: 105, in_reply_to_id: 101, user: { login: 'workampo-agents[bot]', type: 'Bot' } }
+  const person = { id: 106, in_reply_to_id: 101, user: { login: 'workampo-dev', type: 'User' } }
+
+  const threads = unansweredThreads([INLINE, person, app], {
+    reviewers: REVIEWERS,
+    trusted: TRUSTED,
+  })
+
+  assert.deepEqual(
+    threads.map((t) => t.id),
+    [101],
+  )
+})
+
+test('review: an example inside a tilde fence is not a finding', () => {
+  const body = [
+    '**Nitpick comments: 1**',
+    '',
+    'a.mjs: 1',
+    '',
+    '~~~markdown',
+    '`10-10`: **Example finding.**',
+    '~~~',
+  ].join('\n')
+
+  assert.deepEqual(bodyFindings(body), [])
+})
+
 test('review: a finding whose title sits on its own line keeps that title', () => {
   const body = [
     '**Nitpick comments: 1**',

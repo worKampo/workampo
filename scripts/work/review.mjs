@@ -74,13 +74,17 @@ export async function review(args, config, io) {
   io.log(reviewReport({ number, sha: check.sha, reviews, comments, reviewers, trusted }))
 }
 
-// Only a reply by the project's own identities answers a thread: anyone can comment on a public repo.
+// A thread is answered when its last reply by the project's own identities is the agents App's:
+// a later reply by the person reopens it, and anyone can comment on a public repo.
 export function unansweredThreads(comments, { reviewers, trusted }) {
+  const lastTrustedReply = new Map()
+  for (const c of comments.toSorted((a, b) => a.id - b.id))
+    if (c.in_reply_to_id && trusted.includes(c.user?.login))
+      lastTrustedReply.set(c.in_reply_to_id, c)
   const answered = new Set(
-    comments
-      .filter((c) => c.in_reply_to_id && trusted.includes(c.user?.login))
-      .map((c) => c.in_reply_to_id),
+    [...lastTrustedReply].filter(([, c]) => c.user.type === 'Bot').map(([root]) => root),
   )
+
   return comments
     .filter((c) => !c.in_reply_to_id && !answered.has(c.id))
     .map((c) => ({ comment: c, reviewer: reviewers.find((r) => isAuthor(c, r)) }))
@@ -212,23 +216,17 @@ function failedChecks(body) {
 function visibleLines(markdown) {
   const text = markdown
     .replace(/<!-- ai-agent-prompt:start -->[\s\S]*?<!-- ai-agent-prompt:end -->/g, '')
-    .replace(/```[\s\S]*?```/g, '')
+    // shortcut: a fence closes at the next fence of the same character, ignoring CommonMark's
+    // length rule; enough for review bodies, upgrade if a nested fence ever leaks a finding.
+    .replace(/(```|~~~)[\s\S]*?\1/g, '')
+    // A space, not '', so removing a tag can never join its neighbours into a new one.
+    .replace(/<!--[\s\S]*?-->/g, ' ')
+    .replace(/<[^>]*>/g, ' ')
 
-  return withoutTags(text)
+  return text
     .split(/\r?\n/)
     .map((line) => line.replace(/^(?:>\s*)+/, '').trim())
     .filter(Boolean)
-}
-
-// Repeated until nothing changes: one pass can leave a new tag behind (`<<b>!---->`).
-function withoutTags(text) {
-  let previous
-  do {
-    previous = text
-    text = text.replace(/<!--[\s\S]*?-->/g, '').replace(/<[^>]*>/g, '')
-  } while (text !== previous)
-
-  return text
 }
 
 // A finding's title is its first bold-only sentence; labels like "**Security Misconfiguration**"
