@@ -124,7 +124,7 @@ Use one name end to end: living-spec rule (`@id:companies-15-1`) â†’ use case â†
 - Drizzle builder only; no SQLite-specific SQL (`strftime`, JSON functions, `ROWID`, `AUTOINCREMENT`). If unavoidable, isolate it and comment why.
 - Split long lists (many parameters, big `batch()`) inside the repo (D1 limits).
 - Text search through a normalized lowercase column, not `COLLATE NOCASE`; escape `LIKE` wildcards. Alphabetical order by the normalized column.
-- Anything atomic goes in a single `batch()`.
+- Anything atomic is one repo function that receives what was decided and runs it all at once (`batch()` in D1, a transaction in another engine); logic never composes unexecuted queries, and a repo turns an engine error the logic must react to into a neutral error ([ADR-0077](../adr/0077-database-engines-behind-the-repos.md)).
 - Drizzle `casing: 'snake_case'`: write camelCase once in TypeScript.
 - Migrations: one change each, an applied one is never edited ([ADR-0033](../adr/0033-expand-contract-migrations.md), [ADR-0044](../adr/0044-migrations-reference-data-seeds-and-backfills.md)).
 
