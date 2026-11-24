@@ -1,9 +1,9 @@
 // The initial JS of /login and of the signed-in shell stays under its budget and carries no
 // translations, which load per language on demand (ADR-0073 point 4).
 //   node scripts/build/web-size-budget.mjs <web dist dir>
-import { readFileSync } from 'node:fs'
+import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { pathToFileURL } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 import { gzipSync } from 'node:zlib'
 
 // Gzip bytes: the first measurement with the startup translations (2026-11-22: 157,023 and
@@ -51,15 +51,27 @@ export function initialChunks(manifest, { screen, namespaces = [] }) {
   return [...files]
 }
 
-export function budgetErrors({ manifest, gzipSize, budgets = BUDGETS }) {
+// Looks in the chunks' text, not the manifest: a JSON imported statically is inlined into its
+// importer and has no chunk of its own.
+export function budgetErrors({
+  manifest,
+  gzipSize,
+  readText = () => '',
+  texts = [],
+  budgets = BUDGETS,
+}) {
   return budgets.flatMap((budget) => {
     const { name, screen, maxBytes } = budget
     if (!manifest[screen]) return [`${name}: ${screen} is not a chunk of the build`]
 
     const bytes = initialChunks(manifest, budget).reduce((sum, file) => sum + gzipSize(file), 0)
-    const errors = staticTranslations(manifest, screen).map(
-      (key) => `${name}: ${key} is imported statically; texts load per language on demand`,
-    )
+    const errors = initialChunks(manifest, { screen })
+      .filter((file) => {
+        const code = readText(file)
+
+        return texts.some((text) => code.includes(text))
+      })
+      .map((file) => `${name}: ${file} carries translations; texts load per language on demand`)
 
     return bytes > maxBytes
       ? [...errors, `${name}: ${bytes} gzip bytes, over its budget of ${maxBytes}`]
@@ -67,13 +79,20 @@ export function budgetErrors({ manifest, gzipSize, budgets = BUDGETS }) {
   })
 }
 
-// Translations reached without the on-demand loader land in every language's initial JS.
-function staticTranslations(manifest, screen) {
-  const files = new Set(initialChunks(manifest, { screen }))
+// The longest stretch of each text without quotes, backslashes or line breaks, which a minifier
+// may escape, when long enough to be unmistakable; every language, _context/ is for translators.
+export function translationTexts(localesDir) {
+  const values = (node) => (typeof node === 'string' ? [node] : Object.values(node).flatMap(values))
 
-  return Object.keys(manifest).filter(
-    (key) => /\/locales\/[^/]+\/[^/]+\.json$/.test(key) && files.has(manifest[key].file),
-  )
+  return readdirSync(localesDir)
+    .filter((language) => language !== '_context')
+    .flatMap((language) =>
+      readdirSync(join(localesDir, language)).flatMap((file) =>
+        values(JSON.parse(readFileSync(join(localesDir, language, file), 'utf8'))),
+      ),
+    )
+    .map((text) => text.split(/["'`\\\n\r\t]/).reduce((a, b) => (b.length > a.length ? b : a)))
+    .filter((text) => text.length >= 12)
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
@@ -85,7 +104,11 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     const bytes = initialChunks(manifest, budget).reduce((sum, file) => sum + gzipSize(file), 0)
     console.log(`${name}: ${bytes} gzip bytes of initial JS`)
   }
-  const errors = budgetErrors({ manifest, gzipSize })
+  const readText = (file) => readFileSync(join(dir, file), 'utf8')
+  const texts = translationTexts(
+    fileURLToPath(new URL('../../packages/i18n/src/locales', import.meta.url)),
+  )
+  const errors = budgetErrors({ manifest, gzipSize, readText, texts })
   for (const error of errors) console.error(error)
   if (errors.length > 0) process.exit(1)
 }
