@@ -216,7 +216,7 @@ Use one name end to end: living-spec rule (`@id:companies-15-1`) → use case �
 ## Tests placement
 
 - Setup of a package's tests in `<package>/test/setup.ts`; helpers tests import in `src/_shared/testing/` (API: `newEmail`, `signIn`, `expectProblem`…). The fake provider's fixtures come from `fake-identities.ts`, never copied (the person, 2026-11-22).
-- Unit next to the code (`x.test.ts`), integration `*.int.test.ts` in the domain folder; strategy in [ADR-0029](../adr/0029-testing-strategy.md). Each approved living-spec example has a test that cites its `@id`.
+- Unit next to the code (`x.test.ts`), integration `*.int.test.ts` beside the code it covers (the use case's folder, or the feature's root for a flow); strategy in [ADR-0029](../adr/0029-testing-strategy.md). Each approved living-spec example has a test that cites its `@id`.
 
 ## Blank lines
 

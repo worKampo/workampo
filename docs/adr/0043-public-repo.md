@@ -59,3 +59,7 @@ The repo is **public**, in the free `worKampo` organization.
 - **Issues and PRs are public too**: never personal data of customers or users (GDPR, [ADR-0027](0027-legal-and-data-protection.md)). Bugs link to Sentry instead of copying data.
 - **Vulnerabilities**: reported through GitHub *private vulnerability reporting*, never in a public issue (`security.txt` will say so, [ADR-0032](0032-security-reviewer.md)).
 - Design documents (`docs/`) are public; they contain nothing sensitive.
+
+## Updates
+
+- 2026-11-24 (the person, ticket 148): the allowed emails are the one list in [review](../process/review.md#no-entra): the project's own *noreply* (no other GitHub account's) and the test domains `*.test`, `*.example`, `example.com` and `example.org`. The "No entra" list lives in `AGENTS.md` and `docs/process/review.md`.

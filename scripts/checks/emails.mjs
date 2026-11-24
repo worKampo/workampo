@@ -1,4 +1,4 @@
-// Added lines carry no email except the project's noreply and the seed test domains (ADR-0043).
+// Added lines carry no email except the project's noreply and the test domains of docs/process/review.md (No entra).
 import { EMAIL, isAllowedEmail } from '../lib/no-entra.mjs'
 
 export const name = 'Emails in the diff'

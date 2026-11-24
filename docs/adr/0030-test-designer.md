@@ -27,8 +27,8 @@ Whoever designs the tests must not be whoever implements (same reason as the ind
 ## Updates
 
 - 2026-11-18: a `/reopen-acceptance` comment by the person opens a new segment for the commit-order check: acceptance commits come first within each segment. A segment is marked by the commit's trailer `Reopen: <comment-id>` naming that comment, one commit per comment, not by time: commit dates are set by whoever commits (decided in issue #27).
+- 2026-11-24 (the person, ticket 148): before the acceptance commits a PR may carry commits that touch only `docs/` and `.work/`, as `scripts/checks/acceptance-order.mjs` checks.
 
 ## Consequences
 
 See Decision.
-- 2026-11-24 (the person, ticket 148): before the acceptance commits a PR may carry commits that touch only `docs/` and `.work/`, as `scripts/checks/acceptance-order.mjs` checks.

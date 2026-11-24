@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs'
 // Shapes from the "No entra" list of the public repo (ADR-0043, ADR-0064).
 export const SECRET_SHAPES = [
   /gh[pousr]_[A-Za-z0-9]{20,}/,
@@ -13,9 +14,16 @@ export const EMAIL = /[\w.+-]+@[\w-]+(?:\.[\w-]+)*\.[A-Za-z]{2,}\b/g
 const TEST_DOMAIN = /@(example\.(com|org)|[\w.-]+\.(test|example))$/i
 const GITHUB_NOREPLY = /@users\.noreply\.github\.com$/i
 
+// Callers that do not pass it, such as the write hook, get the one in project.yaml; read with a
+// regex so this module needs no YAML parser.
+const PROJECT_COMMIT_EMAIL = readFileSync(
+  new URL('../../project.yaml', import.meta.url),
+  'utf8',
+).match(/^\s*commitEmail:\s*(\S+)/m)?.[1]
+
 // Of GitHub's noreply addresses only the project account's, with or without its numeric id
 // (docs/process/review.md, No entra): another account's names a person.
-export function isAllowedEmail(email, commitEmail) {
+export function isAllowedEmail(email, commitEmail = PROJECT_COMMIT_EMAIL) {
   if (!GITHUB_NOREPLY.test(email)) return TEST_DOMAIN.test(email)
   const account = (address) => address.replace(/^\d+\+/, '').toLowerCase()
 

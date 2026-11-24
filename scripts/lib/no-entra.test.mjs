@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
 import { test } from 'node:test'
 import { findNoEntra } from './no-entra.mjs'
 
@@ -31,13 +32,21 @@ test('allows the project noreply, seed and package-version addresses', () => {
   assert.deepEqual(findNoEntra(text, `1+dev${at}users.noreply.github.com`), [])
 })
 
-test("blocks another account's noreply, and any noreply when the project's is unknown", () => {
+test("blocks another account's noreply, also with the project's from project.yaml", () => {
   const other = `2+someone${at}users.noreply.github.com`
 
   assert.deepEqual(findNoEntra(other, `1+dev${at}users.noreply.github.com`), [
     `email not allowed: ${other}`,
   ])
   assert.deepEqual(findNoEntra(other), [`email not allowed: ${other}`])
+})
+
+test("without a commit email, the project's noreply from project.yaml is allowed", () => {
+  const project = readFileSync(new URL('../../project.yaml', import.meta.url), 'utf8').match(
+    /^\s*commitEmail:\s*(\S+)/m,
+  )[1]
+
+  assert.deepEqual(findNoEntra(project), [])
 })
 
 test('allows paths and hex hashes', () => {
