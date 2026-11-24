@@ -16,6 +16,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@workampo/domain": "workspace:*",
     "@fontsource/ibm-plex-sans": "5.3.0"
   },
   "peerDependencies": {
