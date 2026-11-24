@@ -2,8 +2,6 @@ import { describe, expect, it } from 'vitest'
 import type { Bindings } from './env'
 import { parseEnv } from './env'
 
-// The company-create thresholds and tenancy vars arrive with the config task (ticket 90); the
-// parser ignores them until then, so these fixtures hold before and after it.
 const rateLimits = {
   RATE_LIMIT_CODE_REQUESTS_PER_EMAIL: '3',
   RATE_LIMIT_CODE_REQUESTS_PER_IP: '30',
@@ -57,7 +55,7 @@ describe('parseEnv', () => {
     expect(error).not.toContain('test-secret-value')
   })
 
-  it.fails('@id:companies-90-1 reads the tenancy configuration and the company-create thresholds', () => {
+  it('@id:companies-90-1 reads the tenancy configuration and the company-create thresholds', () => {
     expect(parseEnv(bindings({ IDENTITY_PROVIDER: 'fake', ...rateLimits }))).toMatchObject({
       TENANT_ROUTING: 'path',
       PUBLIC_BASE_URL: 'https://app.test',
@@ -66,7 +64,7 @@ describe('parseEnv', () => {
     })
   })
 
-  it.fails('@id:companies-90-1 needs TENANT_HOST_SUFFIX only in subdomain mode', () => {
+  it('@id:companies-90-1 needs TENANT_HOST_SUFFIX only in subdomain mode', () => {
     const subdomain = { IDENTITY_PROVIDER: 'fake', ...rateLimits, TENANT_ROUTING: 'subdomain' }
 
     expect(() => parseEnv(bindings(subdomain))).toThrow()
@@ -78,7 +76,7 @@ describe('parseEnv', () => {
     })
   })
 
-  it.fails('@id:companies-90-1 rejects an unknown routing mode, a base URL that is not one and a missing company-create threshold', () => {
+  it('@id:companies-90-1 rejects an unknown routing mode, a base URL that is not one and a missing company-create threshold', () => {
     const { RATE_LIMIT_COMPANY_CREATES_PER_USER: _, ...withoutUserLimit } = rateLimits
     for (const vars of [
       { IDENTITY_PROVIDER: 'fake', ...rateLimits, TENANT_ROUTING: 'header' },

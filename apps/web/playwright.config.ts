@@ -28,7 +28,7 @@ export default defineConfig({
         `wrangler d1 migrations apply global-local --local --persist-to ${PERSIST}`,
         `wrangler d1 migrations apply shard-1-local --local --persist-to ${PERSIST}`,
         `node ../../scripts/db/seed.mjs --persist-to ${PERSIST}`,
-        `wrangler dev --local --ip localhost --local-protocol https --port ${PORT} --persist-to ${PERSIST}`,
+        `wrangler dev --local --ip localhost --local-protocol https --port ${PORT} --persist-to ${PERSIST} --var PUBLIC_BASE_URL:${LOCAL_URL}`,
       ].join(' && '),
       url: `${LOCAL_URL}/health`,
       ignoreHTTPSErrors: true,
