@@ -79,8 +79,8 @@ export function budgetErrors({
   })
 }
 
-// The longest stretch of each text without quotes or backslashes, which a minifier may escape,
-// when it is long enough to be unmistakable; every language, _context/ is for translators.
+// The longest stretch of each text without quotes, backslashes or line breaks, which a minifier
+// may escape, when long enough to be unmistakable; every language, _context/ is for translators.
 export function translationTexts(localesDir) {
   const values = (node) => (typeof node === 'string' ? [node] : Object.values(node).flatMap(values))
 
@@ -91,7 +91,7 @@ export function translationTexts(localesDir) {
         values(JSON.parse(readFileSync(join(localesDir, language, file), 'utf8'))),
       ),
     )
-    .map((text) => text.split(/["'`\\]/).reduce((a, b) => (b.length > a.length ? b : a)))
+    .map((text) => text.split(/["'`\\\n\r\t]/).reduce((a, b) => (b.length > a.length ? b : a)))
     .filter((text) => text.length >= 12)
 }
 
