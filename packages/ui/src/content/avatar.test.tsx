@@ -1,4 +1,4 @@
-import { render } from '@testing-library/react'
+import { fireEvent, render } from '@testing-library/react'
 import { expect, it } from 'vitest'
 import { Avatar } from './avatar'
 
@@ -19,7 +19,7 @@ it('E1 the shape comes from the kind: a person is round, a company a rounded squ
 
 it('E2 E4 it shows the initials of the name, or of the email without a name', () => {
   expect(avatarOf(<Avatar kind="person" name="Lucía Ortega" />).textContent).toBe('LO')
-  expect(avatarOf(<Avatar kind="person" email="ana@example.com" />).textContent).toBe('A')
+  expect(avatarOf(<Avatar kind="person" name="ana@example.com" />).textContent).toBe('A')
 })
 
 it('E3 without a letter to show, a generic icon on the neutral colour', () => {
@@ -42,4 +42,16 @@ it('it is decorative: the name or the button around it carries the meaning', () 
   expect(avatarOf(<Avatar kind="person" name="Lucía Ortega" />).getAttribute('aria-hidden')).toBe(
     'true',
   )
+})
+
+it('an image wins while it loads, and falls back to the initials when it fails', () => {
+  const avatar = avatarOf(<Avatar kind="company" name="Northwind Logistics" src="/logo.png" />)
+
+  expect(avatar.tagName).toBe('IMG')
+  expect(avatar.getAttribute('alt')).toBe('')
+  expect(avatar.className).toContain('rounded-lg')
+
+  fireEvent.error(avatar)
+
+  expect(document.body.textContent).toBe('NL')
 })

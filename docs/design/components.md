@@ -85,12 +85,19 @@ shadcn `Card`.
 
 ### Avatars
 
-`Avatar` in `packages/ui` (content family): `<Avatar kind="person|company" name email size="md|lg" />`. Workspace logo in the sidebar: 32 square radius 8 in `--ui`. Initials and colour come from `packages/domain/src/_shared/avatar.ts`, so web, mobile and emails agree. Photos and logos: ticket 127 (Post-MVP).
+`Avatar` in `packages/ui` (content family). Workspace logo in the sidebar: 32 square radius 8 in `--ui`. Initials and colour come from `packages/domain/src/_shared/avatar.ts`, so web, mobile and emails agree.
+
+```tsx
+<Avatar kind="person" name={user.name ?? user.email} />
+<Avatar kind="company" name={company.name} src={company.logoUrl} size="lg" />
+```
+
+`name` is the name, or the email when there is none yet: the caller chooses. With `src`, the image takes the same size and shape; if it fails, the initials. Uploading photos and logos: ticket 127 (Post-MVP).
 
 - **E1 shape from the kind.** Nobody picks it. Person: circle, 32 (large 48), initials 11 px (large 15). Company: rounded square 32 radius 8 (large 48 radius 12), initials 12 px (large 16). Weight 600.
 - **E2 initials of a name.** The first letter of the first and the last word, or the first two of a single word: "Lucía Ortega" → LO, "Northwind Logistics" → NL, "Sol" → SO. Particles do not count ("María de la Cruz" → MC); accents and ñ stay ("Ñandú Álvarez" → ÑÁ).
-- **E3 no letter first.** Skip to the first letter: "3M España" → ME, "🚀 Rocket" → RO. No letter at all: a generic person icon on `--muted`.
-- **E4 no name.** The first letter of the email ("ana@example.com" → A).
+- **E3 no letter first.** Only letters count: "3M España" → ME, "🚀 Rocket" → RO, "R2D2" → RD. No letter at all: a generic person icon on `--muted`.
+- **E4 no name.** The caller passes the email, which gives its first letter ("ana@example.com" → A).
 - **E5 colour from the initials.** The same initials always get the same of six colours, `--avatar-1..6-bg` and `-fg` (violet, plum, slate, brown, teal, olive), on any screen and theme. Initials reach AA: 5.8–7.6:1 light, 8.2–9.2:1 dark. None is a status, data or commercial hue ([ADR-0070](../adr/0070-colour-commercial-emphasis-and-marketing.md#updates)).
 - **Accessibility.** Always decorative (`aria-hidden`): the name next to it carries the meaning; a lone avatar button has the `aria-label` ("Account: Lucía Ortega").
 

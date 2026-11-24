@@ -1,4 +1,5 @@
 import { avatarColourSlot, avatarInitials } from '@workampo/domain/_shared/avatar'
+import { useState } from 'react'
 import { cx } from '../_shared/cx'
 
 // Whole class names, so Tailwind finds them; the order is the palette slot.
@@ -18,21 +19,34 @@ const SHAPES = {
 }
 
 // Always decorative: the name next to it, or the label of the button around it, carries the meaning.
+// `name` is the name, or the email when there is none yet; the image, when it loads, wins.
 export function Avatar({
   kind,
   name,
-  email,
+  src,
   size = 'md',
 }: {
   kind: keyof typeof SHAPES
-  name?: string | undefined
-  email?: string | undefined
+  name: string | undefined
+  src?: string | undefined
   size?: 'md' | 'lg'
 }) {
-  const initials = avatarInitials({ name, email })
+  const [failedSrc, setFailedSrc] = useState<string>()
+  const initials = avatarInitials(name)
   const colour = initials
     ? COLOURS[avatarColourSlot({ initials, slots: COLOURS.length })]
     : 'bg-muted text-text-2'
+
+  if (src && src !== failedSrc)
+    return (
+      <img
+        src={src}
+        alt=""
+        data-kind={kind}
+        onError={() => setFailedSrc(src)}
+        className={cx('shrink-0 object-cover', SHAPES[kind][size])}
+      />
+    )
 
   return (
     <span

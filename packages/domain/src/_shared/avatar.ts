@@ -24,31 +24,23 @@ const PARTICLES = new Set([
 ])
 
 const LETTER = /\p{L}/u
+const EMAIL = /^\S+@\S+$/
 
-// From the first letter on: "3M" → "M", "🚀" → "".
-const fromFirstLetter = (word: string) => {
-  const index = [...word].findIndex((char) => LETTER.test(char))
-
-  return index < 0 ? '' : [...word].slice(index).join('')
-}
+// Only the letters of a word: "3M" → "M", "R2D2" → "RD", "🚀" → "".
+const lettersOf = (word: string) => [...word].filter((char) => LETTER.test(char)).join('')
 
 const upper = (text: string) => text.toLocaleUpperCase('es')
 
-// Two letters: the first of the first and of the last word, or the first two of a single word;
-// null when there is no letter to show, so the avatar shows a generic icon.
-export function avatarInitials({
-  name,
-  email,
-}: {
-  name?: string | undefined
-  email?: string | undefined
-}) {
-  if (!name?.trim()) return email?.trim() ? upper([...email.trim()][0] ?? '') : null
+// The caller passes the name, or the email when there is no name yet. Two letters: the first of
+// the first and of the last word, or the first two of a single word; one for an email; null when
+// there is no letter to show, so the avatar shows a generic icon.
+export function avatarInitials(text: string | undefined) {
+  const trimmed = text?.normalize('NFC').trim() ?? ''
+  if (EMAIL.test(trimmed)) return upper([...lettersOf(trimmed)][0] ?? '') || null
 
-  const words = name
-    .normalize('NFC')
+  const words = trimmed
     .split(/\s+/)
-    .map(fromFirstLetter)
+    .map(lettersOf)
     .filter((word) => word && !PARTICLES.has(word.toLocaleLowerCase('es')))
   const [first, ...rest] = words
   if (!first) return null
