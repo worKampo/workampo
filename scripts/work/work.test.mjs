@@ -21,6 +21,7 @@ import {
   personGhConfigDir,
   pr,
   prBody,
+  progressComment,
   progressText,
   prTitle,
   pushEnv,
@@ -1276,4 +1277,21 @@ test('verify: the branch install, seed and app run without credentials', async (
     withoutCredentials({ gh_token: 'g', DB_PASSWORD: 'p', NPM_AUTH: 'a', Path: '/bin' }),
     { gh_token: '', DB_PASSWORD: '', NPM_AUTH: '' },
   )
+})
+
+test('the Progress comment of a new PR is at the review step, whatever PROGRESS.md said', () => {
+  const progress = progressText({
+    number: 7,
+    slug: 'x',
+    branch: 'feature/7-x',
+    size: 'M',
+    updated: '2026-11-24 10:00',
+  })
+
+  const comment = progressComment(progress, '| ID | Task |\n| T1 | a |')
+
+  assert.match(comment, /^Step: Deliver › Pull request$/m)
+  assert.match(comment, /^Next: review rounds with pnpm work review <pr> --wait/m)
+  assert.doesNotMatch(comment, /Define › Discover/)
+  assert.match(comment, /## Tasks\n\n\| ID \| Task \|/)
 })
