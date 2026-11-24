@@ -18,6 +18,10 @@
     "e2e": {
       "dependsOn": ["^build"],
       "cache": false
+    },
+    "@workampo/web#e2e": {
+      "dependsOn": ["build", "^build"],
+      "cache": false
     }
   }
 }

@@ -7,6 +7,8 @@
   },
   "include": [
     "src",
+    "e2e",
+    "playwright.config.ts",
     "vite.config.ts",
     "../../packages/i18n/src/i18next.d.ts",
     "../api/worker-configuration.d.ts"
