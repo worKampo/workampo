@@ -149,7 +149,14 @@ module.exports = {
         'A file that uses a provider says so in its name, even when it is the only one (the person, 2026-11-24).',
       severity: 'error',
       from: { path: '^(apps|packages)/', pathNot: ['(^|/|\\.)d1[-.]', '\\.test\\.ts$'] },
-      to: { path: ['^apps/[^/]+/src/_shared/db/d1-', '(^|node_modules/)drizzle-orm/d1(/|$)'] },
+      // D1 is SQLite: its schema, its Drizzle dialect and its client (ADR-0077).
+      to: {
+        path: [
+          '^apps/[^/]+/src/_shared/db/d1-',
+          '(^|node_modules/)drizzle-orm/(d1|sqlite-core)(/|$)',
+          '^packages/db/schema/[^/]+\\.d1\\.ts$',
+        ],
+      },
     },
     {
       name: 'database-seam',
@@ -159,7 +166,11 @@ module.exports = {
         path: '^apps/[^/]+/src/',
         pathNot: ['\\.repo\\.ts$', '^apps/[^/]+/src/_shared/db/'],
       },
-      to: { path: ['(^|node_modules/)drizzle-orm(/|$)', '^apps/[^/]+/src/_shared/db/'] },
+      // The neutral errors repos throw are what logic may know of the database (ADR-0077).
+      to: {
+        path: ['(^|node_modules/)drizzle-orm(/|$)', '^apps/[^/]+/src/_shared/db/'],
+        pathNot: '^apps/[^/]+/src/_shared/db/[^/]+-error\\.ts$',
+      },
     },
     {
       name: 'route-calls-logic-only',

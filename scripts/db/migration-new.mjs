@@ -1,4 +1,4 @@
-// Schema SQL comes from packages/db/schema/<kind>.ts, never by hand (ADR-0044).
+// Schema SQL comes from packages/db/schema/<kind>.d1.ts, never by hand (ADR-0044, ADR-0077).
 //   node scripts/db/migration-new.mjs --global|--shard [--data] <verb_object>
 import { execFileSync } from 'node:child_process'
 import { readdirSync, readFileSync, writeFileSync } from 'node:fs'
@@ -43,7 +43,7 @@ export function migrationNew({ kind, isData, name }, io) {
 }
 
 function realIo(kind) {
-  const dir = join(DB_DIR, 'migrations', kind)
+  const dir = join(DB_DIR, 'migrations', `${kind}.d1`)
 
   return {
     branch: () =>

@@ -1,4 +1,4 @@
-import { users } from '@workampo/db/schema/global'
+import { users } from '@workampo/db/schema/global.d1'
 import { eq } from 'drizzle-orm'
 import { globalDb } from '../../_shared/db/d1-global-db'
 

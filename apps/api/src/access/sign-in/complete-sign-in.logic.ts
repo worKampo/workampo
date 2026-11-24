@@ -2,9 +2,9 @@ import type { VerifiedIdentity } from '@workampo/domain/_shared/identity'
 import { sessionExpiresAt } from '@workampo/domain/access/session/session'
 import { normalizeEmail } from '@workampo/domain/access/sign-in/email'
 import { decideSignIn, type SignInDecision } from '@workampo/domain/access/sign-in/linking'
+import { UniqueViolationError } from '../../_shared/db/unique-violation-error'
 import { newId } from '../../_shared/ids/uuid'
 import { identityRepo } from '../data/identity.d1.repo'
-import { sessionRepo } from '../data/session.d1.repo'
 import { commitSignIn } from '../data/sign-in.d1.repo'
 import { userRepo } from '../data/user.d1.repo'
 import { AccessError } from '../errors'
@@ -21,7 +21,7 @@ export async function completeSignIn(env: Env, signIn: SignIn) {
   } catch (error) {
     // Two first sign-ins of one email race: the loser hits the unique index, or reads the winner's
     // user before its identity (the two reads are not one snapshot). Reading again settles both.
-    if (!isUniqueViolation(error) && !isContactSupport(error)) throw error
+    if (!(error instanceof UniqueViolationError) && !isContactSupport(error)) throw error
 
     return signInOnce(env, signIn)
   }
@@ -29,6 +29,7 @@ export async function completeSignIn(env: Env, signIn: SignIn) {
 
 async function signInOnce(env: Env, { identity, previousSessionToken }: SignIn) {
   const now = new Date()
+  const at = now.toISOString()
 
   const [userBySubject, userByEmail] = await Promise.all([
     identityRepo(env).findUser(identity),
@@ -46,10 +47,24 @@ async function signInOnce(env: Env, { identity, previousSessionToken }: SignIn) 
   const user = userOf({ decision, now, current: userBySubject })
   const sessionToken = newSessionToken()
 
-  await commitSignIn(env, [
-    ...userWrites({ env, decision, user, identity, at: now.toISOString() }),
-    ...(await sessionWrites({ env, user, sessionToken, previousSessionToken, now })),
-  ])
+  // A new session on every sign-in; the one the browser brought stops working.
+  await commitSignIn(env, {
+    ...(decision.kind === 'create' && {
+      newUser: {
+        user: { ...user, at },
+        identity: { provider: identity.provider, subject: identity.subject },
+      },
+    }),
+    ...(decision.kind === 'open' && decision.newEmail && { emailChange: { ...user, at } }),
+    session: {
+      id: newId(now),
+      userId: user.id,
+      tokenHash: await hashSessionToken(sessionToken),
+      createdAt: at,
+      expiresAt: sessionExpiresAt(now).toISOString(),
+    },
+    ...(previousSessionToken && { revokeTokenHash: await hashSessionToken(previousSessionToken) }),
+  })
 
   return { user, sessionToken }
 }
@@ -68,72 +83,6 @@ function userOf({
   return { id: decision.userId, email: decision.newEmail ?? current?.email ?? '' }
 }
 
-// First in the batch: the session and the identity reference the user row.
-function userWrites({
-  env,
-  decision,
-  user,
-  identity,
-  at,
-}: {
-  env: Env
-  decision: Exclude<SignInDecision, { kind: 'refuse' }>
-  user: User
-  identity: VerifiedIdentity
-  at: string
-}) {
-  if (decision.kind === 'create')
-    return [
-      userRepo(env).create({ ...user, createdAt: at, updatedAt: at }),
-      identityRepo(env).create({
-        provider: identity.provider,
-        subject: identity.subject,
-        userId: user.id,
-        createdAt: at,
-      }),
-    ]
-
-  if (decision.newEmail) return [userRepo(env).changeEmail({ ...user, updatedAt: at })]
-
-  return []
-}
-
-// A new session on every sign-in; the one the browser brought stops working.
-async function sessionWrites({
-  env,
-  user,
-  sessionToken,
-  previousSessionToken,
-  now,
-}: {
-  env: Env
-  user: User
-  sessionToken: string
-  previousSessionToken: string | undefined
-  now: Date
-}) {
-  const sessions = sessionRepo(env)
-  const at = now.toISOString()
-  const create = sessions.create({
-    id: newId(now),
-    userId: user.id,
-    tokenHash: await hashSessionToken(sessionToken),
-    createdAt: at,
-    expiresAt: sessionExpiresAt(now).toISOString(),
-    revokedAt: null,
-  })
-
-  if (!previousSessionToken) return [create]
-
-  return [create, sessions.revokeByTokenHash(await hashSessionToken(previousSessionToken), at)]
-}
-
 function isContactSupport(error: unknown) {
   return error instanceof AccessError && error.code === 'access.contact_support'
-}
-
-function isUniqueViolation(error: unknown) {
-  return (
-    error instanceof Error && /UNIQUE constraint failed/.test(`${error.message} ${error.cause}`)
-  )
 }

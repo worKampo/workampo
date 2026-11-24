@@ -6,7 +6,7 @@ if (kind !== 'global' && kind !== 'shard') throw new Error('DB_KIND must be glob
 
 export default defineConfig({
   dialect: 'sqlite',
-  schema: `./schema/${kind}.ts`,
-  out: `./migrations/${kind}`,
+  schema: `./schema/${kind}.d1.ts`,
+  out: `./migrations/${kind}.d1`,
   casing: 'snake_case',
 })
