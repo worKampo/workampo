@@ -18,6 +18,7 @@
   "home": {
     "title": "You do not belong to any company yet",
     "body": "When a company invites you, or you create one, it will appear here.",
+    "create_company": "Create company",
     "sign_out": "Sign out"
   },
   "errors": {

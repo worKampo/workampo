@@ -1,9 +1,11 @@
 import type { ErrorCode } from '@workampo/domain/errors'
 import { ApiError } from './api-error'
 
-type ErrorKey = ErrorCode extends `${infer Domain}.${infer Reason}`
+// Generic, so the conditional distributes over each code; on the bare union it would pair every domain with every reason.
+type KeyOf<Code> = Code extends `${infer Domain}.${infer Reason}`
   ? `${Domain}:errors.${Reason}`
   : never
+type ErrorKey = KeyOf<ErrorCode>
 
 // The i18n key of an error: access.invalid_code → access:errors.invalid_code (docs/design/content.md).
 export function errorKey(code: ErrorCode | 'unknown'): ErrorKey | 'common:errors.unexpected' {

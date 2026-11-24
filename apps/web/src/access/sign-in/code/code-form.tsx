@@ -8,7 +8,7 @@ import { Trans, useTranslation } from 'react-i18next'
 import { RouterTextLink } from '../../../_shared/router/router-text-link'
 
 export function CodeForm({ email }: { email: string }) {
-  const { t } = useTranslation(['access', 'common'])
+  const { t } = useTranslation(['access', 'companies', 'common'])
   const navigate = useNavigate()
   const page = useCodePage({ email, onSignedIn: () => navigate({ to: '/' }) })
 
