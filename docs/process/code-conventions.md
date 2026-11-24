@@ -153,7 +153,7 @@ Use one name end to end: living-spec rule (`@id:companies-15-1`) â†’ use case â†
 
 - Zod only at the boundaries (API input, forms, environment variables). Types inferred from Zod and Drizzle, never duplicated by hand.
 - Bindings and variables typed and validated in `env.ts`; no loose reads of variables elsewhere. The environment is parsed once per request by a middleware into `c.var.env`, and its types have one source, `env.ts` (the person, 2026-11-22). Only the deploy metadata (`ENVIRONMENT`, `APP_VERSION`, `GIT_SHA`, `CF_VERSION_METADATA`) is read from the raw bindings, by `/health`, the version header and error tracking, so they answer even when the configuration fails to parse (the person, 2026-11-23).
-- Utilities without I/O of one capability live in `_shared/<capability>/`: `crypto/` (random tokens, SHA-256), `auth/state-cookie.ts`, `http/request-origin.ts` with the one `RequestOrigin` type (the person, 2026-11-22).
+- Utilities without I/O of one capability live in `_shared/<capability>/`: `crypto/` (random tokens, SHA-256), `http/request-origin.ts` with the one `RequestOrigin` type (the person, 2026-11-22).
 - The API's typed contract is `@workampo/api/contract` (type-only `AppType`); clients import that, never a path into `apps/` (the person, 2026-11-22).
 - Local secrets only in `.dev.vars` (ignored); commit `.dev.vars.example` with names, no values. Staging/production secrets via `wrangler secret` and GitHub Environments. Public config in `vars` of `wrangler.jsonc`; no `.env.<environment>` files.
 
