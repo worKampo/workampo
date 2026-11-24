@@ -35,7 +35,8 @@ const upper = (text: string) => text.toLocaleUpperCase('es')
 // there is no letter to show, so the avatar shows a generic icon.
 export function avatarInitials(text: string | undefined) {
   const trimmed = text?.normalize('NFC').trim() ?? ''
-  const isEmail = trimmed.includes('@') && !/\s/.test(trimmed)
+  const [local, domain, ...more] = trimmed.split('@')
+  const isEmail = !more.length && !!local && !!domain?.includes('.') && !/\s/.test(trimmed)
   if (isEmail) return upper([...lettersOf(trimmed)][0] ?? '') || null
 
   const words = trimmed

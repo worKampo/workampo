@@ -22,6 +22,7 @@ describe('avatarInitials', () => {
 
   it('E4 without a name the caller passes the email, which gives its first letter', () => {
     expect(avatarInitials('ana@example.com')).toBe('A')
+    expect(avatarInitials('Ana@Home')).toBe('AN')
     expect(avatarInitials(undefined)).toBeNull()
     expect(avatarInitials('  ')).toBeNull()
   })
