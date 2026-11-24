@@ -84,6 +84,27 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           BOARD_TOKEN: ${{ steps.board.outputs.token }}
 
+  # The older runs still waiting for the prod approval carry fewer commits than this one: cancel
+  # them so only the newest waits (issue 158). The stg group is FIFO, so by now they all wait.
+  supersede:
+    needs: stg
+    if: needs.stg.outputs.deployed == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    # A run left waiting only costs one more approval; it must not stop this deploy.
+    continue-on-error: true
+    permissions:
+      actions: write
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: node scripts/deploy/supersede.mjs
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+
   prod:
     needs: stg
     # Nothing new in staging means nothing to approve; a lagging prod catches up on the next deploy.
