@@ -58,4 +58,4 @@ Related: [ADR-0030](0030-test-designer.md), [ADR-0031](0031-ui-ux-designer.md).
 ## Updates
 
 - 2026-11-23 (the person, ticket 135): the `make<Entity>` factories arrive with the first company table (issue 90); until then tests use the fake provider's fixtures and helpers such as `newEmail`. dependency-cruiser now enforces that production code imports no `*.test.ts`.
-- 2026-11-24 (the person, ticket 148): `apps/<app>/test/` holds only the test setup; suites that test the system sit beside the code they cover (`apps/api/src/index.int.test.ts`, `apps/web/src/_shared/headers.test.ts`). The `make<Entity>` factories serve tests and E2E; seeds are SQL ([ADR-0074](0074-seeds-in-sql.md)) and do not use them.
+- 2026-11-24 (the person, ticket 148): where the system suites live and what the factories serve are replaced by [ADR-0076](0076-test-placement-after-the-reorganisation.md).

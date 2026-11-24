@@ -35,7 +35,9 @@ export const schema = z
 export function validate(text) {
   const data = parse(text)
   // Scan the decoded values too: YAML escapes such as g hide a token from the raw text.
-  const commitEmail = data?.github?.commitEmail
+  // Not a string means a malformed profile: the schema below reports it, this scan must not throw.
+  const commitEmail =
+    typeof data?.github?.commitEmail === 'string' ? data.github.commitEmail : undefined
   const errors = [
     ...new Set([
       ...findNoEntra(text, commitEmail),

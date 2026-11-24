@@ -19,7 +19,7 @@ const GITHUB_NOREPLY = /@users\.noreply\.github\.com$/i
 const PROJECT_COMMIT_EMAIL = readFileSync(
   new URL('../../project.yaml', import.meta.url),
   'utf8',
-).match(/^\s*commitEmail:\s*(\S+)/m)?.[1]
+).match(/^\s*commitEmail:\s*['"]?([^'"\s]+)/m)?.[1]
 
 // Of GitHub's noreply addresses only the project account's, with or without its numeric id
 // (docs/process/review.md, No entra): another account's names a person.
@@ -27,7 +27,7 @@ export function isAllowedEmail(email, commitEmail = PROJECT_COMMIT_EMAIL) {
   if (!GITHUB_NOREPLY.test(email)) return TEST_DOMAIN.test(email)
   const account = (address) => address.replace(/^\d+\+/, '').toLowerCase()
 
-  return Boolean(commitEmail) && account(email) === account(commitEmail)
+  return typeof commitEmail === 'string' && account(email) === account(commitEmail)
 }
 
 // Every offending match, so a caller can tell new hits from ones a file already had.
