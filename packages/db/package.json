@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "exports": {
-    "./schema/*": "./schema/*.ts"
+    "./schema/global.d1": "./schema/global.d1.ts"
   },
   "dependencies": {
     "drizzle-orm": "0.45.4"

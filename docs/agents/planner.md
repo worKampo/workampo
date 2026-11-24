@@ -18,7 +18,7 @@ The issue (intent, approved examples, UI and Security sections), the living spec
 
 The file contents, in the [return format](orchestrator.md#return); the orchestrator writes them on the branch.
 
-- `.work/plan.md` from the [template](../process/templates/plan.md): data model, API contracts, migrations, flags, analytics events, risks. Only the technical items that follow from the UI and Security sections; it does not reopen the spec.
+- `.work/plan.md` from the [template](../process/templates/plan.md): seams and sharing (required by `pnpm plan:check`), data model, API contracts, migrations, flags, analytics events, risks. Only the technical items that follow from the UI and Security sections; it does not reopen the spec.
 - `.work/tasks.md` from the [template](../process/templates/tasks.md):
   - First wave: the failing tests (test designer).
   - `Touches`: exact paths or folders each task writes.

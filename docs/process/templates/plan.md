@@ -5,6 +5,9 @@ Only for size L and critical zones. Temporary file on the ticket branch; `pnpm w
 ```markdown
 PRD #<n> · Ticket #<n> · Branch: <branch>
 
+## Seams and sharing
+Providers the ticket touches and their adapter (with its fake and its contract suite); pure rules that go to `packages/domain`; texts that go to `packages/i18n`; what goes to `packages/app-core`. Required: `pnpm plan:check` fails without this section.
+
 ## Data model
 Tables, columns, indexes, tenancy.
 

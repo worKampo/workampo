@@ -1,7 +1,9 @@
 // Validates .work/tasks.md: dependencies, cycles, waves and file collisions inside a wave (ADR-0020).
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { parseTasks } from './tasks.mjs'
+
+const PLAN = '.work/plan.md'
 
 // A trailing slash marks a folder, which contains every path under it.
 const overlaps = (a, b) =>
@@ -72,9 +74,17 @@ export function checkPlan(text) {
   return problems
 }
 
+// The design of an L ticket names its seams before any code (issue 111).
+export function checkDesign(text) {
+  return /^## Seams and sharing\s*$/m.test(text)
+    ? []
+    : ['plan.md has no "## Seams and sharing" section (docs/process/templates/plan.md)']
+}
+
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const file = process.argv[2] ?? '.work/tasks.md'
-  const problems = checkPlan(readFileSync(file, 'utf8'))
+  const design = existsSync(PLAN) ? checkDesign(readFileSync(PLAN, 'utf8')) : []
+  const problems = [...checkPlan(readFileSync(file, 'utf8')), ...design]
   if (problems.length) {
     console.error(`${file}:\n- ${problems.join('\n- ')}`)
     process.exit(1)

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { checkPlan } from './plan-check.mjs'
+import { checkDesign, checkPlan } from './plan-check.mjs'
 
 const table = (rows, waves) =>
   `| ID | Task | Depends on | Touches | Size | Level | Status |
@@ -93,4 +93,9 @@ test('reports a repeated wave number and a task in two waves', () => {
 test('reads an indented Waves line', () => {
   const plan = table([['T1', 'a', '—', 'x.md']], '1 → T1').replace('Waves:', '  Waves:')
   assert.deepEqual(checkPlan(plan), [])
+})
+
+test('a plan.md without "Seams and sharing" fails; with it, passes', () => {
+  assert.equal(checkDesign('## Data model\nTables.\n').length, 1)
+  assert.deepEqual(checkDesign('## Seams and sharing\nIdentity provider: none.\n'), [])
 })
