@@ -1,7 +1,7 @@
 ---
 status: accepted
 date: 2026-11-24
-related: [10, 33, 44, 53, 63, 65, 74, 75]
+related: [9, 10, 33, 44, 53, 63, 65, 74, 75]
 ---
 
 # ADR-0077: Database engines behind the repos
@@ -29,12 +29,12 @@ The person, 2026-11-24:
 4. **Engine of `DB_GLOBAL`: configuration per environment.** It is the entry point, so nothing can look it up: a `GLOBAL_DB_ENGINE` variable (`d1` or `pg`) with its binding (`DB_GLOBAL` or a Hyperdrive one) in `wrangler.jsonc`, validated by `env.ts` as a union like `IDENTITY_PROVIDER`, and one picker in `_shared/db/` like the identity provider registry. Not written until a second engine exists.
 5. **Engine of a shard: data in `DB_GLOBAL`.** A `shards` table holds each shard's id, engine and binding name (never credentials, which stay in `wrangler` and its secrets); each company points to its shard. `_shared/tenancy/` reads that row and gives the right client. It arrives with the first shard table (issue 90).
 6. **Atomic writes and engine errors stay inside the repo.** A write that must be all or nothing is one repo function that receives what was decided and runs it (`batch()` in D1, a transaction in Postgres); logic never composes unexecuted queries. A repo turns an engine error the logic must react to (a unique index hit) into a neutral error; logic never reads an engine's message.
-7. **Dates stay ISO-8601 text** in both engines, so ordering, comparison and the domain's code behave the same; `timestamptz` is not used.
+7. **Dates stay ISO-8601 text in UTC**, always as `Date.prototype.toISOString()` writes them (`2026-11-24T09:03:21.000Z`: fixed width, milliseconds, `Z`), in both engines, so ordering, comparison and the domain's code behave the same; `timestamptz` is not used.
 8. **Moving `DB_GLOBAL` to another engine is a data migration**, a one-off operation with its own runbook when it is decided: export, transform, import, switch `GLOBAL_DB_ENGINE`. The code changes only in `data/`, `_shared/db/` and `packages/db`.
 
 ## Consequences
 
-- A second engine is new files in the data layer plus its migrations; routes, logic, `packages/domain`, app-core and the web do not change.
+- A second engine is new files in the data layer plus its migrations; routes, `packages/domain`, app-core and the web do not change. In the logic only the repo imports change, mechanically, from `<table>.d1.repo` to the neutral `<table>.repo` that point 3 adds then; no line of what the logic does changes.
 - A second engine duplicates repos and migrations per table. That cost is accepted: it is paid only for the engine actually added, and never with an abstraction of our own.
 - Known differences to keep in mind: `LIKE` is case-insensitive for ASCII in SQLite and case-sensitive in Postgres (searches already use a lowercase column, ADR-0053); booleans and JSON have their own column types per engine; latency through Hyperdrive on every request if `DB_GLOBAL` moves.
 - Hyperdrive and a hosted Postgres are a spending decision ([ADR-0065](0065-zero-spend-and-free-tier-limits.md)) when they come.
