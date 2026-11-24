@@ -8,6 +8,7 @@ SQL files in [`packages/db/seed/`](../../packages/db/seed/README.md): `global/` 
 
 - Deterministic: fixed IDs (constant UUIDv7) and fixed dates.
 - Idempotent: `ON CONFLICT DO NOTHING` or `DO UPDATE`; a second run changes nothing.
+- Portable SQL, so one file serves every engine ([ADR-0077](../adr/0077-database-engines-behind-the-repos.md)): only `INSERT … VALUES`, no engine functions (`datetime()`, `now()`), dates as ISO text, booleans as `TRUE`/`FALSE`, JSON as quoted text. **WHEN A SECOND ENGINE ARRIVES: BE CAREFUL WITH EVERY NEW SEED, AND REVIEW EVERY EXISTING SEED AGAINST BOTH ENGINES BEFORE IT RUNS THERE (the person, 2026-11-24).**
 - Emails only on the test domains of [review](../process/review.md#no-entra); no real people.
 - Reference data (plans, flag definitions) is a data migration, not a seed.
 

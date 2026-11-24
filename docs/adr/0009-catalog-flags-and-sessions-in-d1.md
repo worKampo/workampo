@@ -23,3 +23,7 @@ Read replicas are deferred until latency justifies them, with their own ADR.
 ## More information
 
 Resolves the contradiction between §2.4 (D1) and §6/§8 (KV) of the original spec.
+
+## Updates
+
+- 2026-11-24 (the person, ticket 112): `DB_GLOBAL` stays the only source of truth for the catalog, flags and sessions; its engine may change later as [ADR-0077](0077-database-engines-behind-the-repos.md) describes (D1 today).
