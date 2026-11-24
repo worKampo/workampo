@@ -30,3 +30,4 @@ This replaces the hyphenated `-route.ts`, `-routes.ts` and `-repo.ts` names of t
 ## Updates
 
 - 2026-11-24 (the person, ticket 146): the suffix says the type of what is inside, always in the singular, so the lists of routes are `<name>.router.ts` (`access.router.ts`, `sign-in.router.ts`); `<endpoint>.route.ts` stays one endpoint. Every file that uses a provider names it, even when it is the only one: the repos are `<table>.d1.repo.ts`, and Cloudflare's own reads live in `cloudflare-request-origin.ts` and `cloudflare-version.ts`.
+- 2026-11-24 (the person, ticket 148): the unit is the use case, in business language, and the endpoint is the technical term for the HTTP route its `.route.ts` exposes. Read `<endpoint>` above as `<use-case>`: `<use-case>/<use-case>.route.ts`, `<use-case>.logic.ts`; a flow with two endpoints is two use cases. `requireSession` lives in `access/require-session.middleware.ts`.

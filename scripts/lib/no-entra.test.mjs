@@ -19,15 +19,25 @@ test('blocks a real email', () => {
   ])
 })
 
-test('allows noreply, seed and package-version addresses', () => {
+test('allows the project noreply, seed and package-version addresses', () => {
   const text = [
     `1+dev${at}users.noreply.github.com`,
+    `dev${at}users.noreply.github.com`,
     `ana${at}example.com`,
     `ops${at}example.org`,
     `seed${at}tenant.test`,
     'react@18.3.1',
   ].join('\n')
-  assert.deepEqual(findNoEntra(text), [])
+  assert.deepEqual(findNoEntra(text, `1+dev${at}users.noreply.github.com`), [])
+})
+
+test("blocks another account's noreply, and any noreply when the project's is unknown", () => {
+  const other = `2+someone${at}users.noreply.github.com`
+
+  assert.deepEqual(findNoEntra(other, `1+dev${at}users.noreply.github.com`), [
+    `email not allowed: ${other}`,
+  ])
+  assert.deepEqual(findNoEntra(other), [`email not allowed: ${other}`])
 })
 
 test('allows paths and hex hashes', () => {

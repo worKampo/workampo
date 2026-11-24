@@ -10,23 +10,34 @@ export const SECRET_SHAPES = [
 // The TLD must be letters so `react@18.3.1` is not an email.
 export const EMAIL = /[\w.+-]+@[\w-]+(?:\.[\w-]+)*\.[A-Za-z]{2,}\b/g
 // Seed and doc domains are reserved by RFC 2606, so they never reach a real person.
-export const ALLOWED_EMAIL =
-  /@(users\.noreply\.github\.com|example\.(com|org)|[\w.-]+\.(test|example))$/i
+const TEST_DOMAIN = /@(example\.(com|org)|[\w.-]+\.(test|example))$/i
+const GITHUB_NOREPLY = /@users\.noreply\.github\.com$/i
+
+// Of GitHub's noreply addresses only the project account's, with or without its numeric id
+// (docs/process/review.md, No entra): another account's names a person.
+export function isAllowedEmail(email, commitEmail) {
+  if (!GITHUB_NOREPLY.test(email)) return TEST_DOMAIN.test(email)
+  const account = (address) => address.replace(/^\d+\+/, '').toLowerCase()
+
+  return Boolean(commitEmail) && account(email) === account(commitEmail)
+}
 
 // Every offending match, so a caller can tell new hits from ones a file already had.
-export function noEntraMatches(text) {
+export function noEntraMatches(text, commitEmail) {
   const secrets = SECRET_SHAPES.flatMap((shape) =>
     [...text.matchAll(new RegExp(shape.source, 'g'))].map((m) => m[0]),
   )
-  const emails = [...text.matchAll(EMAIL)].map((m) => m[0]).filter((e) => !ALLOWED_EMAIL.test(e))
+  const emails = [...text.matchAll(EMAIL)]
+    .map((m) => m[0])
+    .filter((e) => !isAllowedEmail(e, commitEmail))
   return [...secrets, ...emails]
 }
 
-export function findNoEntra(text) {
+export function findNoEntra(text, commitEmail) {
   const reasons = []
   for (const shape of SECRET_SHAPES)
     if (shape.test(text)) reasons.push(`looks like a secret: ${shape}`)
   for (const [email] of text.matchAll(EMAIL))
-    if (!ALLOWED_EMAIL.test(email)) reasons.push(`email not allowed: ${email}`)
+    if (!isAllowedEmail(email, commitEmail)) reasons.push(`email not allowed: ${email}`)
   return reasons
 }

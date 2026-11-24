@@ -35,7 +35,13 @@ export const schema = z
 export function validate(text) {
   const data = parse(text)
   // Scan the decoded values too: YAML escapes such as g hide a token from the raw text.
-  const errors = [...new Set([...findNoEntra(text), ...findNoEntra(JSON.stringify(data))])]
+  const commitEmail = data?.github?.commitEmail
+  const errors = [
+    ...new Set([
+      ...findNoEntra(text, commitEmail),
+      ...findNoEntra(JSON.stringify(data), commitEmail),
+    ]),
+  ]
   const result = schema.safeParse(data)
   if (!result.success)
     errors.push(...result.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`))

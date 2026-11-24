@@ -3,7 +3,7 @@ import { test } from 'node:test'
 import { acceptanceErrors, check, isReopenCandidate } from './acceptance-order.mjs'
 import { context, failure, issueJson, logOf } from './test-support.mjs'
 
-const SCENARIO = 'apps/web/e2e/acceptance/invite.spec.ts'
+const SCENARIO = 'apps/api/e2e/acceptance/invite.e2e.ts'
 const commit = (sha, files, reopens = [], isMerge = false) => ({ sha, files, reopens, isMerge })
 const none = () => false
 

@@ -82,5 +82,5 @@ Title says **what is not there yet**; one line says **why it matters or what wil
 ## Placeholders in designs
 
 - Content that is not decided yet appears in designs in square brackets and capitals: `[YOUR PRICE]`, `[COMPANY LEGAL NAME]`. It marks a gap, not copy to ship.
-- Sample people and companies use fictional names and `.example` domains (`lucia@northwind.example`).
+- Sample people and companies use fictional names and the test domains of [review](../process/review.md#no-entra) (`lucia@northwind.example`).
 - A bracketed placeholder must not reach production: replace it in the spec or the PR that implements the screen.

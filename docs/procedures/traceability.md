@@ -52,7 +52,7 @@ Run in CI on every PR (`.github/workflows/traceability.yml`) by `pnpm check:pr`,
 | Examples | Every living-spec example has a test (by `@id`) and no test cites a missing example; CI then publishes the "Verification" comment |
 | Acceptance order | In topological order, never by date: commits touching `e2e/acceptance/` come before the first code commit; a later one needs a `Reopen: <comment-id>` trailer naming an unused `/reopen-acceptance` comment by an admin user on the issue ([testing](testing.md#acceptance-scenarios)) |
 | Author | Every commit has the project's *noreply* email (see the [bootstrap](../process/bootstrap.md)) |
-| Emails in the diff | None except the noreply and the seed test domains |
+| Emails in the diff | None except the project's noreply and the test domains of [review](../process/review.md#no-entra) |
 | `paid-plan` marks | Format `paid-plan(<ADR>)` |
 | Duplicated `.tsx` | jscpd; warning only |
 

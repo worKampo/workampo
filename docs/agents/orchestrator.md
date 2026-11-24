@@ -47,7 +47,7 @@ The UI/UX designer is never skipped for a new complete flow or a new public page
 - Run the waves of `.work/tasks.md` in order; tasks marked `[P]` in parallel, one subagent per task. Parallel reading is free; parallel writing only as the waves allow.
 - Before running, check dependencies, cycles and overlapping `Touches` with `pnpm plan:check` ([planning](../procedures/planning.md)). Hot spots always in sequence ([ADR-0020](../adr/0020-ticket-lifecycle.md)).
 - After each wave: `pnpm check` green, then one commit per task, in task order, with the trailers of [traceability](../procedures/traceability.md). Subagents never commit.
-- Commits touching `e2e/acceptance/` go before any commit touching another path; before them only `docs/**`, `.work/PROGRESS.md`, `.work/plan.md` and `.work/tasks.md`; a later one needs the `Reopen: <comment-id>` trailer ([testing](../procedures/testing.md#acceptance-scenarios)).
+- Commits touching `e2e/acceptance/` go before any commit touching another path; before them only commits that touch `docs/` and `.work/`; a later one needs the `Reopen: <comment-id>` trailer ([testing](../procedures/testing.md#acceptance-scenarios)).
 
 ## Brief
 

@@ -28,8 +28,8 @@ Decided by the person on 2026-11-24. The database is always real (local D1 in wo
 | `.logic.ts` | a direct call; it receives its dependencies as arguments (`provider`, `limits`, `env`) | the provider, by any object with its shape (`google-start.logic.test.ts`) |
 | `.repo.ts` | an integration test against local D1 | nothing: it is the piece that talks to the database |
 | `.route.ts` | `app.request(...)` with a test `env`, or `exports.default.fetch` | what lies below, through the registry of fakes |
-| endpoint `.hook.ts` (app-core) | `renderHook` with `hookWrapper` | the API, by `fakeApi` |
-| page `.hook.ts` (app-core) | `renderHook`, with no DOM or router: navigation is a callback | the API, by `fakeApi`; its endpoint hooks run for real |
+| use-case `.hook.ts` (app-core) | `renderHook` with `hookWrapper` | the API, by `fakeApi` |
+| page `.hook.ts` (app-core) | `renderHook`, with no DOM or router: navigation is a callback | the API, by `fakeApi`; its use-case hooks run for real |
 | `.page.tsx` | `renderApp`, the whole app | the API, by `fakeApi` |
 
 - `vi.mock` of a `.repo.ts` only for what cannot be reproduced for real, such as a race or a unique index hit; since all access to a table is in one file, that mock is the clean seam.

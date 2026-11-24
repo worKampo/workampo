@@ -31,3 +31,4 @@ Whoever designs the tests must not be whoever implements (same reason as the ind
 ## Consequences
 
 See Decision.
+- 2026-11-24 (the person, ticket 148): before the acceptance commits a PR may carry commits that touch only `docs/` and `.work/`, as `scripts/checks/acceptance-order.mjs` checks.
