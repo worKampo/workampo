@@ -1,4 +1,5 @@
-// The initial JS of /login and of the signed-in shell stays under its budget (ADR-0073 point 4).
+// The initial JS of /login and of the signed-in shell stays under its budget and carries no
+// translations, which load per language on demand (ADR-0073 point 4).
 //   node scripts/build/web-size-budget.mjs <web dist dir>
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
@@ -56,9 +57,23 @@ export function budgetErrors({ manifest, gzipSize, budgets = BUDGETS }) {
     if (!manifest[screen]) return [`${name}: ${screen} is not a chunk of the build`]
 
     const bytes = initialChunks(manifest, budget).reduce((sum, file) => sum + gzipSize(file), 0)
+    const errors = staticTranslations(manifest, screen).map(
+      (key) => `${name}: ${key} is imported statically; texts load per language on demand`,
+    )
 
-    return bytes > maxBytes ? [`${name}: ${bytes} gzip bytes, over its budget of ${maxBytes}`] : []
+    return bytes > maxBytes
+      ? [...errors, `${name}: ${bytes} gzip bytes, over its budget of ${maxBytes}`]
+      : errors
   })
+}
+
+// Translations reached without the on-demand loader land in every language's initial JS.
+function staticTranslations(manifest, screen) {
+  const files = new Set(initialChunks(manifest, { screen }))
+
+  return Object.keys(manifest).filter(
+    (key) => /\/locales\/[^/]+\/[^/]+\.json$/.test(key) && files.has(manifest[key].file),
+  )
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
