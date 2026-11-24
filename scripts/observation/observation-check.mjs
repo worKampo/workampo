@@ -1,5 +1,5 @@
 // Judges the 24-hour observation window of each prod deploy and closes its tickets when clean.
-// Usage: check.mjs [--dry-run]
+// Usage: observation-check.mjs [--dry-run]
 import { execFileSync } from 'node:child_process'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'

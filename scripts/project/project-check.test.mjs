@@ -31,3 +31,9 @@ test('rejects a token hidden with YAML escapes', () => {
   const errors = validate(valid.replace('agents: AGENTS.md', `agents: "${escaped}"`))
   assert.ok(errors.some((e) => e.startsWith('looks like a secret')))
 })
+
+test('a commit email that is not text is reported, not thrown', () => {
+  const errors = validate(valid.replace(/commitEmail: .*/, 'commitEmail: [1, 2]'))
+
+  assert.ok(errors.some((e) => e.startsWith('github.commitEmail')))
+})

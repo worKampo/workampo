@@ -35,4 +35,4 @@ In the [return format](orchestrator.md#return):
 
 ## Tools
 
-Read-only. Bash only for commands that change nothing (`gh` reads, `git log`, `git diff`, `pnpm check`). Until the repo has Playwright, review the screenshots the brief provides and list what could not be checked. Documentation and `gh`: [tools](README.md#tools).
+Read-only. Bash only for commands that change nothing (`gh` reads, `git log`, `git diff`, `pnpm check`). Review the screenshots the brief provides and list what could not be checked. Documentation and `gh`: [tools](README.md#tools).

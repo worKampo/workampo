@@ -9,7 +9,7 @@ Each line is `- ` followed by one glob in backticks, then a dash and the reason.
 ## Paths
 
 - `packages/db/migrations/**` - schema and data migrations ([ADR-0033](../adr/0033-expand-contract-migrations.md)).
-- `apps/*/src/_shared/identity/**` - identity providers and login (the session lives under `apps/*/src/access/**`).
+- `apps/*/src/_shared/identity/**` - identity providers and login (the session lives under `apps/api/src/access/**`).
 - `apps/*/src/_shared/rate-limit/**` - limits on sign-in codes and attempts.
 - `apps/api/src/access/**` - tenant isolation, permissions and the session (the web's screens are not critical; the person, 2026-11-23).
 - `apps/*/src/billing/**` - billing.

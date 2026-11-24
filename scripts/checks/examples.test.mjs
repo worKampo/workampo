@@ -29,7 +29,7 @@ test('passes when every example has a test, and writes the matrix', () => {
     const file = join(dir, 'verification.md')
     const tests = [
       "head:apps/api/src/companies/slug.test.ts:5:it('taken slug @id:companies-15-1', () => {",
-      "head:apps/web/e2e/acceptance/landing.spec.ts:3:test('@id:public-site-20-1', () => {",
+      "head:apps/api/e2e/acceptance/landing.e2e.ts:3:test('@id:public-site-20-1', () => {",
     ].join('\n')
     assert.deepEqual(run(tests, file).errors, [])
     const matrix = readFileSync(file, 'utf8')
