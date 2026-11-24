@@ -11,6 +11,8 @@
     "./access/sign-in/email": "./src/access/sign-in/email.ts",
     "./access/sign-in/linking": "./src/access/sign-in/linking.ts",
     "./access/sign-in/sign-in-code": "./src/access/sign-in/sign-in-code.ts",
+    "./companies/creation/create-company": "./src/companies/creation/create-company.ts",
+    "./companies/creation/slug": "./src/companies/creation/slug.ts",
     "./errors": "./src/errors.ts"
   },
   "scripts": {
