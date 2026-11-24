@@ -2,9 +2,9 @@ import { isSessionValid } from '@workampo/domain/access/session/session'
 import { createMiddleware } from 'hono/factory'
 import type { AppEnv } from '../_shared/http/app-env'
 import { problemJson } from '../_shared/http/problem-json'
-import { readSessionCookie } from './session/session-cookie'
-import { sessionRepo } from './session/session-repo'
-import { hashSessionToken } from './session/session-token'
+import { sessionRepo } from './data/session.repo'
+import { readSessionCookie } from './session/session.cookie'
+import { hashSessionToken } from './session/session-token.logic'
 
 export type SessionVariables = { session: { id: string; userId: string } }
 

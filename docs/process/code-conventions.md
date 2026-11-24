@@ -7,7 +7,7 @@ Rules an implementer applies. Why: [ADR-0053](../adr/0053-code-conventions.md) (
 - The top level of each app's `src/` is directly the domains (same names as [`docs/domains/`](../domains/README.md)). Every folder there is a domain except `_shared/`. No technical-layer folders (`controllers/`, `services/`).
 - A domain holds routes, use cases, repos, `errors.ts` and tests side by side. One use case per file.
 - `_shared/` holds code no single domain owns: `http/problem-json.ts`, `ids/`, the adapters and technical capabilities such as `rate-limit/`, which may have their own repo (the person, 2026-11-23); `tenancy/` arrives with the company shard. It imports no domain.
-- Example: `apps/api/src/companies/routes.ts`, `companies/invitations/invite-member.ts`, `invitation-repo.ts`.
+- Example: `apps/api/src/companies/companies.routes.ts`, `companies/invitations/invite-member/invite-member.logic.ts`, `companies/data/invitation.repo.ts`.
 - Pure core (no I/O, shared by API, web and the future mobile app) goes in `packages/domain/<domain>/`: Zod schemas, rules, permissions (`can`), error codes, values (`Email`, `Slug`, `Money`). It imports no Hono, Drizzle, React, `fetch` or `apps/`. `apps/api` keeps routes, use cases and repos; `apps/web` keeps screens; data hooks live in `packages/app-core` and do not touch the DOM.
 - A domain imports only the top-level files of another domain, never its internals.
 - Internal packages by name (`@workampo/…`); no barrel files that re-export everything; no cycles.
@@ -22,9 +22,10 @@ packages/domain/src/access/      errors.ts, identity.ts     what the whole domai
 packages/app-core/src/access/    query-keys.ts: every query key of the domain
   sign-in/  session/             data hooks (`<feature>-hooks.ts`) and form schemas; no DOM; shared by web and mobile
 packages/i18n/src/locales/<lang>/access.json   texts grouped by screen, plus `errors`; `_context/access.json` for translators
-apps/api/src/access/             routes.ts (lists the features), errors.ts, require-session.ts (what other domains use)
-  sign-in/                       sign-in-routes.ts (lists the endpoints) and what its use cases share (repos)
-    start-code/                  start-code-route.ts (POST /sign-in-codes), the use case and its tests
+apps/api/src/access/             access.routes.ts (lists the features), errors.ts, require-session.middleware.ts (what other domains use)
+  data/                          one repo per table: user.repo.ts, identity.repo.ts, session.repo.ts
+  sign-in/                       sign-in.routes.ts (lists the endpoints), complete-sign-in.logic.ts (logic its endpoints share)
+    start-code/                  start-code.route.ts (POST /sign-in-codes), start-code.logic.ts, start-code.int.test.ts
   users/                         a repo several features share
 apps/web/src/access/             routes.ts (gathers its features' routes)
   sign-in/                       sign-in-routes.ts and one file per screen (`login-screen.tsx`); screen-only components beside it until a second use promotes them to packages/ui
@@ -41,7 +42,14 @@ A folder with more than 8 code files, tests not counted, is split into subfolder
 
 ### API routing (the person, 2026-11-23)
 
-`index.ts` → `<domain>/routes.ts` → `<feature>/<feature>-routes.ts` → `<use-case>/<use-case>-route.ts`. The first two only list; an endpoint's file is a Hono sub-app with its one route (validate, call the use case, answer) beside the use case and its tests. A flow whose endpoints go together, such as the Google redirect and its callback, may share one `-routes.ts` file in its folder.
+`index.ts` → `<domain>/<domain>.routes.ts` → `<feature>/<feature>.routes.ts` → `<endpoint>/<endpoint>.route.ts`. The first two only list.
+
+Entry, logic and data are apart at a glance; the role goes after a dot, as in `.test.ts` (the person, 2026-11-24):
+
+- **Entry** `<endpoint>.route.ts`: a Hono sub-app with its one route. It validates, calls its logic and answers; it never touches a repo (dependency-cruiser).
+- **Logic** `<endpoint>.logic.ts`: every endpoint has one, however short. It orchestrates the domain rules, the providers and the repos, and knows no Hono (dependency-cruiser). Logic several endpoints of a feature share sits at the feature's root (`complete-sign-in.logic.ts`).
+- **Data** `<table>.repo.ts`, one per table, all in `<domain>/data/`: only Drizzle, no rules; the only files that touch the database (dependency-cruiser). A repo may also hold an atomic write across the domain's tables (`sign-in.repo.ts`). A domain reads only its own tables: another domain asks its logic.
+- Inside an endpoint's folder every file carries the endpoint's name (`verify-code.route.ts`, `verify-code.logic.ts`, `verify-code.int.test.ts`). HTTP helpers of a feature also say their role: `session.cookie.ts`, `require-session.middleware.ts`.
 
 ### Web routing (the person, 2026-11-22)
 
@@ -55,7 +63,7 @@ A folder with more than 8 code files, tests not counted, is split into subfolder
 
 ## Names
 
-A file is not named only by its kind when that name repeats in other folders: `sign-in-api.ts`, `session-hooks.ts`, `sign-in-routes.ts`, not `api.ts`, `hooks.ts`, `routes.ts` (the person, 2026-11-22). Exception: the convention files at the root of a domain keep one fixed name in every domain (`errors.ts`, and `routes.ts` in the apps), because that fixed name and place make the layout predictable. The same goes for `query-keys.ts` at the root of each domain in `packages/app-core`: every TanStack Query key of the domain lives there, and hooks import keys from it, never from another feature's hooks (the person, 2026-11-22).
+A file is not named only by its kind when that name repeats in other folders: `sign-in-api.ts`, `session-hooks.ts`, `sign-in.routes.ts`, not `api.ts`, `hooks.ts`, `routes.ts` (the person, 2026-11-22). Exception: the convention files at the root of a domain keep one fixed name in every domain (`errors.ts`, and `routes.ts` in the web), because that fixed name and place make the layout predictable. The same goes for `query-keys.ts` at the root of each domain in `packages/app-core`: every TanStack Query key of the domain lives there, and hooks import keys from it, never from another feature's hooks (the person, 2026-11-22).
 
 - Hooks files are `<feature>-hooks.ts`; screens `<name>-screen.tsx` (the person, 2026-11-22).
 - No barrel `index` files: a package's entries are only those declared in its `exports`. A package exports only what other packages and apps may use; internals (`*-api.ts`) and test helpers stay unexported (the person, 2026-11-22). Every entry is named in `exports`, never a `"./*"` pattern; the only re-exporting files are the entry of each `packages/ui` family (`forms.ts`, `actions.ts`…) (the person, 2026-11-23).
@@ -96,7 +104,7 @@ Use one name end to end: living-spec rule (`@id:companies-15-1`) → use case �
 
 ## Data access
 
-- Always through the domain's `*-repo.ts`; explicit columns, never `SELECT *`; every list has a maximum page size; no queries in a loop.
+- Always through the domain's `data/<table>.repo.ts`; explicit columns, never `SELECT *`; every list has a maximum page size; no queries in a loop.
 - Repos receive the company's database client from `_shared/tenancy/` once the company shard exists (today `_shared/db/d1-global-db.ts`); never use the D1 binding directly.
 - Drizzle builder only; no SQLite-specific SQL (`strftime`, JSON functions, `ROWID`, `AUTOINCREMENT`). If unavoidable, isolate it and comment why.
 - Split long lists (many parameters, big `batch()`) inside the repo (D1 limits).

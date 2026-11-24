@@ -6,7 +6,7 @@ import type { AppEnv } from '../../../_shared/http/app-env'
 import { requestOrigin } from '../../../_shared/http/request-origin'
 import { identityProvider } from '../../../_shared/identity/provider-registry'
 import { AccessError } from '../../errors'
-import { startCodeSignIn } from './start-code-sign-in'
+import { startCodeSignIn } from './start-code.logic'
 
 export const startCodeRoute = new Hono<AppEnv>().post(
   '/sign-in-codes',

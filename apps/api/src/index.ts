@@ -7,7 +7,7 @@ import { appVersionHeader } from './_shared/http/app-version-header'
 import { clientVersionLog } from './_shared/http/client-version-log'
 import { mountProviderPages } from './_shared/identity/provider-registry'
 import { deleteExpiredCounters } from './_shared/rate-limit/delete-expired-counters'
-import { accessRoutes } from './access/routes'
+import { accessRoutes } from './access/access.routes'
 
 export const app = new Hono<AppEnv>()
 

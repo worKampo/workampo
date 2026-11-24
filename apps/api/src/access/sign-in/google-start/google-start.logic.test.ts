@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { IdentityProvider } from '../../../_shared/identity/identity-provider'
-import { isSameState, startGoogleSignIn } from './start-google-sign-in'
+import { isSameState, startGoogleSignIn } from './google-start.logic'
 
 describe('startGoogleSignIn', () => {
   it('@id:access-96-6 sends the browser to Google with a new random state and our callback', () => {

@@ -1,8 +1,8 @@
 import type { RequestOrigin } from '../../../_shared/http/request-origin'
 import type { IdentityProvider } from '../../../_shared/identity/identity-provider'
 import { AccessError } from '../../errors'
-import { completeSignIn } from '../complete-sign-in'
-import { isSameState } from './start-google-sign-in'
+import { completeSignIn } from '../complete-sign-in.logic'
+import { isSameState } from '../google-start/google-start.logic'
 
 type GoogleAnswer = {
   code?: string | undefined

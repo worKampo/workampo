@@ -1,5 +1,5 @@
-import { sessionRepo } from '../session-repo'
-import { hashSessionToken } from '../session-token'
+import { sessionRepo } from '../../data/session.repo'
+import { hashSessionToken } from '../session-token.logic'
 
 export async function signOut(env: { DB_GLOBAL: D1Database }, sessionToken: string) {
   const tokenHash = await hashSessionToken(sessionToken)

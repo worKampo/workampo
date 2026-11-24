@@ -1,5 +1,5 @@
 import { sha256Hex } from '../crypto/sha256-hex'
-import { rateLimitRepo } from './rate-limit-repo'
+import { rateLimitRepo } from './rate-limit.repo'
 import {
   isOverLimit,
   type RateLimitPurpose,

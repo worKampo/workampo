@@ -2,8 +2,8 @@ import { env } from 'cloudflare:workers'
 import type { VerifiedIdentity } from '@workampo/domain/_shared/identity'
 import { describe, expect, it } from 'vitest'
 import { AccessError } from '../errors'
-import { hashSessionToken } from '../session/session-token'
-import { completeSignIn } from './complete-sign-in'
+import { hashSessionToken } from '../session/session-token.logic'
+import { completeSignIn } from './complete-sign-in.logic'
 
 describe('completeSignIn', () => {
   it('@id:access-96-2 a new identity with a free email creates the user, links it and opens a session', async () => {

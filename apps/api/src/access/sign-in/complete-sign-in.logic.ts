@@ -3,12 +3,12 @@ import { sessionExpiresAt } from '@workampo/domain/access/session/session'
 import { normalizeEmail } from '@workampo/domain/access/sign-in/email'
 import { decideSignIn, type SignInDecision } from '@workampo/domain/access/sign-in/linking'
 import { newId } from '../../_shared/ids/uuid'
+import { identityRepo } from '../data/identity.repo'
+import { sessionRepo } from '../data/session.repo'
+import { commitSignIn } from '../data/sign-in.repo'
+import { userRepo } from '../data/user.repo'
 import { AccessError } from '../errors'
-import { sessionRepo } from '../session/session-repo'
-import { hashSessionToken, newSessionToken } from '../session/session-token'
-import { userRepo } from '../users/user-repo'
-import { identityRepo } from './identity-repo'
-import { commitSignIn } from './sign-in-repo'
+import { hashSessionToken, newSessionToken } from '../session/session-token.logic'
 
 type Env = { DB_GLOBAL: D1Database }
 type SignIn = { identity: VerifiedIdentity; previousSessionToken?: string | undefined }

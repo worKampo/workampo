@@ -104,9 +104,25 @@ module.exports = {
       severity: 'error',
       from: {
         path: '^apps/[^/]+/src/',
-        pathNot: ['-repo\\.ts$', '^apps/[^/]+/src/_shared/db/'],
+        pathNot: ['\\.repo\\.ts$', '^apps/[^/]+/src/_shared/db/'],
       },
       to: { path: ['(^|node_modules/)drizzle-orm(/|$)', '^apps/[^/]+/src/_shared/db/'] },
+    },
+    {
+      name: 'route-calls-logic-only',
+      comment:
+        "An endpoint's entry validates, calls its logic and answers; data belongs to the logic (the person, 2026-11-24).",
+      severity: 'error',
+      from: { path: '\\.route\\.ts$' },
+      to: { path: '\\.repo\\.ts$' },
+    },
+    {
+      name: 'logic-without-http',
+      comment:
+        'Logic knows no Hono: the entry turns the request into arguments (the person, 2026-11-24).',
+      severity: 'error',
+      from: { path: '\\.logic\\.ts$' },
+      to: { path: '(^|node_modules/)hono(/|$)' },
     },
     {
       name: 'no-tests-in-production',
@@ -120,7 +136,8 @@ module.exports = {
   options: {
     doNotFollow: { path: 'node_modules' },
     // node_modules stays visible (doNotFollow only), or the package rules would never match.
-    exclude: { path: '(^|/)(\\.wrangler|dist)/' },
+    // Only our own build output: a package's dist/ (hono's) must stay visible to the rules.
+    exclude: { path: '(^|/)\\.wrangler/|^(apps|packages)/[^/]+/dist/' },
     tsPreCompilationDeps: true,
     tsConfig: { fileName: 'tsconfig.base.json' },
     enhancedResolveOptions: { exportsFields: ['exports'], conditionNames: ['import', 'default'] },
