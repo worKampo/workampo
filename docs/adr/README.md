@@ -4,7 +4,7 @@ Every architectural and process decision of worKampo, one file per decision ([MA
 
 - **Numbering**: `ADR-NNNN` keeps the number of the former decision `DNN`. Older text, labels and comments that cite `D53` mean [ADR-0053](0053-code-conventions.md).
 - **Gaps**: 0046, 0055 and 0061 were deferred proposals and live as [notes](#notes).
-- **Changing a decision**: a new ADR that supersedes the old one (`status: superseded by ADR-NNNN`). Accepted ADRs are not rewritten.
+- **Changing a decision**: a new ADR that supersedes the old one (`status: superseded by ADR-NNNN`). Accepted ADRs are not rewritten. When the new ADR replaces only some points, the old one stays `accepted`, its index row says "partly replaced by ADR-NNNN" and a dated Update in it names the points (ticket 148, pending the person's approval).
 - **Small adjustments** (a file moves, a pending check is resolved, a detail is decided within the decision): a dated note in an `## Updates` section of the ADR, approved by the person. If the adjustment reverses or replaces what the ADR decided, it is a new ADR instead (decided by the person on 2026-11-18).
 - **Product vision, language policy, global non-functional requirements and roadmap**: [vision](../product/vision.md).
 
@@ -60,8 +60,8 @@ Every architectural and process decision of worKampo, one file per decision ([MA
 | [ADR-0026](0026-user-changelog.md) | User changelog | accepted |
 | [ADR-0027](0027-legal-and-data-protection.md) | Legal and data protection | accepted |
 | [ADR-0028](0028-images-in-documentation.md) | Images in documentation | accepted |
-| [ADR-0029](0029-testing-strategy.md) | Testing strategy | accepted |
-| [ADR-0030](0030-test-designer.md) | Test designer | accepted |
+| [ADR-0029](0029-testing-strategy.md) | Testing strategy | accepted (partly replaced by ADR-0076) |
+| [ADR-0030](0030-test-designer.md) | Test designer | accepted (partly replaced by ADR-0076) |
 | [ADR-0031](0031-ui-ux-designer.md) | UI/UX designer: interface, accessibility and SEO | accepted |
 | [ADR-0032](0032-security-reviewer.md) | Security reviewer | accepted |
 | [ADR-0033](0033-expand-contract-migrations.md) | Expand/contract migrations | accepted |
@@ -75,7 +75,7 @@ Every architectural and process decision of worKampo, one file per decision ([MA
 | [ADR-0041](0041-agent-boundaries.md) | Agent boundaries | accepted |
 | [ADR-0042](0042-traceability.md) | Traceability between pieces | accepted (Branch and PR rows superseded by ADR-0067) |
 | [ADR-0043](0043-public-repo.md) | Public repo | accepted |
-| [ADR-0044](0044-migrations-reference-data-seeds-and-backfills.md) | Migrations, reference data, seeds and backfills | accepted |
+| [ADR-0044](0044-migrations-reference-data-seeds-and-backfills.md) | Migrations, reference data, seeds and backfills | accepted (partly replaced by ADR-0074) |
 | [ADR-0045](0045-project-profile.md) | Project profile (`project.yaml`) | accepted |
 
 ## Product capabilities and conventions
@@ -88,7 +88,7 @@ Every architectural and process decision of worKampo, one file per decision ([MA
 | [ADR-0050](0050-enter-as-staff-impersonation.md) | "Enter as" (staff impersonation) | accepted |
 | [ADR-0051](0051-stripe-checkout-and-customer-portal.md) | Billing with Stripe Checkout and Customer Portal | accepted |
 | [ADR-0052](0052-living-specs-only-and-flow-by-size.md) | Only living specs in `master`, and flow by size | accepted |
-| [ADR-0053](0053-code-conventions.md) | Code conventions | accepted (role in `members` superseded by ADR-0072) |
+| [ADR-0053](0053-code-conventions.md) | Code conventions | accepted (partly replaced by ADR-0075, role in `members` superseded by ADR-0072) |
 | [ADR-0054](0054-roles-and-permissions.md) | Roles and permissions | accepted (roles in code only, one role per member for the whole company and the three-role matrix superseded by ADR-0072) |
 
 ## Delivery, tooling and data

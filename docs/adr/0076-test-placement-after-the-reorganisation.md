@@ -14,7 +14,7 @@ related: [29, 30, 74, 75]
 
 The person, 2026-11-24:
 
-- `apps/<app>/test/` holds only the test setup. Every test sits beside the code it covers: a unit test beside its file, a use case's integration test in its folder, a suite that tests the whole system beside its entry point (`apps/api/src/index.int.test.ts`, `apps/web/src/_shared/headers.test.ts`).
+- `apps/<app>/test/` holds only the test setup. Every unit and integration test sits beside the code it covers: a unit test beside its file, a use case's integration test in its folder, a suite that tests the whole system beside its entry point (`apps/api/src/index.int.test.ts`, `apps/web/src/_shared/headers.test.ts`). E2E scenarios keep their own `apps/<app>/e2e/` tree, since they test the product through the browser rather than one module; which app holds each one is issue 150.
 - The `make<Entity>` factories serve tests and E2E. Seeds do not use them, since they are SQL.
 - Before the acceptance commits a PR may carry commits that touch only `docs/` and `.work/`, as the check does.
 
