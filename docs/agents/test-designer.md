@@ -20,7 +20,7 @@ Files on the branch, then the [return format](orchestrator.md#return):
 
 1. **Living-spec diff** in `docs/domains/<domain>.md` ([domains](../domains/README.md)): the approved examples under `@wip(#n)` with their `@id:<domain>-<issue>-<n>`, assigned by `pnpm specs:ids` ([living specs](../procedures/living-specs.md)).
 2. **Failing tests** next to the code (`*.test.ts`, `*.int.test.ts`), marked `it.fails`, each citing its `@id`, plus the fixed edge cases of [ADR-0029](../adr/0029-testing-strategy.md) (limits, nulls, unicode, concurrency, isolation).
-3. **Protected acceptance scenarios**: one Playwright E2E per approved example in `apps/<app>/e2e/acceptance/` (the web's in `apps/api/e2e/acceptance/`, since the API Worker serves it), citing its `@id` and walking the app as a user would.
+3. **Protected acceptance scenarios**: one Playwright E2E per approved example in `apps/<app>/e2e/acceptance/` (journeys through the pages in `apps/web/e2e/acceptance/`, server behaviour in `apps/api/e2e/acceptance/`), citing its `@id` and walking the app as a user would.
 4. `pnpm check` green with the `it.fails` marks.
 
 ## Must not
