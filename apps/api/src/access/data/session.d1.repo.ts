@@ -1,4 +1,4 @@
-import { sessions } from '@workampo/db/schema/global'
+import { sessions } from '@workampo/db/schema/global.d1'
 import { and, eq, isNull } from 'drizzle-orm'
 import { globalDb } from '../../_shared/db/d1-global-db'
 

@@ -10,7 +10,7 @@ declare global {
 
 // Relative to this file: Vitest runs from apps/api, knip loads the config from the repo root.
 const migrations = await readD1Migrations(
-  `${import.meta.dirname}/../../packages/db/migrations/global`,
+  `${import.meta.dirname}/../../packages/db/migrations/global.d1`,
 )
 
 export default defineConfig({

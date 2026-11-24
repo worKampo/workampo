@@ -35,13 +35,13 @@
       "binding": "DB_GLOBAL",
       "database_name": "global-local",
       "database_id": "local-global",
-      "migrations_dir": "../../packages/db/migrations/global"
+      "migrations_dir": "../../packages/db/migrations/global.d1"
     },
     {
       "binding": "DB_SHARD_1",
       "database_name": "shard-1-local",
       "database_id": "local-shard-1",
-      "migrations_dir": "../../packages/db/migrations/shard"
+      "migrations_dir": "../../packages/db/migrations/shard.d1"
     }
   ],
   "kv_namespaces": [{ "binding": "LANDINGS", "id": "local-landings" }],
@@ -70,13 +70,13 @@
           "binding": "DB_GLOBAL",
           "database_name": "global-stg",
           "database_id": "ad46c99f-d19a-4294-97c3-16c15216d8cd",
-          "migrations_dir": "../../packages/db/migrations/global"
+          "migrations_dir": "../../packages/db/migrations/global.d1"
         },
         {
           "binding": "DB_SHARD_1",
           "database_name": "shard-1-stg",
           "database_id": "bd793fd5-ff0d-4646-a123-c29b06b95adf",
-          "migrations_dir": "../../packages/db/migrations/shard"
+          "migrations_dir": "../../packages/db/migrations/shard.d1"
         }
       ]
     },
@@ -102,13 +102,13 @@
           "binding": "DB_GLOBAL",
           "database_name": "global-prod",
           "database_id": "e8fe587d-c9de-427b-ade8-18d7e5211946",
-          "migrations_dir": "../../packages/db/migrations/global"
+          "migrations_dir": "../../packages/db/migrations/global.d1"
         },
         {
           "binding": "DB_SHARD_1",
           "database_name": "shard-1-prod",
           "database_id": "fe346f76-d75b-4c8b-808d-2122aa6bed20",
-          "migrations_dir": "../../packages/db/migrations/shard"
+          "migrations_dir": "../../packages/db/migrations/shard.d1"
         }
       ]
     }

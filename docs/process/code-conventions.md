@@ -132,7 +132,7 @@ Use one name end to end: living-spec rule (`@id:companies-15-1`) â†’ use case â†
 
 - `tenant_id` on every company table; indexes on company tables start with `tenant_id`.
 - Name the table by its glossary concept (`members`, not `company_users`). Technical link without a name: `<entity>_<entities>`. 1:1 extension: `<entity>_<aspect>` in plural.
-- Which database: `DB_GLOBAL` holds what is needed before knowing the shard or between companies (users, sessions, registry with name and logo, `members`, `invitations`, billing, plans, flags, staff); the shard holds what the company creates. Declare each table in `schema/global.ts` or `schema/shard.ts` ([ADR-0053 section](../adr/0053-code-conventions.md) has the full list).
+- Which database: `DB_GLOBAL` holds what is needed before knowing the shard or between companies (users, sessions, registry with name and logo, `members`, `invitations`, billing, plans, flags, staff); the shard holds what the company creates. Declare each table in `schema/global.d1.ts` or `schema/shard.d1.ts`, one schema per engine ([ADR-0077](../adr/0077-database-engines-behind-the-repos.md)) ([ADR-0053 section](../adr/0053-code-conventions.md) has the full list).
 - Deleting a company touches two databases: mark it "being deleted" first, then a Workflow purges the shard, then the global data.
 
 | Topic | Rule |
@@ -155,7 +155,7 @@ Use one name end to end: living-spec rule (`@id:companies-15-1`) â†’ use case â†
 - Indexes: `idx_<table>__<columns>`, `uq_<table>__<columns>`; index every reference column; uniqueness per company where it applies.
 - Concurrency: a `version` integer on whatever is edited on screen; write with `WHERE version = ?` and warn the user if nothing updates.
 - Deletion: real delete by default, with its `audit_events` row. Soft delete only where the product offers undo or restore, as a `status` value (`archived` / `deleted` + `deleted_at`); the repo filters it by default, unique indexes are partial, a Workflow purges after N days.
-- History: `audit_events` is append-only (`id`, `tenant_id`, `actor_id`, `action`, `target_type`, `target_id`, `changes`, `request_id`, `created_at`). Each database records its own changes in the same `batch()` through a repo helper, no triggers. `changes` holds ids and changed fields only, no copied personal data, never secrets.
+- History: `audit_events` is append-only (`id`, `tenant_id`, `actor_id`, `action`, `target_type`, `target_id`, `changes`, `request_id`, `created_at`). Each database records its own changes in the same atomic write of the repo (`batch()` in D1, a transaction in another engine), no triggers. `changes` holds ids and changed fields only, no copied personal data, never secrets.
 - Tests: each integration test starts from a clean database with migrations applied, data from the factories ([ADR-0029](../adr/0029-testing-strategy.md)).
 
 ## IDs, dates, money

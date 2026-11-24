@@ -1,4 +1,4 @@
-import { identities, users } from '@workampo/db/schema/global'
+import { identities, users } from '@workampo/db/schema/global.d1'
 import type { VerifiedIdentity } from '@workampo/domain/_shared/identity'
 import { and, eq } from 'drizzle-orm'
 import { globalDb } from '../../_shared/db/d1-global-db'

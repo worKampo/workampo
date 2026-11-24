@@ -1,5 +1,5 @@
 import { env } from 'cloudflare:workers'
-import { users } from '@workampo/db/schema/global'
+import { users } from '@workampo/db/schema/global.d1'
 import { expect, it } from 'vitest'
 import { globalDb } from './d1-global-db'
 

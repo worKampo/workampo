@@ -1,4 +1,4 @@
-import { rateLimitCounters } from '@workampo/db/schema/global'
+import { rateLimitCounters } from '@workampo/db/schema/global.d1'
 import { lt, sql } from 'drizzle-orm'
 import { globalDb } from '../db/d1-global-db'
 
