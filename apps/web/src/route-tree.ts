@@ -1,6 +1,6 @@
 import type { createAppRouter } from './_shared/router/create-app-router'
 import { rootRoute } from './_shared/router/root-route'
-import { accessRoutes } from './access/routes'
+import { accessRoutes } from './access/access.route'
 
 // Every domain adds its routes here.
 export const routeTree = rootRoute.addChildren([...accessRoutes])

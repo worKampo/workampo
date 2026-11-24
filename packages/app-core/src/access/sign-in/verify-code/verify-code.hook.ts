@@ -1,13 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { useApiClient } from '../../_shared/api-client-context'
-import { ME_QUERY_KEY } from '../query-keys'
-import { startCodeSignIn, verifyCode } from './sign-in-api'
-
-export function useStartCodeSignIn() {
-  const client = useApiClient()
-
-  return useMutation({ mutationFn: (input: { email: string }) => startCodeSignIn(client, input) })
-}
+import { useApiClient } from '../../../_shared/api-client-context'
+import { ME_QUERY_KEY } from '../../data/query-keys'
+import { verifyCode } from '../../data/sign-in.api'
 
 export function useVerifyCode() {
   const client = useApiClient()

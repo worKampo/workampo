@@ -3,7 +3,7 @@ import { startCodeSignInSchema } from '@workampo/domain/access/sign-in/sign-in-c
 import { resolveLanguage } from '@workampo/i18n/resolve-language'
 import { Hono } from 'hono'
 import type { AppEnv } from '../../../_shared/http/app-env'
-import { requestOrigin } from '../../../_shared/http/request-origin'
+import { requestOrigin } from '../../../_shared/http/cloudflare-request-origin'
 import { identityProvider } from '../../../_shared/identity/provider-registry'
 import { AccessError } from '../../errors'
 import { startCodeSignIn } from './start-code.logic'

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { fakeApi, problem } from '../../_shared/testing/fake-api'
-import { getMe, signOut } from './session-api'
+import { getMe, signOut } from './session.api'
 
 describe('session api', () => {
   it('@id:access-96-2 reads the signed-in user', async () => {

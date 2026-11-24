@@ -2,7 +2,7 @@ import { isSessionValid } from '@workampo/domain/access/session/session'
 import { createMiddleware } from 'hono/factory'
 import type { AppEnv } from '../_shared/http/app-env'
 import { problemJson } from '../_shared/http/problem-json'
-import { sessionRepo } from './data/session.repo'
+import { sessionRepo } from './data/session.d1.repo'
 import { readSessionCookie } from './session/session.cookie'
 import { hashSessionToken } from './session/session-token.logic'
 

@@ -2,12 +2,13 @@ import { Hono } from 'hono'
 import { csrf } from 'hono/csrf'
 import { parsedEnv } from './_shared/env'
 import { errorTracking } from './_shared/error-tracking/sentry-error-tracking'
-import { type AppEnv, deployedSha } from './_shared/http/app-env'
+import type { AppEnv } from './_shared/http/app-env'
 import { appVersionHeader } from './_shared/http/app-version-header'
 import { clientVersionLog } from './_shared/http/client-version-log'
+import { deployedSha, versionId } from './_shared/http/cloudflare-version'
 import { mountProviderPages } from './_shared/identity/provider-registry'
 import { deleteExpiredCounters } from './_shared/rate-limit/delete-expired-counters'
-import { accessRoutes } from './access/access.routes'
+import { accessRouter } from './access/access.router'
 
 export const app = new Hono<AppEnv>()
 
@@ -20,7 +21,7 @@ app.on('POST', '/api/*', csrf())
 app.use('/api/*', parsedEnv)
 mountProviderPages(app)
 
-const api = app.route('/api', accessRoutes)
+const api = app.route('/api', accessRouter)
 
 // The typed contract of hc (ADR-0019); clients import it as a type only.
 export type AppType = typeof api
@@ -30,7 +31,7 @@ app.get('/health', (c) =>
   c.json({
     status: 'ok',
     sha: deployedSha(c.env) ?? 'local',
-    version: c.env.CF_VERSION_METADATA.id,
+    version: versionId(c.env),
     environment: c.env.ENVIRONMENT,
   }),
 )

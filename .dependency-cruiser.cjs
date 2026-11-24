@@ -26,7 +26,14 @@ module.exports = {
         'packages/app-core is shared with the mobile app: no react-dom, nothing of apps/web (ADR-0057).',
       severity: 'error',
       from: { path: '^packages/app-core/', pathNot: '\\.test\\.ts$' },
-      to: { path: ['(^|node_modules/)react-dom(/|$)', '^apps/web/'] },
+      // Nor the router: a page hook gets navigation as a callback, so the mobile app can reuse it.
+      to: {
+        path: [
+          '(^|node_modules/)react-dom(/|$)',
+          '(^|node_modules/)@tanstack/react-router(/|$)',
+          '^apps/web/',
+        ],
+      },
     },
     {
       name: 'domain-is-pure',
@@ -78,25 +85,71 @@ module.exports = {
       to: { path: '(^|node_modules/)@sentry/' },
     },
     {
-      name: 'screens-only-from-their-routes',
+      name: 'pages-only-from-their-route',
       comment:
-        'A screen is imported only, lazily, by its own feature routes file: anything else would pull it into its chunk (code conventions).',
+        'A page is imported only, lazily, by its own feature route file: anything else would pull it into its chunk (code conventions).',
       severity: 'error',
-      from: { path: '^apps/web/src/', pathNot: ['-routes\\.tsx?$', '\\.test\\.tsx?$'] },
-      to: { path: '-screen\\.tsx$', dependencyTypesNot: ['type-only'] },
+      // Only a feature's route file: the domain's only gathers routes.
+      from: {
+        path: '^apps/web/src/',
+        pathNot: ['^apps/web/src/[^/]+/[^/]+/[^/]+\\.route\\.ts$', '\\.test\\.tsx?$'],
+      },
+      to: { path: '\\.page\\.tsx$', dependencyTypesNot: ['type-only'] },
     },
     {
-      name: 'screens-loaded-lazily',
-      comment: 'Even its own routes file imports a screen only with import() (ADR-0073 point 4).',
+      name: 'pages-loaded-lazily',
+      comment: 'Even its own route file imports a page only with import() (ADR-0073 point 4).',
       severity: 'error',
       from: { path: '^apps/web/src/', pathNot: '\\.test\\.tsx?$' },
-      to: { path: '-screen\\.tsx$', dynamic: false, dependencyTypesNot: ['type-only'] },
+      to: { path: '\\.page\\.tsx$', dynamic: false, dependencyTypesNot: ['type-only'] },
     },
     {
-      name: 'screens-only-from-their-own-routes',
+      name: 'pages-only-from-their-own-route',
       severity: 'error',
-      from: { path: '^(apps/web/src/.+)/[^/]+-routes\\.tsx?$' },
-      to: { path: '-screen\\.tsx$', pathNot: '^$1/[^/]+-screen\\.tsx$' },
+      from: { path: '^(apps/web/src/[^/]+/[^/]+)/[^/]+\\.route\\.ts$' },
+      to: {
+        path: '\\.page\\.tsx$',
+        pathNot: ['^$1/[^/]+\\.page\\.tsx$', '^$1/[^/]+/[^/]+\\.page\\.tsx$'],
+      },
+    },
+    {
+      name: 'page-pieces-stay-in-their-page',
+      comment:
+        "A component inside a page's folder belongs to that page; shared ones move up a level (the person, 2026-11-24).",
+      severity: 'error',
+      from: { path: '^(.+)/[^/]+$', pathNot: '\\.test\\.tsx?$' },
+      to: {
+        path: '^apps/web/src/[^_/][^/]*/[^/]+/[^/]+/[^/.]+\\.tsx$',
+        // Only its own folder: a component is no one else's, not even its feature route's.
+        pathNot: '^$1/[^/]+$',
+      },
+    },
+    {
+      name: 'apps-call-the-api-through-app-core',
+      comment:
+        'Pages and their pieces use hooks; only app-core talks to the API (the person, 2026-11-24).',
+      severity: 'error',
+      from: { path: '^apps/web/src/' },
+      to: { path: '(^|node_modules/)hono(/|$)' },
+    },
+    {
+      name: 'only-api-files-use-the-client',
+      comment:
+        "In app-core only the .api.ts files and the client's own module use hc (the person, 2026-11-24).",
+      severity: 'error',
+      from: {
+        path: '^packages/app-core/src/',
+        pathNot: ['\\.api\\.ts$', '/_shared/api-client\\.ts$', '/_shared/testing/'],
+      },
+      to: { path: '(^|node_modules/)hono/(dist/)?client' },
+    },
+    {
+      name: 'provider-in-the-name',
+      comment:
+        'A file that uses a provider says so in its name, even when it is the only one (the person, 2026-11-24).',
+      severity: 'error',
+      from: { path: '^(apps|packages)/', pathNot: ['(^|/|\\.)d1[-.]', '\\.test\\.ts$'] },
+      to: { path: ['^apps/[^/]+/src/_shared/db/d1-', '(^|node_modules/)drizzle-orm/d1(/|$)'] },
     },
     {
       name: 'database-seam',

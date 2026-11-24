@@ -11,13 +11,13 @@ import { gzipSync } from 'node:zlib'
 export const BUDGETS = [
   {
     name: '/login',
-    screen: 'src/access/sign-in/login-screen.tsx',
+    screen: 'src/access/sign-in/login/login.page.tsx',
     namespaces: ['common', 'access'],
     maxBytes: 172_700,
   },
   {
     name: 'signed-in shell',
-    screen: 'src/access/home/home-screen.tsx',
+    screen: 'src/access/home/home.page.tsx',
     namespaces: ['common', 'access'],
     maxBytes: 132_800,
   },
