@@ -53,14 +53,24 @@ export function initialChunks(manifest, { screen, namespaces = [] }) {
 
 // Looks in the chunks' text, not the manifest: a JSON imported statically is inlined into its
 // importer and has no chunk of its own.
-export function budgetErrors({ manifest, gzipSize, readText, texts = [], budgets = BUDGETS }) {
+export function budgetErrors({
+  manifest,
+  gzipSize,
+  readText = () => '',
+  texts = [],
+  budgets = BUDGETS,
+}) {
   return budgets.flatMap((budget) => {
     const { name, screen, maxBytes } = budget
     if (!manifest[screen]) return [`${name}: ${screen} is not a chunk of the build`]
 
     const bytes = initialChunks(manifest, budget).reduce((sum, file) => sum + gzipSize(file), 0)
     const errors = initialChunks(manifest, { screen })
-      .filter((file) => texts.some((text) => readText(file).includes(text)))
+      .filter((file) => {
+        const code = readText(file)
+
+        return texts.some((text) => code.includes(text))
+      })
       .map((file) => `${name}: ${file} carries translations; texts load per language on demand`)
 
     return bytes > maxBytes
@@ -69,7 +79,8 @@ export function budgetErrors({ manifest, gzipSize, readText, texts = [], budgets
   })
 }
 
-// Every text long enough to be unmistakable, from every language; _context/ is for translators.
+// The longest stretch of each text without quotes or backslashes, which a minifier may escape,
+// when it is long enough to be unmistakable; every language, _context/ is for translators.
 export function translationTexts(localesDir) {
   const values = (node) => (typeof node === 'string' ? [node] : Object.values(node).flatMap(values))
 
@@ -80,7 +91,8 @@ export function translationTexts(localesDir) {
         values(JSON.parse(readFileSync(join(localesDir, language, file), 'utf8'))),
       ),
     )
-    .filter((text) => text.length >= 12 && !/["'`\\]/.test(text))
+    .map((text) => text.split(/["'`\\]/).reduce((a, b) => (b.length > a.length ? b : a)))
+    .filter((text) => text.length >= 12)
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
