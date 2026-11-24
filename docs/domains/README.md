@@ -48,6 +48,8 @@ Gherkin tags ([ADR-0052](../adr/0052-living-specs-only-and-flow-by-size.md), [AD
 
 What is under construction across the product is seen on the board, not in `master`.
 
+Design-system components (`packages/ui`) are not a domain: their rules and examples live in [`docs/design/components.md`](../design/components.md), numbered E1, E2… without `@id`, and their tests cite those numbers (the person, ticket 126).
+
 ## Changing a rule
 
 1. The examples are approved in the issue (moment 1, [ADR-0020](../adr/0020-ticket-lifecycle.md)).

@@ -92,6 +92,20 @@
   --c4: #6d4aa8;
   --cmp: #6b6b6b;
 
+  /* avatars: identity, not data or status (ADR-0070, 2026-11-24): violet, plum, slate, brown, teal, olive; initials AA */
+  --avatar-1-bg: #ece6fb;
+  --avatar-1-fg: #5b3cc4;
+  --avatar-2-bg: #f7e4f1;
+  --avatar-2-fg: #8e2a6f;
+  --avatar-3-bg: #e4e8ee;
+  --avatar-3-fg: #3d4757;
+  --avatar-4-bg: #f2eadd;
+  --avatar-4-fg: #6e5023;
+  --avatar-5-bg: #dcefee;
+  --avatar-5-fg: #135f5e;
+  --avatar-6-bg: #ebeed6;
+  --avatar-6-fg: #55600f;
+
   /* elevation */
   --shadow-pop: 0 2px 4px -2px rgba(0, 0, 0, 0.1), 0 18px 40px -14px rgba(0, 0, 0, 0.32);
   --shadow-modal: 0 24px 60px -20px rgba(0, 0, 0, 0.45);
@@ -202,6 +216,19 @@
   --c4: #b195e8;
   --cmp: #9a9a9a;
 
+  --avatar-1-bg: #2a2147;
+  --avatar-1-fg: #c9b9ff;
+  --avatar-2-bg: #3d1a33;
+  --avatar-2-fg: #f2a9d9;
+  --avatar-3-bg: #232a35;
+  --avatar-3-fg: #c3ccda;
+  --avatar-4-bg: #33281a;
+  --avatar-4-fg: #e5c99d;
+  --avatar-5-bg: #12302f;
+  --avatar-5-fg: #8fd9d6;
+  --avatar-6-bg: #2a2f12;
+  --avatar-6-fg: #cfd98a;
+
   /* shadows and scrim are the same in both themes; the shadcn mapping inherits from :root */
 }
 
@@ -211,6 +238,9 @@
   /* Body (app base) of the type scale, docs/design/README.md: text-body. */
   --text-body: 13px;
   --text-body--line-height: 20px;
+  /* Person avatar initials, docs/design/components.md (Avatars). */
+  --text-avatar: 11px;
+  --text-avatar-lg: 15px;
 
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -272,6 +302,18 @@
   --color-brand-green-tint: var(--brand-green-tint);
   --color-brand-orange-tint: var(--brand-orange-tint);
   --color-cmp: var(--cmp);
+  --color-avatar-1-bg: var(--avatar-1-bg);
+  --color-avatar-1-fg: var(--avatar-1-fg);
+  --color-avatar-2-bg: var(--avatar-2-bg);
+  --color-avatar-2-fg: var(--avatar-2-fg);
+  --color-avatar-3-bg: var(--avatar-3-bg);
+  --color-avatar-3-fg: var(--avatar-3-fg);
+  --color-avatar-4-bg: var(--avatar-4-bg);
+  --color-avatar-4-fg: var(--avatar-4-fg);
+  --color-avatar-5-bg: var(--avatar-5-bg);
+  --color-avatar-5-fg: var(--avatar-5-fg);
+  --color-avatar-6-bg: var(--avatar-6-bg);
+  --color-avatar-6-fg: var(--avatar-6-fg);
   --color-scrim: var(--scrim);
 
   --color-background: var(--background);

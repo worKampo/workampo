@@ -32,3 +32,4 @@ This supersedes in part ADR-0066: "Ink is the only accent", "no brand colour in 
 ## Updates
 
 - 2026-11-23 (the person, ticket 135): the tokens live in `packages/ui/src/styles/tokens.css`, not `docs/design/tokens.css`.
+- 2026-11-24 (the person, ticket 126): exception for avatars. A colour from a fixed palette of six (`--avatar-1..6`) identifies a person or company by its initials; it is not data, status or a business moment. The hues avoid positive, negative, warning, info and commercial; palette and contrast in [`components.md`](../design/components.md#avatars).
