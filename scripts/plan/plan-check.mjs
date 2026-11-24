@@ -76,8 +76,11 @@ export function checkPlan(text) {
 
 // The design of an L ticket names its seams before any code (issue 111).
 export function checkDesign(text) {
-  // A heading of the file itself, not one inside a fenced example.
-  return /^## Seams and sharing\s*$/m.test(text.replace(/^```[\s\S]*?^```/gm, ''))
+  // A heading of the file itself, not one inside a fenced example or an HTML comment.
+  // A space, not '', so removing one never joins its neighbours into another (CodeQL).
+  const visible = text.replace(/^```[\s\S]*?^```/gm, ' ').replace(/<!--[\s\S]*?-->/g, ' ')
+
+  return /^## Seams and sharing\s*$/m.test(visible)
     ? []
     : ['plan.md has no "## Seams and sharing" section (docs/process/templates/plan.md)']
 }
