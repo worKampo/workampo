@@ -5,7 +5,7 @@ import { googleStartRoute } from './google-start/google-start.route'
 import { startCodeRoute } from './start-code/start-code.route'
 import { verifyCodeRoute } from './verify-code/verify-code.route'
 
-export const signInRoutes = new Hono<AppEnv>()
+export const signInRouter = new Hono<AppEnv>()
   .route('/', startCodeRoute)
   .route('/', verifyCodeRoute)
   .route('/', googleStartRoute)

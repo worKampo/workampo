@@ -26,3 +26,7 @@ This replaces the hyphenated `-route.ts`, `-routes.ts` and `-repo.ts` names of t
 - A change to an endpoint stays in its folder, and every query of a table is in one file.
 - Every endpoint has a logic file, even a two-line one: no exception to remember.
 - The web and `packages/app-core` follow the same idea in issue 146.
+
+## Updates
+
+- 2026-11-24 (the person, ticket 146): the suffix says the type of what is inside, always in the singular, so the lists of routes are `<name>.router.ts` (`access.router.ts`, `sign-in.router.ts`); `<endpoint>.route.ts` stays one endpoint. Every file that uses a provider names it, even when it is the only one: the repos are `<table>.d1.repo.ts`, and Cloudflare's own reads live in `cloudflare-request-origin.ts` and `cloudflare-version.ts`.

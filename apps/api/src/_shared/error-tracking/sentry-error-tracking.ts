@@ -1,6 +1,7 @@
 import { sentry } from '@sentry/hono/cloudflare'
 import type { Hono } from 'hono'
-import { type AppEnv, deployedSha } from '../http/app-env'
+import type { AppEnv } from '../http/app-env'
+import { deployedSha } from '../http/cloudflare-version'
 
 // Without SENTRY_DSN (local, tests) the SDK sends nothing.
 export function errorTracking(app: Hono<AppEnv>) {

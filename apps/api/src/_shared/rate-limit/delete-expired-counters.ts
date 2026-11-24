@@ -1,4 +1,4 @@
-import { rateLimitRepo } from './rate-limit.repo'
+import { rateLimitRepo } from './rate-limit.d1.repo'
 
 // A counter whose window has ended can never block again; the daily cron removes it.
 export async function deleteExpiredCounters(env: { DB_GLOBAL: D1Database }, now: Date) {

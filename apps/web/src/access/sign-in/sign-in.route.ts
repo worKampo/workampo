@@ -16,14 +16,14 @@ export const loginRoute = createRoute({
   validateSearch: (search: Record<string, unknown>): { error?: AccessErrorCode } =>
     isAccessErrorCode(search.error) ? { error: search.error } : {},
 }).lazy(() =>
-  import('./login-screen').then(({ LoginScreen }) =>
-    createLazyRoute('/login')({ component: LoginScreen }),
+  import('./login/login.page').then(({ LoginPage }) =>
+    createLazyRoute('/login')({ component: LoginPage }),
   ),
 )
 
 export const codeRoute = createRoute({ getParentRoute: () => rootRoute, path: '/login/code' }).lazy(
   () =>
-    import('./code-screen').then(({ CodeScreen }) =>
-      createLazyRoute('/login/code')({ component: CodeScreen }),
+    import('./code/code.page').then(({ CodePage }) =>
+      createLazyRoute('/login/code')({ component: CodePage }),
     ),
 )

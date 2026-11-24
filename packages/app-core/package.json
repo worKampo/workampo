@@ -6,10 +6,10 @@
     "./api-client": "./src/_shared/api-client.ts",
     "./api-client-context": "./src/_shared/api-client-context.ts",
     "./errors": "./src/_shared/error-key.ts",
-    "./access/query-keys": "./src/access/query-keys.ts",
-    "./access/sign-in/sign-in-hooks": "./src/access/sign-in/sign-in-hooks.ts",
-    "./access/sign-in/sign-in-forms": "./src/access/sign-in/sign-in-forms.ts",
-    "./access/session/session-hooks": "./src/access/session/session-hooks.ts"
+    "./access/session/me": "./src/access/session/me/me.hook.ts",
+    "./access/session/sign-out": "./src/access/session/sign-out/sign-out.hook.ts",
+    "./access/sign-in/code": "./src/access/sign-in/code/code.hook.ts",
+    "./access/sign-in/login": "./src/access/sign-in/login/login.hook.ts"
   },
   "scripts": {
     "typecheck": "tsc",
@@ -23,7 +23,9 @@
   "peerDependencies": {
     "@workampo/api": "workspace:*",
     "@tanstack/react-query": "^5.108.0",
-    "react": "^19.1.10"
+    "react": "^19.1.10",
+    "@hookform/resolvers": "^7.0.7",
+    "react-hook-form": "^7.92.0"
   },
   "devDependencies": {
     "@biomejs/biome": "2.6.7",
@@ -36,6 +38,8 @@
     "react": "19.1.10",
     "react-dom": "19.1.10",
     "typescript": "6.0.3",
-    "vitest": "5.1.0"
+    "vitest": "5.1.0",
+    "@hookform/resolvers": "7.0.7",
+    "react-hook-form": "7.92.0"
   }
 }

@@ -1,5 +1,5 @@
 import { createLazyRoute, createRoute, redirect } from '@tanstack/react-router'
-import { meQueryOptions } from '@workampo/app-core/access/session/session-hooks'
+import { meQueryOptions } from '@workampo/app-core/access/session/me'
 import { rootRoute } from '../../_shared/router/root-route'
 
 export const homeRoute = createRoute({
@@ -11,5 +11,5 @@ export const homeRoute = createRoute({
     if (!me) throw redirect({ to: '/login' })
   },
 }).lazy(() =>
-  import('./home-screen').then(({ HomeScreen }) => createLazyRoute('/')({ component: HomeScreen })),
+  import('./home.page').then(({ HomePage }) => createLazyRoute('/')({ component: HomePage })),
 )

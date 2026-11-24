@@ -1,5 +1,5 @@
 import { useNavigate } from '@tanstack/react-router'
-import { useSignOut } from '@workampo/app-core/access/session/session-hooks'
+import { useSignOut } from '@workampo/app-core/access/session/sign-out'
 import { errorKeyOf } from '@workampo/app-core/errors'
 import { Button } from '@workampo/ui/actions'
 import { Text } from '@workampo/ui/content'
