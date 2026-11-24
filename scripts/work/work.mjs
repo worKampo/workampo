@@ -692,9 +692,18 @@ ${summary?.trim() || '<!-- Filled by the agent: pnpm work pr --body-file <summar
 `
 }
 
+// Opening the PR is step 8 whatever step .work/PROGRESS.md was last left at.
 export function progressComment(progress, tasks) {
   const table = (tasks ?? '').split(/\r?\n/).filter((line) => line.startsWith('|'))
-  return `${progress.trim()}${table.length ? `\n\n## Tasks\n\n${table.join('\n')}` : ''}\n`
+  const atReview = progress
+    .trim()
+    .replace(/^Step: .*$/m, 'Step: Deliver › Pull request')
+    .replace(
+      /^Next: .*$/m,
+      'Next: review rounds with pnpm work review <pr> --wait (docs/process/cycle.md#pr-review)',
+    )
+
+  return `${atReview}${table.length ? `\n\n## Tasks\n\n${table.join('\n')}` : ''}\n`
 }
 
 export function closeComment(learning) {
