@@ -1,5 +1,10 @@
 import { expect, test } from '@playwright/test'
-import { EMPTY_STATE, expectSignedOut, SESSION_COOKIE, signInWithGoogle } from './support'
+import {
+  EMPTY_STATE,
+  expectSignedOut,
+  SESSION_COOKIE,
+  signInWithGoogle,
+} from '../../../api/e2e/acceptance/support'
 
 test.use({ locale: 'es-ES' })
 

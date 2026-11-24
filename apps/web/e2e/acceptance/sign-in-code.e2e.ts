@@ -9,7 +9,7 @@ import {
   RESEND,
   requestCode,
   signInWithCode,
-} from './support'
+} from '../../../api/e2e/acceptance/support'
 
 test.use({ locale: 'es-ES' })
 

@@ -24,3 +24,7 @@ This replaces those three points of ADR-0029 and ADR-0030; the rest of both stan
 
 - A test is found where its code is: no separate tree to keep in step.
 - The ordering check and the ADR say the same, so a plan or progress file of any name in `.work/` never blocks a PR.
+
+## Updates
+
+- 2026-11-24 (the person, ticket 150): E2E go with what they cover. Journeys through the pages live in `apps/web/e2e/` (sign-in screens, code, Google, the staging smoke); server behaviour in `apps/api/e2e/` (session cookie and expiry, rate limits, linking, `/health`). Both suites start the same API Worker, which serves the web; the shared helpers stay in `apps/api/e2e/acceptance/support.ts`.
