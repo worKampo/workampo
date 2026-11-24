@@ -684,11 +684,14 @@ export function prLabels(issue) {
 }
 
 export function prBody({ number, parent, summary }) {
-  return `${parent ? `PRD #${parent}\n` : ''}Ticket #${number}
+  // The heading is ours: a summary that starts with its own would show it twice.
+  const text = summary?.trim().replace(/^## Summary\s*/, '')
+
+  return `${parent ? `PRD #${parent}` : 'PRD: none'}\nTicket #${number}
 
 ## Summary
 
-${summary?.trim() || '<!-- Filled by the agent: pnpm work pr --body-file <summary.md> -->'}
+${text || '<!-- Filled by the agent: pnpm work pr --body-file <summary.md> -->'}
 `
 }
 

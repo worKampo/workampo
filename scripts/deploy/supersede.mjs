@@ -15,11 +15,35 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   if (!currentId) throw new Error('GITHUB_RUN_ID is not set: run this from Actions')
 
   const gh = (args) => execFileSync('gh', args, { encoding: 'utf8' })
+  // Only the pushes to master that this workflow deploys; 100 is far above any real backlog.
   const waiting = JSON.parse(
-    gh(['run', 'list', '--workflow', 'deploy.yml', '--status', 'waiting', '--json', 'databaseId']),
+    gh([
+      'run',
+      'list',
+      '--workflow',
+      'deploy.yml',
+      '--branch',
+      'master',
+      '--event',
+      'push',
+      '--status',
+      'waiting',
+      '--limit',
+      '100',
+      '--json',
+      'databaseId',
+    ]),
   )
-  const ids = runsToCancel({ waiting, currentId })
-
-  for (const id of ids) gh(['run', 'cancel', String(id)])
-  console.log(ids.length ? `Cancelled waiting runs: ${ids.join(', ')}` : 'No older run waiting.')
+  const failed = []
+  for (const id of runsToCancel({ waiting, currentId })) {
+    try {
+      gh(['run', 'cancel', String(id)])
+      console.log(`Cancelled waiting run ${id}`)
+    } catch (error) {
+      // One run that cannot be cancelled must not keep the others waiting.
+      failed.push(id)
+      console.error(`Could not cancel run ${id}: ${error.message}`)
+    }
+  }
+  if (failed.length) process.exit(1)
 }
