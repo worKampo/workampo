@@ -9,9 +9,9 @@ declare global {
 }
 
 // Relative to this file: Vitest runs from apps/api, knip loads the config from the repo root.
-const migrations = await readD1Migrations(
-  `${import.meta.dirname}/../../packages/db/migrations/global.d1`,
-)
+const migrationsDir = `${import.meta.dirname}/../../packages/db/migrations`
+const globalMigrations = await readD1Migrations(`${migrationsDir}/global.d1`)
+const shardMigrations = await readD1Migrations(`${migrationsDir}/shard.d1`)
 
 export default defineConfig({
   plugins: [
@@ -19,7 +19,11 @@ export default defineConfig({
       wrangler: { configPath: './wrangler.jsonc' },
       // The local per-IP limit is high for E2E, where every request comes from one IP.
       miniflare: {
-        bindings: { TEST_MIGRATIONS: migrations, RATE_LIMIT_CODE_REQUESTS_PER_IP: '20' },
+        bindings: {
+          TEST_GLOBAL_MIGRATIONS: globalMigrations,
+          TEST_SHARD_MIGRATIONS: shardMigrations,
+          RATE_LIMIT_CODE_REQUESTS_PER_IP: '20',
+        },
       },
     }),
   ],

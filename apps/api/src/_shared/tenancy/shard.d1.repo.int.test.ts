@@ -38,7 +38,7 @@ async function insertShard(bindingName: string) {
 }
 
 describe('shardClient', () => {
-  it.fails('@id:companies-90-1 the migrations leave shard-1 on the d1 engine and DB_SHARD_1, with no credentials', async () => {
+  it('@id:companies-90-1 the migrations leave shard-1 on the d1 engine and DB_SHARD_1, with no credentials', async () => {
     const rows = await env.DB_GLOBAL.prepare('SELECT * FROM shards').all()
 
     expect(rows.results).toEqual([
@@ -64,7 +64,7 @@ describe('shardClient', () => {
     await refusal(pointsNowhere)
   })
 
-  it.fails('@id:companies-90-12 a shard engine other than d1 cannot be stored', async () => {
+  it('@id:companies-90-12 a shard engine other than d1 cannot be stored', async () => {
     const writing = env.DB_GLOBAL.prepare(
       "INSERT INTO shards (id, engine, binding_name, created_at) VALUES ('shard-pg', 'postgres', 'DB_SHARD_2', '2026-11-24T00:00:00.000Z')",
     ).run()

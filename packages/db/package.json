@@ -3,7 +3,8 @@
   "private": true,
   "type": "module",
   "exports": {
-    "./schema/global.d1": "./schema/global.d1.ts"
+    "./schema/global.d1": "./schema/global.d1.ts",
+    "./schema/shard.d1": "./schema/shard.d1.ts"
   },
   "dependencies": {
     "drizzle-orm": "0.45.4"

@@ -29,6 +29,55 @@
       "when": 1795344083677,
       "tag": "0003_create_rate_limit_counters",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1795554071572,
+      "tag": "0004_create_shards",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1795554081138,
+      "tag": "0005_insert_shard_1",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1795554099431,
+      "tag": "0006_create_companies",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1795554115130,
+      "tag": "0007_create_members",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1795554119286,
+      "tag": "0008_create_company_contacts",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "6",
+      "when": 1795554124532,
+      "tag": "0009_create_company_creation_requests",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "6",
+      "when": 1795554139257,
+      "tag": "0010_add_users_name",
+      "breakpoints": true
     }
   ]
 }

@@ -330,7 +330,7 @@ describe('POST /api/companies', () => {
     expect(await companiesOf(userId)).toBe(0)
   })
 
-  it.fails('@id:companies-90-1 a cross-site text/plain post is refused with 403 and writes nothing', async () => {
+  it('@id:companies-90-1 a cross-site text/plain post is refused with 403 and writes nothing', async () => {
     const { token } = await newSession()
     const slug = newSlug()
 
