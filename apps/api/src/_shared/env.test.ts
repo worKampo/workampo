@@ -2,17 +2,23 @@ import { describe, expect, it } from 'vitest'
 import type { Bindings } from './env'
 import { parseEnv } from './env'
 
+// The company-create thresholds and tenancy vars arrive with the config task (ticket 90); the
+// parser ignores them until then, so these fixtures hold before and after it.
 const rateLimits = {
   RATE_LIMIT_CODE_REQUESTS_PER_EMAIL: '3',
   RATE_LIMIT_CODE_REQUESTS_PER_IP: '30',
   RATE_LIMIT_CODE_ATTEMPTS_PER_EMAIL: '5',
   RATE_LIMIT_WINDOW_SECONDS: '900',
+  RATE_LIMIT_COMPANY_CREATES_PER_USER: '4',
+  RATE_LIMIT_COMPANY_CREATES_PER_IP: '40',
+  TENANT_ROUTING: 'path',
+  PUBLIC_BASE_URL: 'https://app.test',
 }
 const bindings = (vars: Record<string, string>) => vars as unknown as Bindings
 
 describe('parseEnv', () => {
   it('reads the thresholds as numbers', () => {
-    expect(parseEnv(bindings({ IDENTITY_PROVIDER: 'fake', ...rateLimits }))).toEqual({
+    expect(parseEnv(bindings({ IDENTITY_PROVIDER: 'fake', ...rateLimits }))).toMatchObject({
       IDENTITY_PROVIDER: 'fake',
       RATE_LIMIT_CODE_REQUESTS_PER_EMAIL: 3,
       RATE_LIMIT_CODE_REQUESTS_PER_IP: 30,
@@ -49,5 +55,37 @@ describe('parseEnv', () => {
     })()
     expect(error).toBeDefined()
     expect(error).not.toContain('test-secret-value')
+  })
+
+  it.fails('@id:companies-90-1 reads the tenancy configuration and the company-create thresholds', () => {
+    expect(parseEnv(bindings({ IDENTITY_PROVIDER: 'fake', ...rateLimits }))).toMatchObject({
+      TENANT_ROUTING: 'path',
+      PUBLIC_BASE_URL: 'https://app.test',
+      RATE_LIMIT_COMPANY_CREATES_PER_USER: 4,
+      RATE_LIMIT_COMPANY_CREATES_PER_IP: 40,
+    })
+  })
+
+  it.fails('@id:companies-90-1 needs TENANT_HOST_SUFFIX only in subdomain mode', () => {
+    const subdomain = { IDENTITY_PROVIDER: 'fake', ...rateLimits, TENANT_ROUTING: 'subdomain' }
+
+    expect(() => parseEnv(bindings(subdomain))).toThrow()
+    expect(
+      parseEnv(bindings({ ...subdomain, TENANT_HOST_SUFFIX: '-stg.workampo.test' })),
+    ).toMatchObject({ TENANT_ROUTING: 'subdomain', TENANT_HOST_SUFFIX: '-stg.workampo.test' })
+    expect(parseEnv(bindings({ IDENTITY_PROVIDER: 'fake', ...rateLimits }))).toMatchObject({
+      TENANT_ROUTING: 'path',
+    })
+  })
+
+  it.fails('@id:companies-90-1 rejects an unknown routing mode, a base URL that is not one and a missing company-create threshold', () => {
+    const { RATE_LIMIT_COMPANY_CREATES_PER_USER: _, ...withoutUserLimit } = rateLimits
+    for (const vars of [
+      { IDENTITY_PROVIDER: 'fake', ...rateLimits, TENANT_ROUTING: 'header' },
+      { IDENTITY_PROVIDER: 'fake', ...rateLimits, PUBLIC_BASE_URL: 'not a url' },
+      { IDENTITY_PROVIDER: 'fake', ...rateLimits, RATE_LIMIT_COMPANY_CREATES_PER_IP: '0' },
+      { IDENTITY_PROVIDER: 'fake', ...withoutUserLimit },
+    ])
+      expect(() => parseEnv(bindings(vars))).toThrow()
   })
 })
