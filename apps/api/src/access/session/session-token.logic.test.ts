@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { hashSessionToken, newSessionToken } from './session-token'
+import { hashSessionToken, newSessionToken } from './session-token.logic'
 
 describe('session tokens', () => {
   it('@id:access-96-13 are 32 random bytes in base64url, new every time', () => {

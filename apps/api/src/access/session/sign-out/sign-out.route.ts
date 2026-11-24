@@ -1,8 +1,8 @@
 import { Hono } from 'hono'
 import type { AppEnv } from '../../../_shared/http/app-env'
-import { requireSession, type SessionVariables } from '../../require-session'
-import { clearSessionCookie, readSessionCookie } from '../session-cookie'
-import { signOut } from './sign-out'
+import { requireSession, type SessionVariables } from '../../require-session.middleware'
+import { clearSessionCookie, readSessionCookie } from '../session.cookie'
+import { signOut } from './sign-out.logic'
 
 export const signOutRoute = new Hono<AppEnv & { Variables: SessionVariables }>().delete(
   '/sessions/current',

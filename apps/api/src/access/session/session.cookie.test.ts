@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
 import { describe, expect, it } from 'vitest'
-import { clearSessionCookie, readSessionCookie, setSessionCookie } from './session-cookie'
+import { clearSessionCookie, readSessionCookie, setSessionCookie } from './session.cookie'
 
 const app = new Hono()
   .get('/set', (c) => {

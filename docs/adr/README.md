@@ -118,6 +118,7 @@ Every architectural and process decision of worKampo, one file per decision ([MA
 | [ADR-0072](0072-organization-units-and-scoped-roles.md) | Organization units in a tree and roles scoped to a branch | accepted |
 | [ADR-0073](0073-frontend-stack-and-rate-limiting.md) | Frontend stack of the SPA and rate limiting on D1 | accepted |
 | [ADR-0074](0074-seeds-in-sql.md) | Seeds in SQL | accepted (replaces ADR-0044's seed format) |
+| [ADR-0075](0075-api-entry-logic-and-data.md) | API layout with entry, logic and data apart | accepted (replaces the API names of ADR-0053's Update of 2026-11-23) |
 
 ## Notes
 

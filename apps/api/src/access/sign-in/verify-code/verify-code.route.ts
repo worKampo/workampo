@@ -5,8 +5,8 @@ import type { AppEnv } from '../../../_shared/http/app-env'
 import { requestOrigin } from '../../../_shared/http/request-origin'
 import { identityProvider } from '../../../_shared/identity/provider-registry'
 import { AccessError } from '../../errors'
-import { readSessionCookie, setSessionCookie } from '../../session/session-cookie'
-import { completeCodeSignIn } from './complete-code-sign-in'
+import { readSessionCookie, setSessionCookie } from '../../session/session.cookie'
+import { completeCodeSignIn } from './verify-code.logic'
 
 export const verifyCodeRoute = new Hono<AppEnv>().post(
   '/sessions',

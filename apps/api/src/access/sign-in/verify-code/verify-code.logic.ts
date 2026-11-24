@@ -3,7 +3,7 @@ import type { IdentityProvider } from '../../../_shared/identity/identity-provid
 import { InvalidCodeError } from '../../../_shared/identity/identity-provider'
 import { hitRateLimit } from '../../../_shared/rate-limit/rate-limit'
 import { AccessError } from '../../errors'
-import { completeSignIn } from '../complete-sign-in'
+import { completeSignIn } from '../complete-sign-in.logic'
 
 type Limits = { perEmail: number; windowSeconds: number }
 
