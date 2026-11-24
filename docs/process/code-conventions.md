@@ -1,6 +1,6 @@
 # Code conventions
 
-Rules an implementer applies. Why: [ADR-0053](../adr/0053-code-conventions.md) (also [ADR-0054](../adr/0054-roles-and-permissions.md), [ADR-0057](../adr/0057-ready-for-a-mobile-app.md)). Enforced by `pnpm check`: [`.dependency-cruiser.cjs`](../../.dependency-cruiser.cjs) (boundaries, cycles, purity) and [`biome.json`](../../biome.json) (format, lint, no `export default`). Do not restate those rules in code review.
+Rules an implementer applies. Why: [ADR-0053](../adr/0053-code-conventions.md) (also [ADR-0054](../adr/0054-roles-and-permissions.md), [ADR-0057](../adr/0057-ready-for-a-mobile-app.md)). Enforced by `pnpm check`: [`.dependency-cruiser.cjs`](../../.dependency-cruiser.cjs) (boundaries, cycles, purity) [`biome.json`](../../biome.json) (format, lint, no `export default`) and [`scripts/conventions/`](../../scripts/conventions/conventions.mjs) (the rules that are not imports: `src/` layout, folder size, routers that only list, `c.env` reads, database bindings, provider hosts, handwritten texts, arbitrary values, page classes, export patterns and re-exports). Do not restate those rules in code review.
 
 ## Layout
 
