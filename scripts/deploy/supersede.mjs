@@ -37,6 +37,12 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const failed = []
   for (const id of runsToCancel({ waiting, currentId })) {
     try {
+      // Asked again right before: an old run approved meanwhile is deploying, never cancel it.
+      const { status } = JSON.parse(gh(['run', 'view', String(id), '--json', 'status']))
+      if (status !== 'waiting') {
+        console.log(`Run ${id} is ${status} now; left alone`)
+        continue
+      }
       gh(['run', 'cancel', String(id)])
       console.log(`Cancelled waiting run ${id}`)
     } catch (error) {
