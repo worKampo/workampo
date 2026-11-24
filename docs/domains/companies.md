@@ -123,6 +123,9 @@ Rule: Solo sus miembros entran en una empresa, y para el resto es como si no exi
 - [membership](../glossary.md#membership)
 - [role](../glossary.md#role)
 - [staff](../glossary.md#staff)
+- [unit](../glossary.md#unit)
+- [assignment](../glossary.md#assignment)
+- [main contact](../glossary.md#main-contact)
 
 ## Out of scope
 

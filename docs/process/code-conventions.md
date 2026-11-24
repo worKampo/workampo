@@ -6,7 +6,7 @@ Rules an implementer applies. Why: [ADR-0053](../adr/0053-code-conventions.md) (
 
 - The top level of each app's `src/` is directly the domains (same names as [`docs/domains/`](../domains/README.md)). Every folder there is a domain except `_shared/`. No technical-layer folders (`controllers/`, `services/`).
 - A domain holds its use cases, its data and `errors.ts`. The use case is the unit, in business language (`verify-code`, `invite-member`); the endpoint is the technical term for the HTTP route its `.route.ts` exposes (the person, 2026-11-24).
-- `_shared/` holds code no single domain owns: `http/problem-json.ts`, `ids/`, the adapters and technical capabilities such as `rate-limit/`, which may have their own repo (the person, 2026-11-23); `tenancy/` arrives with the company shard. It imports no domain.
+- `_shared/` holds code no single domain owns: `http/problem-json.ts`, `ids/`, the adapters and technical capabilities such as `rate-limit/`, which may have their own repo (the person, 2026-11-23); `tenancy/` reads the `shards` row and gives the company shard client. It imports no domain.
 - Example: `apps/api/src/companies/companies.router.ts`, `companies/invitations/invite-member/invite-member.logic.ts`, `companies/data/invitation.d1.repo.ts`.
 - Pure core (no I/O, shared by API, web and the future mobile app) goes in `packages/domain/<domain>/`: Zod schemas, rules, permissions (`can`), error codes, values (`Email`, `Slug`, `Money`). It imports no Hono, Drizzle, React, `fetch` or `apps/`. `apps/api` keeps routes, use cases and repos; `apps/web` keeps pages; hooks live in `packages/app-core` and do not touch the DOM.
 - A domain imports only the top-level files of another domain, never its internals.
