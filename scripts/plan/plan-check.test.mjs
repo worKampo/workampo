@@ -98,4 +98,5 @@ test('reads an indented Waves line', () => {
 test('a plan.md without "Seams and sharing" fails; with it, passes', () => {
   assert.equal(checkDesign('## Data model\nTables.\n').length, 1)
   assert.deepEqual(checkDesign('## Seams and sharing\nIdentity provider: none.\n'), [])
+  assert.equal(checkDesign('```markdown\n## Seams and sharing\n```\n').length, 1)
 })

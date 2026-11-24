@@ -43,6 +43,7 @@ test('a router only chains .route()', () => {
 
   assert.deepEqual(routerErrors({ path, text: "new Hono().route('/', x)" }), [])
   assert.equal(routerErrors({ path, text: "new Hono().get('/me', h)" }).length, 1)
+  assert.equal(routerErrors({ path, text: "new Hono().options('/me', h)" }).length, 1)
 })
 
 test('c.env variables are read only in env.ts and the deploy metadata; passing c.env is fine', () => {
@@ -50,6 +51,7 @@ test('c.env variables are read only in env.ts and the deploy metadata; passing c
 
   assert.deepEqual(rawEnvErrors({ path, text: 'readMe(c.env, id)' }), [])
   assert.equal(rawEnvErrors({ path, text: 'if (c.env.RATE_LIMIT_WINDOW_SECONDS)' }).length, 1)
+  assert.equal(rawEnvErrors({ path, text: 'const { APP_VERSION } = c.env' }).length, 1)
   assert.deepEqual(rawEnvErrors({ path: 'apps/api/src/index.ts', text: 'c.env.ENVIRONMENT' }), [])
 })
 
@@ -83,6 +85,7 @@ test('pages carry no handwritten texts, arbitrary values or classes of their own
   assert.deepEqual(handwrittenTextErrors({ path, text: "<Text>{t('login.title')}</Text>" }), [])
   assert.deepEqual(handwrittenTextErrors({ path, text: 'const f = (r: Response) => <A />' }), [])
   assert.equal(handwrittenTextErrors({ path, text: '<Text>Sign in</Text>' }).length, 1)
+  assert.equal(handwrittenTextErrors({ path, text: '<Text>Sign in (code)</Text>' }).length, 1)
   assert.equal(arbitraryValueErrors({ path, text: '<a class="text-[13px]">' }).length, 1)
   assert.deepEqual(arbitraryValueErrors({ path, text: 'const xs = list[0]' }), [])
   assert.equal(pageClassErrors({ path, text: '<form className="flex">' }).length, 1)
@@ -106,6 +109,11 @@ test('exports name each entry, and only family entries and the contract re-expor
   )
   assert.equal(
     reexportErrors({ path: 'packages/app-core/src/access/x.ts', text: "export { y } from './y'" })
+      .length,
+    1,
+  )
+  assert.equal(
+    reexportErrors({ path: 'packages/app-core/src/access/x.ts', text: "export * as y from './y'" })
       .length,
     1,
   )

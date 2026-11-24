@@ -7,7 +7,7 @@ const WEB_VIEW = /^apps\/web\/src\/.+\.tsx$/
 export function handwrittenTextErrors({ path, text }) {
   if (!WEB_VIEW.test(path) || isTest(path)) return []
   // Text between a tag and its closing tag; `=>` and generics are not JSX.
-  const found = text.match(/(?<![=-])>\s*(\p{L}[^<>{}()=;|]*?)\s*<\//u)
+  const found = text.match(/(?<![=-])>\s*(\p{L}[^<>{}=;|]*?)\s*<\//u)
 
   return found
     ? [`${path}: "${found[1]}" is written by hand; take it from packages/i18n with t()`]

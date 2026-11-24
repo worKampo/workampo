@@ -1,7 +1,7 @@
 // The code conventions that are not imports, checked over every tracked file (issue 111).
 //   node scripts/conventions/conventions.mjs
 import { execFileSync } from 'node:child_process'
-import { readdirSync, readFileSync } from 'node:fs'
+import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import {
   databaseBindingErrors,
@@ -47,7 +47,8 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     encoding: 'utf8',
   })
     .split('\n')
-    .filter(Boolean)
+    // ls-files -c still lists a tracked file deleted in the working tree.
+    .filter((path) => path && existsSync(`${ROOT}${path}`))
   // The domains are the living specs' files (docs/domains/<domain>.md).
   const domains = readdirSync(new URL('../../docs/domains', import.meta.url))
     .filter((name) => name.endsWith('.md') && name !== 'README.md')

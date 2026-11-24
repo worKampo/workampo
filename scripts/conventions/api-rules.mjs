@@ -17,7 +17,7 @@ const RAW_ENV_READERS = [
 // A router only lists: methods live in the use cases' .route.ts.
 export function routerErrors({ path, text }) {
   if (!/\.router\.ts$/.test(path)) return []
-  const method = text.match(/\.(get|post|put|patch|delete|all|on)\(/)
+  const method = text.match(/\.(get|post|put|patch|delete|head|options|all|on)\(/)
 
   return method
     ? [`${path}: a router only chains .route(); .${method[1]}() belongs in a use case's .route.ts`]
@@ -27,7 +27,10 @@ export function routerErrors({ path, text }) {
 // Reading a variable from c.env; passing c.env whole to the logic, for its databases, is fine.
 export function rawEnvErrors({ path, text }) {
   if (!API.test(path) || isTest(path) || RAW_ENV_READERS.includes(path)) return []
-  const read = text.match(/\bc\.env\.([A-Z][A-Z0-9_]*)/)
+  // Also `const { NAME } = c.env`.
+  const read =
+    text.match(/\bc\.env\.([A-Z][A-Z0-9_]*)/) ??
+    text.match(/\{\s*([A-Z][A-Z0-9_]*)[^}]*\}\s*=\s*c\.env\b/)
 
   return read ? [`${path}: c.env.${read[1]} read outside env.ts; take it from c.var.env`] : []
 }

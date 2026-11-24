@@ -76,7 +76,8 @@ export function checkPlan(text) {
 
 // The design of an L ticket names its seams before any code (issue 111).
 export function checkDesign(text) {
-  return /^## Seams and sharing\s*$/m.test(text)
+  // A heading of the file itself, not one inside a fenced example.
+  return /^## Seams and sharing\s*$/m.test(text.replace(/^```[\s\S]*?^```/gm, ''))
     ? []
     : ['plan.md has no "## Seams and sharing" section (docs/process/templates/plan.md)']
 }

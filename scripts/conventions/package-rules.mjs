@@ -20,7 +20,7 @@ export function reexportErrors({ path, text }) {
   )
     return []
 
-  return /^export (type )?(\*|\{[^}]*\}) from /m.test(text)
+  return /^export (type )?(\*( as \w+)?|\{[^}]*\}) from /m.test(text)
     ? [`${path}: re-exports; import from the file that defines it`]
     : []
 }
