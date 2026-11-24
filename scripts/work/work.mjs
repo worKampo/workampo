@@ -686,7 +686,10 @@ export function prLabels(issue) {
 export function prBody({ number, parent, summary }) {
   // The heading is ours: a summary that starts with its own would show it twice.
   // Only the heading and the blank lines after it go: the first line's indentation stays.
-  const text = summary?.replace(/^\s*## Summary[ \t]*(\r?\n[ \t]*)*\r?\n/, '').trimEnd()
+  // A heading has at most 3 leading spaces; with 4 it is a line of a code block and stays.
+  const text = summary
+    ?.replace(/^(?:[ \t]*\r?\n)*[ ]{0,3}## Summary[ \t]*(\r?\n[ \t]*)*\r?\n/, '')
+    .trimEnd()
 
   return `${parent ? `PRD #${parent}` : 'PRD: none'}\nTicket #${number}
 
