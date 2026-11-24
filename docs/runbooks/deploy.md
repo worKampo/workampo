@@ -14,6 +14,7 @@ On every push to `master`, [`.github/workflows/deploy.yml`](../../.github/workfl
 
 1. Job `stg` (GitHub Environment `stg`, no approval): `node scripts/deploy/deploy.mjs stg`, then the smoke against `app-stg`, then a "Staging verification" comment on the ticket issue.
 2. Job `prod` (GitHub Environment `prod`): waits for the person's approval, then does the same for prod. The comment is "Release verification".
+3. Job `supersede`, once staging is deployed: cancels the older runs of `deploy.yml` still waiting for the prod approval (`scripts/deploy/supersede.mjs`), so only the newest waits, and it carries every earlier commit. It never touches `deploy-all` or `backfill`, which share the `deploy-prod` group, and a failure there only leaves an extra run to approve (issue 158).
 
 ### Manual, all Workers
 

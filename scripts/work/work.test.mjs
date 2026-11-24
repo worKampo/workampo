@@ -796,7 +796,19 @@ test('PR title by type, body with PRD and ticket, close comment', () => {
   )
   assert.equal(
     prBody({ number: 15, parent: null, summary: 'Adds X.\n' }),
-    'Ticket #15\n\n## Summary\n\nAdds X.\n',
+    'PRD: none\nTicket #15\n\n## Summary\n\nAdds X.\n',
+  )
+  assert.equal(
+    prBody({ number: 15, parent: null, summary: '## Summary\n\nAdds X.\n' }),
+    'PRD: none\nTicket #15\n\n## Summary\n\nAdds X.\n',
+  )
+  assert.equal(
+    prBody({ number: 15, parent: null, summary: '## Summary\n\n    indented\n' }),
+    'PRD: none\nTicket #15\n\n## Summary\n\n    indented\n',
+  )
+  assert.equal(
+    prBody({ number: 15, parent: null, summary: '    ## Summary\n    code\n' }),
+    'PRD: none\nTicket #15\n\n## Summary\n\n    ## Summary\n    code\n',
   )
 
   assert.equal(closeComment(), 'Closed as completed by `pnpm work close`.')

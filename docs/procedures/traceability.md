@@ -18,7 +18,7 @@ Exact formats so every piece can be navigated in both directions. Why: [ADR-0042
 | Task commit | Conventional commit + trailers `Refs: #15` · `PRD: #12` · `Task: T3`, e.g. `feat(members): add POST /invitations` |
 | Reopened acceptance commit | Also the trailer `Reopen: <comment-id>`, the id of the person's `/reopen-acceptance` comment on the issue ([testing](testing.md#acceptance-scenarios)) |
 | PR title | Conventional commit |
-| PR body | `PRD #12` and `Ticket #15` (PRD only if the ticket has a parent); filled by `pnpm work pr`. Same `type:` and `area:` labels as the ticket. "Plan", "Progress" and "Verification" are comments |
+| PR body | `PRD #12` and `Ticket #15` (`PRD: none` if the ticket has no parent); filled by `pnpm work pr`, whose `## Summary` heading the summary file does not repeat. Same `type:` and `area:` labels as the ticket. "Plan", "Progress" and "Verification" are comments |
 | Commit on `master` (squash) | PR title + the PR number GitHub adds, e.g. `feat(members): invite members by email (#40)`; body with the trailers |
 | Living spec | One tag per `Rule:`: `@wip(#n)` on the branch, `@issue(#n)` on `master` (last issue that changed it) ([ADR-0052](../adr/0052-living-specs-only-and-flow-by-size.md)) |
 | Example ↔ test | `@id:<domain>-<issue>-<n>` (e.g. `@id:companies-15-1`), assigned by `pnpm specs:ids`, cited by its test |
