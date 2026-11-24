@@ -89,7 +89,11 @@ module.exports = {
       comment:
         'A page is imported only, lazily, by its own feature route file: anything else would pull it into its chunk (code conventions).',
       severity: 'error',
-      from: { path: '^apps/web/src/', pathNot: ['\\.route\\.ts$', '\\.test\\.tsx?$'] },
+      // Only a feature's route file: the domain's only gathers routes.
+      from: {
+        path: '^apps/web/src/',
+        pathNot: ['^apps/web/src/[^/]+/[^/]+/[^/]+\\.route\\.ts$', '\\.test\\.tsx?$'],
+      },
       to: { path: '\\.page\\.tsx$', dependencyTypesNot: ['type-only'] },
     },
     {
@@ -102,7 +106,7 @@ module.exports = {
     {
       name: 'pages-only-from-their-own-route',
       severity: 'error',
-      from: { path: '^(apps/web/src/.+)/[^/]+\\.route\\.ts$' },
+      from: { path: '^(apps/web/src/[^/]+/[^/]+)/[^/]+\\.route\\.ts$' },
       to: {
         path: '\\.page\\.tsx$',
         pathNot: ['^$1/[^/]+\\.page\\.tsx$', '^$1/[^/]+/[^/]+\\.page\\.tsx$'],
@@ -116,7 +120,8 @@ module.exports = {
       from: { path: '^(.+)/[^/]+$', pathNot: '\\.test\\.tsx?$' },
       to: {
         path: '^apps/web/src/[^_/][^/]*/[^/]+/[^/]+/[^/.]+\\.tsx$',
-        pathNot: '^$1/',
+        // Only its own folder: a component is no one else's, not even its feature route's.
+        pathNot: '^$1/[^/]+$',
       },
     },
     {
