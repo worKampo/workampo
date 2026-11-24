@@ -24,7 +24,6 @@ const PARTICLES = new Set([
 ])
 
 const LETTER = /\p{L}/u
-const EMAIL = /^\S+@\S+$/
 
 // Only the letters of a word: "3M" → "M", "R2D2" → "RD", "🚀" → "".
 const lettersOf = (word: string) => [...word].filter((char) => LETTER.test(char)).join('')
@@ -36,7 +35,8 @@ const upper = (text: string) => text.toLocaleUpperCase('es')
 // there is no letter to show, so the avatar shows a generic icon.
 export function avatarInitials(text: string | undefined) {
   const trimmed = text?.normalize('NFC').trim() ?? ''
-  if (EMAIL.test(trimmed)) return upper([...lettersOf(trimmed)][0] ?? '') || null
+  const isEmail = trimmed.includes('@') && !/\s/.test(trimmed)
+  if (isEmail) return upper([...lettersOf(trimmed)][0] ?? '') || null
 
   const words = trimmed
     .split(/\s+/)

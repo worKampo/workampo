@@ -44,7 +44,7 @@ it('it is decorative: the name or the button around it carries the meaning', () 
   )
 })
 
-it('an image wins while it loads, and falls back to the initials when it fails', () => {
+it('E6 an image wins while it loads, and falls back to the initials when it fails', () => {
   const avatar = avatarOf(<Avatar kind="company" name="Northwind Logistics" src="/logo.png" />)
 
   expect(avatar.tagName).toBe('IMG')

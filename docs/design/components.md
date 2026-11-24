@@ -99,6 +99,7 @@ shadcn `Card`.
 - **E3 no letter first.** Only letters count: "3M España" → ME, "🚀 Rocket" → RO, "R2D2" → RD. No letter at all: a generic person icon on `--muted`.
 - **E4 no name.** The caller passes the email, which gives its first letter ("ana@example.com" → A).
 - **E5 colour from the initials.** The same initials always get the same of six colours, `--avatar-1..6-bg` and `-fg` (violet, plum, slate, brown, teal, olive), on any screen and theme. Initials reach AA: 5.8–7.6:1 light, 8.2–9.2:1 dark. None is a status, data or commercial hue ([ADR-0070](../adr/0070-colour-commercial-emphasis-and-marketing.md#updates)).
+- **E6 image.** With `src`, the image takes the same size and shape as the initials (decorative, `alt=""`); if it fails to load, the initials and colour of E2–E5.
 - **Accessibility.** Always decorative (`aria-hidden`): the name next to it carries the meaning; a lone avatar button has the `aria-label` ("Account: Lucía Ortega").
 
 ## Data
