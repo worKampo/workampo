@@ -26,20 +26,21 @@ const SIZES = {
 }
 const gzipSize = (file) => SIZES[file]
 
-test('a translation the entry imports statically fails, whatever the budget', () => {
-  const manifest = {
-    ...MANIFEST,
-    'index.html': {
-      ...MANIFEST['index.html'],
-      imports: ['_shared.js', '../i18n/locales/ca/access.json'],
-    },
-  }
+test('a translation inlined in an initial chunk fails, whatever the budget', () => {
+  const contents = { 'assets/shared.js': 'const t={title:"Entra a worKampo"};' }
+  const readText = (file) => contents[file] ?? ''
   const budgets = [{ name: '/login', screen: 'src/login-screen.tsx', maxBytes: 1_000 }]
 
-  const errors = budgetErrors({ manifest, gzipSize, budgets })
+  const errors = budgetErrors({
+    manifest: MANIFEST,
+    gzipSize,
+    readText,
+    texts: ['Entra a worKampo'],
+    budgets,
+  })
 
   assert.deepEqual(errors, [
-    '/login: ../i18n/locales/ca/access.json is imported statically; texts load per language on demand',
+    '/login: assets/shared.js carries translations; texts load per language on demand',
   ])
 })
 
