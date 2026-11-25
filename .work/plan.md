@@ -1,4 +1,4 @@
-PRD #10 · Ticket #90 · Branch: feature/90-crear-la-primera-empresa
+PRD #10 · Ticket #90 · Branch: feature/90-crear-la-primera-empresa-v2
 
 Decisions of the person (2026-11-24) on the open questions are marked **(decided)**. Security controls come from the issue's Security section.
 
