@@ -107,7 +107,7 @@ test('@id:companies-90-1 creating a company makes me its owner and main contact'
 test('@id:companies-90-2 a free slug is available', async () => {
   const api = await signedIn()
 
-  const response = await api.get(`/api/company-slugs/e2e-clinica-norte-${random()}`)
+  const response = await api.get(`/api/companies/availability?slug=e2e-clinica-norte-${random()}`)
 
   expect(response.status()).toBe(200)
   expect(await response.json()).toEqual({ available: true })
@@ -118,7 +118,7 @@ test('@id:companies-90-3 a slug another company has is not available and cannot 
   await createCompany(await signedIn(), { body: bodyFor(slug) })
   const api = await signedIn()
 
-  const check = await api.get(`/api/company-slugs/${slug}`)
+  const check = await api.get(`/api/companies/availability?slug=${slug}`)
   const create = await postCompany(api, { body: bodyFor(slug) })
 
   expect(await check.json()).toEqual({ available: false })
@@ -128,7 +128,7 @@ test('@id:companies-90-3 a slug another company has is not available and cannot 
 test('@id:companies-90-4 a reserved slug is refused by the check and by the creation', async () => {
   const api = await signedIn()
 
-  await expectProblem(await api.get('/api/company-slugs/api'), {
+  await expectProblem(await api.get('/api/companies/availability?slug=api'), {
     status: 400,
     code: 'companies.reserved_slug',
   })
@@ -142,10 +142,13 @@ for (const slug of ['ab', 'mi--empresa', '-norte', 'norte-stg']) {
   test(`@id:companies-90-5 the slug "${slug}" has an invalid format for the check and the creation`, async () => {
     const api = await signedIn()
 
-    await expectProblem(await api.get(`/api/company-slugs/${encodeURIComponent(slug)}`), {
-      status: 400,
-      code: 'companies.invalid_slug',
-    })
+    await expectProblem(
+      await api.get(`/api/companies/availability?slug=${encodeURIComponent(slug)}`),
+      {
+        status: 400,
+        code: 'companies.invalid_slug',
+      },
+    )
     await expectProblem(await postCompany(api, { body: bodyFor(slug) }), {
       status: 400,
       code: 'companies.invalid_slug',
@@ -207,7 +210,9 @@ test('@id:companies-90-10 two people sending the same slug at once create only o
   expect(answers.map((a) => a.status()).sort()).toEqual([201, 409])
   const loser = answers.find((a) => a.status() === 409)
   expect(await loser?.json()).toMatchObject({ code: 'companies.slug_taken' })
-  expect(await (await bea.get(`/api/company-slugs/${slug}`)).json()).toEqual({ available: false })
+  expect(await (await bea.get(`/api/companies/availability?slug=${slug}`)).json()).toEqual({
+    available: false,
+  })
 })
 
 test('@id:companies-90-11 sending the same request again completes a half-created company once', async () => {
@@ -245,7 +250,9 @@ test('@id:companies-90-11 the same key with another body is refused and changes 
     status: 422,
     code: 'companies.idempotency_mismatch',
   })
-  expect(await (await api.get(`/api/company-slugs/${other}`)).json()).toEqual({ available: true })
+  expect(await (await api.get(`/api/companies/availability?slug=${other}`)).json()).toEqual({
+    available: true,
+  })
 })
 
 test('@id:companies-90-12 another company answers like one that does not exist', async () => {
@@ -272,10 +279,13 @@ test('@id:companies-90-12 creating a company and checking a slug need a session'
     status: 401,
     code: 'access.unauthenticated',
   })
-  await expectProblem(await anonymous.get(`/api/company-slugs/e2e-anon-${random()}`), {
-    status: 401,
-    code: 'access.unauthenticated',
-  })
+  await expectProblem(
+    await anonymous.get(`/api/companies/availability?slug=e2e-anon-${random()}`),
+    {
+      status: 401,
+      code: 'access.unauthenticated',
+    },
+  )
 })
 
 test('@id:companies-90-1 a form post from another origin or without the key writes nothing', async () => {
@@ -294,7 +304,9 @@ test('@id:companies-90-1 a form post from another origin or without the key writ
 
   expect(crossSite.status()).toBe(403)
   await expectProblem(withoutKey, { status: 400, code: 'companies.invalid_request' })
-  expect(await (await api.get(`/api/company-slugs/${slug}`)).json()).toEqual({ available: true })
+  expect(await (await api.get(`/api/companies/availability?slug=${slug}`)).json()).toEqual({
+    available: true,
+  })
 })
 
 // The project's baseURL, for contexts made by hand, which do not inherit it.
