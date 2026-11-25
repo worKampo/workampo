@@ -1,8 +1,8 @@
 import { cleanup, configure, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeAll, expect, it } from 'vitest'
-import { initI18n } from '../../_shared/i18n/i18n'
-import { problem, renderApp } from '../../_shared/testing/render-app'
+import { initI18n } from '../i18n/i18n'
+import { problem, renderApp } from '../testing/render-app'
 
 // The first visit downloads the lazy screen and its translations; under a busy check that is slow.
 configure({ asyncUtilTimeout: 5000 })
