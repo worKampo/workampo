@@ -25,9 +25,13 @@
   "vars": {
     "ENVIRONMENT": "local",
     "IDENTITY_PROVIDER": "fake",
+    "TENANT_ROUTING": "path",
+    "PUBLIC_BASE_URL": "http://localhost:8787",
     "RATE_LIMIT_CODE_REQUESTS_PER_EMAIL": "10",
     "RATE_LIMIT_CODE_REQUESTS_PER_IP": "1000",
     "RATE_LIMIT_CODE_ATTEMPTS_PER_EMAIL": "10",
+    "RATE_LIMIT_COMPANY_CREATES_PER_USER": "20",
+    "RATE_LIMIT_COMPANY_CREATES_PER_IP": "1000",
     "RATE_LIMIT_WINDOW_SECONDS": "600"
   },
   "d1_databases": [
@@ -61,6 +65,8 @@
       "vars": {
         "ENVIRONMENT": "stg",
         "ENABLE_DEBUG_ERROR": "true",
+        "TENANT_ROUTING": "path",
+        "PUBLIC_BASE_URL": "https://app-stg.workampo.workers.dev",
         // Public identifier of the WorkOS staging environment; the API key is a secret.
         "WORKOS_CLIENT_ID": "client_01M81TN93VKET6PAFSK3B1QYZJ"
       },
@@ -93,6 +99,8 @@
       "version_metadata": { "binding": "CF_VERSION_METADATA" },
       "vars": {
         "ENVIRONMENT": "prod",
+        "TENANT_ROUTING": "path",
+        "PUBLIC_BASE_URL": "https://app.workampo.workers.dev",
         // WorkOS Staging until the first real users (ADR-0071 updates, issue 118); Production is issue 119.
         "WORKOS_CLIENT_ID": "client_01M81TN93VKET6PAFSK3B1QYZJ"
       },

@@ -1,6 +1,7 @@
 import '@workampo/ui/styles.css'
 import { QueryClient } from '@tanstack/react-query'
 import { createApiClient } from '@workampo/app-core/api-client'
+import { shouldRetry } from '@workampo/app-core/errors'
 import { createRoot } from 'react-dom/client'
 import { initI18n } from './_shared/i18n/i18n'
 import { AppProviders } from './_shared/providers/app-providers'
@@ -9,7 +10,7 @@ import { routeTree } from './route-tree'
 
 await initI18n(navigator.languages)
 
-const queryClient = new QueryClient()
+const queryClient = new QueryClient({ defaultOptions: { queries: { retry: shouldRetry } } })
 const apiClient = createApiClient({
   baseUrl: window.location.origin,
   clientVersion: import.meta.env.VITE_APP_VERSION ?? 'dev',

@@ -9,7 +9,7 @@ import { useTranslation } from 'react-i18next'
 const loginRoute = getRouteApi('/login')
 
 export function LoginPage() {
-  const { t } = useTranslation(['access', 'common'])
+  const { t } = useTranslation(['access', 'companies', 'common'])
   const navigate = useNavigate()
   const { error: googleError } = loginRoute.useSearch()
   const page = useLoginPage({

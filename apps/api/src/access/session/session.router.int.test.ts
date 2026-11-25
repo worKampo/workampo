@@ -67,6 +67,28 @@ it('@id:access-96-15 a session created 29 days ago is still valid', async () => 
   expect(response.status).toBe(200)
 })
 
+it('@id:companies-90-8 /api/me says an account without a name has none', async () => {
+  const token = sessionToken(await signIn({ email: newEmail() }))
+
+  const response = await me(token)
+
+  expect(await response.json()).toEqual({
+    id: expect.any(String),
+    email: expect.any(String),
+    name: null,
+  })
+})
+
+it('@id:companies-90-9 /api/me gives the name of an account that has one', async () => {
+  const token = sessionToken(await signIn({ email: newEmail() }))
+  const { id } = await (await me(token)).json<{ id: string }>()
+  await env.DB_GLOBAL.prepare("UPDATE users SET name = 'Ana Núñez' WHERE id = ?").bind(id).run()
+
+  const response = await me(token)
+
+  expect(await response.json()).toMatchObject({ id, name: 'Ana Núñez' })
+})
+
 async function expectUnauthenticated(token: string) {
   const response = await me(token)
 

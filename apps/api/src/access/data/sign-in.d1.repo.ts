@@ -1,5 +1,5 @@
 import { globalDb } from '../../_shared/db/d1-global-db'
-import { UniqueViolationError } from '../../_shared/db/unique-violation-error'
+import { rethrowUniqueViolation } from '../../_shared/db/unique-violation-error'
 import { identityRepo } from './identity.d1.repo'
 import { sessionRepo } from './session.d1.repo'
 import { userRepo } from './user.d1.repo'
@@ -60,14 +60,5 @@ export async function commitSignIn(env: Env, writes: SignInWrites) {
 
   await globalDb(env)
     .batch([first, ...rest])
-    .catch((error: unknown) => {
-      // D1 names the refused index only in its message.
-      if (
-        error instanceof Error &&
-        /UNIQUE constraint failed/.test(`${error.message} ${error.cause}`)
-      )
-        throw new UniqueViolationError(error.message, { cause: error })
-
-      throw error
-    })
+    .catch(rethrowUniqueViolation)
 }

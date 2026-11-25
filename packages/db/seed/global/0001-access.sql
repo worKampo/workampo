@@ -1,11 +1,11 @@
--- Users and identities of the fake identity provider (apps/api/src/_shared/identity/fake-identities.ts),
+-- Users (the last two have no name yet) and identities of the fake identity provider (apps/api/src/_shared/identity/fake-identities.ts),
 -- and one expired session: the fixtures of the access tests and E2E.
-INSERT INTO users (id, email, created_at, updated_at) VALUES
-  ('01940000-0000-7000-8000-000000000001', 'linked@example.com', '2026-01-01T00:00:00.000Z', '2026-01-01T00:00:00.000Z'),
-  ('01940000-0000-7000-8000-000000000002', 'taken@example.com', '2026-01-01T00:00:00.000Z', '2026-01-01T00:00:00.000Z'),
-  ('01940000-0000-7000-8000-000000000003', 'renamed.old@example.com', '2026-01-01T00:00:00.000Z', '2026-01-01T00:00:00.000Z'),
-  ('01940000-0000-7000-8000-000000000004', 'clash@example.com', '2026-01-01T00:00:00.000Z', '2026-01-01T00:00:00.000Z'),
-  ('01940000-0000-7000-8000-000000000005', 'google@example.com', '2026-01-01T00:00:00.000Z', '2026-01-01T00:00:00.000Z')
+INSERT INTO users (id, email, name, created_at, updated_at) VALUES
+  ('01940000-0000-7000-8000-000000000001', 'linked@example.com', 'Linked Tester', '2026-01-01T00:00:00.000Z', '2026-01-01T00:00:00.000Z'),
+  ('01940000-0000-7000-8000-000000000002', 'taken@example.com', 'Taken Tester', '2026-01-01T00:00:00.000Z', '2026-01-01T00:00:00.000Z'),
+  ('01940000-0000-7000-8000-000000000003', 'renamed.old@example.com', 'Renamed Tester', '2026-01-01T00:00:00.000Z', '2026-01-01T00:00:00.000Z'),
+  ('01940000-0000-7000-8000-000000000004', 'clash@example.com', NULL, '2026-01-01T00:00:00.000Z', '2026-01-01T00:00:00.000Z'),
+  ('01940000-0000-7000-8000-000000000005', 'google@example.com', NULL, '2026-01-01T00:00:00.000Z', '2026-01-01T00:00:00.000Z')
 ON CONFLICT DO NOTHING;
 
 INSERT INTO identities (provider, subject, user_id, created_at) VALUES

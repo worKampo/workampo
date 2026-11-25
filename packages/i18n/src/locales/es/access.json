@@ -18,6 +18,7 @@
   "home": {
     "title": "Aún no perteneces a ninguna empresa",
     "body": "Cuando una empresa te invite, o crees una, aparecerá aquí.",
+    "create_company": "Crear empresa",
     "sign_out": "Cerrar sesión"
   },
   "errors": {

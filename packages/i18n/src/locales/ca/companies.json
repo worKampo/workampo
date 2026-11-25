@@ -1,0 +1,35 @@
+{
+  "new_company": {
+    "title": "Crear empresa",
+    "name": "Nom de l'empresa",
+    "name_required": "Escriu el nom de l'empresa.",
+    "url": "URL de l'empresa",
+    "available": "Disponible",
+    "unavailable": "No disponible. Prova'n una altra.",
+    "reserved": "Aquesta adreça està reservada. Prova'n una altra.",
+    "invalid_format": "El format no és vàlid. Fes servir lletres minúscules, números i guions.",
+    "language": "Idioma per defecte",
+    "language_hint": "És l'idioma que veuran per defecte les persones de la teva empresa.",
+    "your_name": "El teu nom",
+    "submit": "Crear empresa",
+    "cancel": "Cancel·lar"
+  },
+  "company_home": {
+    "welcome": "Et donem la benvinguda a {{name}}"
+  },
+  "not_found": {
+    "title": "No trobem aquesta empresa",
+    "body": "Pot ser que l'adreça estigui mal escrita o que no hi tinguis accés.",
+    "back": "Torna a l'inici"
+  },
+  "errors": {
+    "invalid_request": "No s'ha pogut crear l'empresa. Revisa les dades i torna-ho a provar.",
+    "invalid_slug": "El format de la URL no és vàlid. Fes servir lletres minúscules, números i guions.",
+    "reserved_slug": "Aquesta URL està reservada. Prova'n una altra.",
+    "user_name_required": "Escriu el teu nom.",
+    "slug_taken": "Aquesta URL ja està en ús. Prova'n una altra.",
+    "idempotency_mismatch": "No s'ha pogut crear l'empresa. Torna-ho a provar.",
+    "not_found": "No trobem aquesta empresa.",
+    "too_many_creations": "Has creat massa empreses seguides. Espera una mica abans de crear-ne una altra."
+  }
+}

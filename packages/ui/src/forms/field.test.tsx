@@ -32,4 +32,23 @@ describe('Field', () => {
     )
     expect(screen.queryByText('Six digits')).toBeNull()
   })
+
+  it('announces a message that arrives later, such as a live check', () => {
+    const field = (help?: string) => (
+      <Field label="URL" help={help}>
+        {(props) => <Input {...props} />}
+      </Field>
+    )
+    const { container, rerender } = render(field())
+    const region = container.querySelector('[aria-live="polite"]')
+
+    expect(region?.textContent).toBe('')
+    expect(screen.getByLabelText('URL').getAttribute('aria-describedby')).toBeNull()
+
+    rerender(field('Available'))
+
+    expect(container.querySelector('[aria-live="polite"]')).toBe(region)
+    expect(region?.textContent).toBe('Available')
+    expect(screen.getByLabelText('URL').getAttribute('aria-describedby')).toBe(region?.id)
+  })
 })

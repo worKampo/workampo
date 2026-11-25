@@ -1,0 +1,21 @@
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useApiClient } from '../../../_shared/api-client-context'
+import { meQueryOptions } from '../../../access/me.hook'
+import { createCompany } from '../../data/companies.api'
+
+type CreateCompanyVariables = {
+  input: Parameters<typeof createCompany>[1]
+  idempotencyKey: string
+}
+
+export function useCreateCompany() {
+  const client = useApiClient()
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ input, idempotencyKey }: CreateCompanyVariables) =>
+      createCompany(client, input, idempotencyKey),
+    // A create may have named the account; the cached me would still say it has no name.
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: meQueryOptions(client).queryKey }),
+  })
+}

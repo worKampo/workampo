@@ -14,11 +14,23 @@ A person with an account; one user can belong to several companies. [ADR-0054](a
 
 ### membership
 
-The link between a user and a company, which carries the role (`members.role`). [ADR-0054](adr/0054-roles-and-permissions.md).
+The link between a user and a company, with its status, in `DB_GLOBAL` (`members`). It carries no role: roles are [assignments](#assignment) in the shard. [ADR-0054](adr/0054-roles-and-permissions.md), [ADR-0072](adr/0072-organization-units-and-scoped-roles.md).
 
 ### role
 
-What a member may do in a company: `owner`, `admin` or `member`, fixed in code. [ADR-0054](adr/0054-roles-and-permissions.md).
+What a member may do in a company, given by an [assignment](#assignment) on a [unit](#unit): `owner`, `admin`, `member` or `viewer` among the system roles. [ADR-0054](adr/0054-roles-and-permissions.md), [ADR-0072](adr/0072-organization-units-and-scoped-roles.md).
+
+### unit
+
+A node of the company's tree of sites, areas or groups, kept in the shard; the company has one root unit whose id is the company id. [ADR-0072](adr/0072-organization-units-and-scoped-roles.md).
+
+### assignment
+
+A role given to a member on a unit, kept in the shard; the owner holds it on the root unit. [ADR-0072](adr/0072-organization-units-and-scoped-roles.md).
+
+### main contact
+
+The member the company is addressed through; data in `company_contacts`, not a role, and it grants no permission. [ADR-0072](adr/0072-organization-units-and-scoped-roles.md).
 
 ### staff
 

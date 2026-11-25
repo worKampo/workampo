@@ -36,7 +36,7 @@ it('@id:access-96-2 the right code of an email without an account creates it and
 
   expect(response.status).toBe(201)
   expect(user).toEqual({ id: expect.any(String), email })
-  expect(await signedIn.json()).toEqual(user)
+  expect(await signedIn.json()).toEqual({ ...user, name: null })
   expect(await countUsers(email)).toBe(1)
 })
 

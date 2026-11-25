@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useApiClient } from '../../../_shared/api-client-context'
-import { ME_QUERY_KEY } from '../../data/query-keys'
 import { verifyCode } from '../../data/sign-in.api'
+import { replaceSession } from '../../me.hook'
 
 export function useVerifyCode() {
   const client = useApiClient()
@@ -9,10 +9,6 @@ export function useVerifyCode() {
 
   return useMutation({
     mutationFn: (input: { email: string; code: string }) => verifyCode(client, input),
-    // A me request still in flight would otherwise overwrite what this writes.
-    onSuccess: async (user) => {
-      await queryClient.cancelQueries({ queryKey: ME_QUERY_KEY })
-      queryClient.setQueryData(ME_QUERY_KEY, user)
-    },
+    onSuccess: (user) => replaceSession(queryClient, user),
   })
 }

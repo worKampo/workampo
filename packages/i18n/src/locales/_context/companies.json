@@ -1,0 +1,29 @@
+{
+  "new_company": {
+    "_screen": "The create-company screen (/companies/new): name, the company URL (proposed from the name, checked live), default language, the person's own name when they have none, and Create / Cancel.",
+    "name_required": "Shown under the company name when it is empty or not valid; tells what to write.",
+    "url": "Label of the slug field; the text must contain 'URL'.",
+    "available": "Shown under the URL when it is free; the app may append the full address after it.",
+    "unavailable": "Shown under the URL when another company has it. Do not say which.",
+    "reserved": "The URL is a word the product keeps for itself.",
+    "invalid_format": "The URL has characters or a length we do not accept.",
+    "language_hint": "Short help under the language field.",
+    "your_name": "Asked only when the account has no name yet."
+  },
+  "company_home": {
+    "_screen": "The first screen inside a company: a welcome with the company name.",
+    "welcome": "{{name}} is the company name, rendered as plain text."
+  },
+  "not_found": {
+    "_screen": "Shown when the company address does not exist or the person is not a member. Must not reveal which of the two it is.",
+    "title": "Heading of the not-found state.",
+    "body": "One sentence; covers both cases without saying which.",
+    "back": "The one action of the not-found state: a link to the start screen."
+  },
+  "errors": {
+    "_screen": "Error messages of creating a company and of opening one, shown under the field or on the screen. One per error code the API returns. Short, say what happened and what to do next; never blame the person.",
+    "invalid_request": "Generic failure of the creation request.",
+    "idempotency_mismatch": "The same attempt was reused with other data; asking to try again is enough.",
+    "too_many_creations": "Rate limit on creating companies; do not give the limit or the wait time."
+  }
+}

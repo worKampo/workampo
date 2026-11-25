@@ -6,10 +6,12 @@
     "./api-client": "./src/_shared/api-client.ts",
     "./api-client-context": "./src/_shared/api-client-context.ts",
     "./errors": "./src/_shared/error-key.ts",
-    "./access/session/me": "./src/access/session/me/me.hook.ts",
+    "./access/me": "./src/access/me.hook.ts",
     "./access/session/sign-out": "./src/access/session/sign-out/sign-out.hook.ts",
     "./access/sign-in/code": "./src/access/sign-in/code/code.hook.ts",
-    "./access/sign-in/login": "./src/access/sign-in/login/login.hook.ts"
+    "./access/sign-in/login": "./src/access/sign-in/login/login.hook.ts",
+    "./companies/creation/new-company": "./src/companies/creation/new-company/new-company.hook.ts",
+    "./companies/workspace/read-context": "./src/companies/workspace/read-context/read-context.hook.ts"
   },
   "scripts": {
     "typecheck": "tsc",
@@ -18,6 +20,7 @@
   },
   "dependencies": {
     "@workampo/domain": "workspace:*",
+    "@workampo/i18n": "workspace:*",
     "hono": "4.13.18"
   },
   "peerDependencies": {
