@@ -77,7 +77,11 @@ test('@id:companies-90-12 another company looks the same as one that does not ex
 test('@id:companies-90-13 without a session a company page leads to /login', async ({ page }) => {
   await page.goto('/c/northwind')
 
-  await expect(page).toHaveURL(/\/login$/)
+  // The page opened travels along, so signing in comes back to it.
+  await expect(page).toHaveURL(/\/login\?/)
+  const url = new URL(page.url())
+  expect(url.pathname).toBe('/login')
+  expect(url.searchParams.get('returnTo')).toBe('/c/northwind')
 })
 
 // The project's baseURL, for contexts made by hand, which do not inherit it.

@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test'
 import {
-  EMPTY_STATE,
+  currentUser,
   enterCode,
   expectSignedOut,
   FAKE_EXPIRED_CODE,
@@ -28,8 +28,10 @@ test('@id:access-96-2 the right code of an email without an account creates it a
 
   await signInWithCode(page, email)
 
-  await expect(page.getByText(EMPTY_STATE)).toBeVisible()
-  await expect(page).toHaveURL(/\/$/)
+  // With no company yet the sign-in lands on the creation form.
+  await expect(page).toHaveURL(/\/companies\/new$/)
+  await expect(page.getByLabel('Nombre de la empresa')).toBeVisible()
+  expect((await currentUser(page)).email).toBe(email)
 })
 
 test('@id:access-96-3 a wrong or expired code does not sign in', async ({ page }) => {

@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test'
 import {
-  EMPTY_STATE,
+  currentUser,
   expectSignedOut,
   SESSION_COOKIE,
   signInWithGoogle,
@@ -11,8 +11,10 @@ test.use({ locale: 'es-ES' })
 test('@id:access-96-6 Google confirms and I come back signed in', async ({ page }) => {
   await signInWithGoogle(page)
 
-  await expect(page.getByText(EMPTY_STATE)).toBeVisible()
-  await expect(page).toHaveURL(/\/$/)
+  // The fake's Google account has no company, so it lands on the creation form.
+  await expect(page).toHaveURL(/\/companies\/new$/)
+  await expect(page.getByLabel('Nombre de la empresa')).toBeVisible()
+  expect((await currentUser(page)).email).toBe('google@example.com')
 })
 
 test('@id:access-96-7 a state my browser did not generate creates no session', async ({ page }) => {

@@ -30,6 +30,10 @@ test('@id:access-96-13 the session cookie is __Host-, HttpOnly, Secure and SameS
 test('@id:access-96-14 signing out revokes the session', async ({ page, request }) => {
   await signInWithCode(page, newEmail())
   const token = await sessionToken(page)
+  // A new account lands on the creation form; the sign-out button is on the picker.
+  await expect(page).toHaveURL(/\/companies\/new$/)
+  await page.getByRole('link', { name: 'Volver a mis empresas' }).click()
+  await expect(page).toHaveURL(/\/companies$/)
 
   await page.getByRole('button', { name: 'Cerrar sesión' }).click()
 

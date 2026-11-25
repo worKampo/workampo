@@ -7,7 +7,7 @@ Quién puede entrar y cómo: inicio de sesión, sesión, códigos de un solo uso
 ## Rules
 
 ```gherkin
-@issue(#96)
+@wip(#91)
 Rule: Se entra con un código que llega por email; la primera vez se crea la cuenta
 
   @id:access-96-1
@@ -24,7 +24,7 @@ Rule: Se entra con un código que llega por email; la primera vez se crea la cue
     When escribo el código correcto
     Then se crea mi cuenta con el email "ana@example.com"
     And tengo sesión
-    And veo "Aún no perteneces a ninguna empresa"
+    And llego al formulario de crear empresa
 
   @id:access-96-3
   Example: Un código incorrecto o caducado no abre sesión
@@ -64,6 +64,28 @@ Rule: Se entra con Google
     Given vuelvo de Google con un "state" que no es el que generó mi navegador
     When llega la respuesta
     Then no se crea ninguna sesión
+
+@wip(#91)
+Rule: Tras entrar vuelvo a la página de la app que abrí; una dirección fuera de worKampo se ignora
+
+  @id:access-91-1
+  Example: Entrar con un código me devuelve a la página que abrí
+    Given no tengo sesión
+    When abro /c/northwind/settings y entro con un código
+    Then vuelvo a /c/northwind/settings
+
+  @id:access-91-2
+  Example: Entrar con Google me devuelve a la página que abrí
+    Given no tengo sesión
+    When abro /c/northwind/settings y entro con Google
+    Then vuelvo a /c/northwind/settings
+
+  @id:access-91-3
+  Example: Una dirección de vuelta de otro sitio se ignora
+    Given abro /login con returnTo "https://otro-sitio.example.com"
+    When entro
+    Then no salgo de worKampo
+    And llego a donde me lleva tener una empresa, varias o ninguna
 
 @issue(#96)
 Rule: Una identidad abre solo su cuenta enlazada; un email igual nunca enlaza solo

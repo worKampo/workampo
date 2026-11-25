@@ -4,7 +4,6 @@ import { expect, type Page } from '@playwright/test'
 export const FAKE_VALID_CODE = '424242'
 export const FAKE_EXPIRED_CODE = '000000'
 
-export const EMPTY_STATE = 'Aún no perteneces a ninguna empresa'
 export const RESEND = /reenviar|otro código/i
 export const WAIT = /esper/i
 export const SESSION_COOKIE = '__Host-session'
@@ -30,8 +29,13 @@ async function validCode(email: string): Promise<string> {
 }
 
 /** /login → "Continuar" → code screen naming the email. Returns the API answer to the request. */
-export async function requestCode(page: Page, email: string) {
-  await page.goto('/login')
+export function requestCode(page: Page, email: string) {
+  return requestCodeAt(page, { email, path: '/login' })
+}
+
+// From `path`, so a /login?returnTo=… keeps its way back.
+async function requestCodeAt(page: Page, { email, path }: { email: string; path: string }) {
+  await page.goto(path)
   await page.getByRole('textbox').fill(email)
   const [answer] = await Promise.all([
     page.waitForResponse((r) => r.url().endsWith('/api/sign-in-codes')),
@@ -54,13 +58,18 @@ export async function enterCode(page: Page, code: string) {
   return answer
 }
 
-export async function signInWithCode(page: Page, email: string) {
-  await requestCode(page, email)
-  return enterCode(page, await validCode(email))
+export function signInWithCode(page: Page, email: string) {
+  return signInWithCodeAt(page, { email, path: '/login' })
 }
 
-export async function signInWithGoogle(page: Page) {
-  await page.goto('/login')
+/** Signs in from `path`, such as the /login?returnTo=… an app page led to. */
+export async function signInWithCodeAt(page: Page, at: { email: string; path: string }) {
+  await requestCodeAt(page, at)
+  return enterCode(page, await validCode(at.email))
+}
+
+export async function signInWithGoogle(page: Page, path = '/login') {
+  await page.goto(path)
   await page.getByRole('link', { name: 'Continuar con Google' }).click()
 }
 
