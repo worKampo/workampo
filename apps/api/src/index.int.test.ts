@@ -277,7 +277,9 @@ const ROUTES = [
 ]
 
 const isTenantPath = (path: string) => /^\/api\/t\/:slug(\/|$)/.test(path)
-const isPlural = (segment: string) => segment.endsWith('s')
+// A collection: plural, and neither an action nor a singleton (a verb may end in s).
+const isCollection = (segment: string) =>
+  segment.endsWith('s') && !ACTIONS.includes(segment) && !SINGLETONS_AND_ALIASES.includes(segment)
 
 function brokenRules(route: string): string[] {
   const [method = '', path = ''] = route.split(' ')
@@ -298,7 +300,7 @@ function brokenRules(route: string): string[] {
     if (index === segments.length - 1 && lastIsName) return true
     if (index % 2 === 1) return segment.startsWith(':')
 
-    return !segment.startsWith(':') && isPlural(segment)
+    return !segment.startsWith(':') && isCollection(segment)
   })
   if (!alternates) broken.push('collection and :param alternate; a non-plural literal only last')
   if (lastIsAction && method !== 'POST') broken.push('an action only with POST')
@@ -443,7 +445,7 @@ describe('every API route', () => {
       const [method, path = ''] = route.split(' ')
 
       return (
-        method === 'POST' && isPlural(path.split('/').at(-1) ?? '') && !(route in CREATE_EXEMPT)
+        method === 'POST' && isCollection(path.split('/').at(-1) ?? '') && !(route in CREATE_EXEMPT)
       )
     })
     expect(routes).toEqual(Object.keys(CREATE_BODIES))
@@ -494,5 +496,8 @@ it('the route check itself tells nested collections and actions apart', () => {
   )
   expect(brokenRules('GET /api/t/:slug/units/:id/members')).toContain(
     'an item param :id, a parent param :<x>Id',
+  )
+  expect(brokenRules('POST /api/t/:slug/enable-writes/:id/members')).toContain(
+    'collection and :param alternate; a non-plural literal only last',
   )
 })
