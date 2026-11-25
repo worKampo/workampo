@@ -2,7 +2,7 @@ import { cleanup, configure, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { initI18n } from '../../_shared/i18n/i18n'
-import { problem, renderApp } from '../../_shared/testing/render-app'
+import { problem, renderApp, sessionEndsAfterFirstMe } from '../../_shared/testing/render-app'
 
 // The first visit downloads the lazy screen and its translations; under a busy check that is slow.
 configure({ asyncUtilTimeout: 5000 })
@@ -130,10 +130,11 @@ describe('the company home', () => {
     const companies = workspaceApi({ northwind: 'Northwind Logistics' })
     const { router } = renderApp({
       path: '/c/northwind',
-      answer: (request) =>
+      answer: sessionEndsAfterFirstMe((request) =>
         new URL(request.url).pathname === '/api/t/northwind/'
           ? problem({ status: 401, code: 'access.unauthenticated' })
           : companies(request),
+      ),
     })
 
     expect(await screen.findByRole('button', { name: 'Continuar' })).toBeTruthy()
@@ -145,10 +146,11 @@ describe('the company home', () => {
     const companies = workspaceApi({ northwind: 'Northwind Logistics' })
     const { router } = renderApp({
       path: '/c/northwind',
-      answer: (request) =>
+      answer: sessionEndsAfterFirstMe((request) =>
         new URL(request.url).pathname === '/api/t/northwind/'
           ? problem({ status: 401, code: 'access.unauthenticated' })
           : companies(request),
+      ),
     })
 
     expect(await screen.findByRole('button', { name: 'Continuar' })).toBeTruthy()

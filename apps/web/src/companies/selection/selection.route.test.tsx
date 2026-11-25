@@ -2,7 +2,7 @@ import { cleanup, configure, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { initI18n } from '../../_shared/i18n/i18n'
-import { problem, renderApp } from '../../_shared/testing/render-app'
+import { problem, renderApp, sessionEndsAfterFirstMe } from '../../_shared/testing/render-app'
 
 // The first visit downloads the lazy screen and its translations; under a busy check that is slow.
 configure({ asyncUtilTimeout: 5000 })
@@ -155,12 +155,30 @@ describe('the company picker, /companies', () => {
   it('@id:companies-91-2 a session that expired while me was cached leads to /login', async () => {
     const { router } = renderApp({
       path: '/companies',
-      answer: pickerApi(MINE, {
-        list: () => problem({ status: 401, code: 'access.unauthenticated' }),
-      }),
+      answer: sessionEndsAfterFirstMe(
+        pickerApi(MINE, { list: () => problem({ status: 401, code: 'access.unauthenticated' }) }),
+      ),
     })
 
     expect(await screen.findByRole('button', { name: 'Continuar' })).toBeTruthy()
     await waitFor(() => expect(router.state.location.pathname).toBe('/login'))
+  })
+
+  it('@id:companies-91-2 a session that expires with the list on screen leads to /login', async () => {
+    let expired = false
+    const api = pickerApi()
+    const { router, queryClient } = renderApp({
+      path: '/companies',
+      answer: (request) =>
+        expired ? problem({ status: 401, code: 'access.unauthenticated' }) : api(request),
+    })
+    await screen.findByRole('link', { name: /Northwind/ })
+
+    expired = true
+    await queryClient.refetchQueries({ type: 'active' })
+
+    expect(await screen.findByRole('button', { name: 'Continuar' })).toBeTruthy()
+    expect(router.state.location.pathname).toBe('/login')
+    expect(router.state.location.search).toEqual({ returnTo: '/companies' })
   })
 })

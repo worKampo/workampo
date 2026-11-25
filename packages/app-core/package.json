@@ -6,6 +6,7 @@
     "./api-client": "./src/_shared/api-client.ts",
     "./api-client-context": "./src/_shared/api-client-context.ts",
     "./errors": "./src/_shared/error-key.ts",
+    "./session-expiry": "./src/_shared/session-expiry.ts",
     "./access/me": "./src/access/me.hook.ts",
     "./access/session/sign-out": "./src/access/session/sign-out/sign-out.hook.ts",
     "./access/sign-in/code": "./src/access/sign-in/code/code.hook.ts",
