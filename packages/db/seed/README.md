@@ -12,4 +12,4 @@ Example data for local, test and staging ([ADR-0044](../../../docs/adr/0044-migr
 - Idempotent: `INSERT … ON CONFLICT DO NOTHING` (or `DO UPDATE`), so a second run changes nothing.
 - Emails only on the test domains of [review](../../../docs/process/review.md#no-entra).
 
-`global/0001-access.sql` holds the users and identities of the fake identity provider and an expired session. How to run it: [seeds procedure](../../../docs/procedures/seeds.md).
+`global/0001-access.sql` holds the users and identities of the fake identity provider and an expired session; some users have no name. `global/0002-companies.sql` and `shard/0001-companies.sql` hold three companies on `shard-1` (one with a long unicode name), a user in two of them and their owners. How to run it: [seeds procedure](../../../docs/procedures/seeds.md).
