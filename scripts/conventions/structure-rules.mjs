@@ -60,12 +60,20 @@ export function hookMirrorErrors(files) {
       .filter((dir) => dir.includes('/') && !dir.startsWith('_shared/')),
   )
 
-  return [...hookDirs]
-    .filter((dir) => !files.some((path) => path.startsWith(`apps/api/src/${dir}/`)))
-    .map(
-      (dir) =>
-        `${APP_CORE}${dir}/: a use-case hook folder needs apps/api/src/${dir}/; a page hook belongs in apps/web`,
-    )
+  return (
+    [...hookDirs]
+      // A use case is a folder with its .route.ts; a feature's folder alone does not count.
+      .filter(
+        (dir) =>
+          !files.some(
+            (path) => posix.dirname(path) === `apps/api/src/${dir}` && path.endsWith('.route.ts'),
+          ),
+      )
+      .map(
+        (dir) =>
+          `${APP_CORE}${dir}/: a use-case hook folder needs apps/api/src/${dir}/; a page hook belongs in apps/web`,
+      )
+  )
 }
 
 const LAYER_FOLDERS = [

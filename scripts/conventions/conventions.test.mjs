@@ -38,7 +38,7 @@ test('a folder with more than 8 code files fails; tests do not count', () => {
   assert.deepEqual(rules.folderSizeErrors(folder('scripts/checks', 14, '.mjs')), [])
 })
 
-test('an app-core hook folder needs its API twin; hooks at the domain root are exempt', () => {
+test('an app-core hook folder needs its API use case twin; hooks at the domain root are exempt', () => {
   const app = 'packages/app-core/src'
   const api = 'apps/api/src'
 
@@ -52,6 +52,13 @@ test('an app-core hook folder needs its API twin; hooks at the domain root are e
       `${api}/companies/creation/create-company/create-company.route.ts`,
     ]),
     [],
+  )
+  assert.equal(
+    rules.hookMirrorErrors([
+      `${app}/access/sign-in/sign-in-page.hook.ts`,
+      `${api}/access/sign-in/sign-in.router.ts`,
+    ]).length,
+    1,
   )
   assert.deepEqual(rules.hookMirrorErrors([`${app}/access/me.hook.ts`]), [])
   assert.deepEqual(
