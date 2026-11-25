@@ -27,6 +27,8 @@ async function googleRoundTrip(api: APIRequestContext, startQuery = '') {
 
 const pathOf = (location: string) => {
   const url = new URL(location, 'https://app.test')
+  // A tampered returnTo must stay in the app, not only end on the expected path.
+  expect(url.origin).toBe('https://app.test')
   return `${url.pathname}${url.search}`
 }
 

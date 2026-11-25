@@ -1,11 +1,11 @@
 import { expect, test } from '@playwright/test'
 import {
   expectSignedOut,
-  FAKE_VALID_CODE,
   newEmail,
   SESSION_COOKIE,
   sessionToken,
   signInWithCode,
+  validCode,
 } from './support'
 
 test.use({ locale: 'es-ES' })
@@ -27,7 +27,7 @@ test('@id:access-96-13 the session cookie is __Host-, HttpOnly, Secure and SameS
   // Signed in, /login goes on to the app (access-91-4), so the second sign-in calls the API from
   // the same browser, which still sends the previous session's cookie.
   await page.request.post('/api/sign-in-codes', { data: { email } })
-  await page.request.post('/api/sessions', { data: { email, code: FAKE_VALID_CODE } })
+  await page.request.post('/api/sessions', { data: { email, code: await validCode(email) } })
 
   const current = await sessionToken(page)
   expect(current).not.toBe(previous)

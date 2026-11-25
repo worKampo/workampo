@@ -14,7 +14,7 @@ const isStaging = Boolean(process.env.E2E_BASE_URL)
 export const newEmail = () => `new-${crypto.randomUUID()}@example.com`
 
 /** Locally the fake's code; on staging a Magic Auth code created with the WorkOS API (the last one wins). */
-async function validCode(email: string): Promise<string> {
+export async function validCode(email: string): Promise<string> {
   if (!isStaging) return FAKE_VALID_CODE
   const key = process.env.WORKOS_API_KEY
   if (!key) throw new Error('WORKOS_API_KEY is required when E2E_BASE_URL is set')
