@@ -63,7 +63,7 @@ describe('signing in with a code', () => {
     expect(router.state.location.pathname).toBe('/companies')
   })
 
-  it.fails('@id:access-91-1 the code comes back to the page I opened', async () => {
+  it('@id:access-91-1 the code comes back to the page I opened', async () => {
     for (const returnTo of ['/c/northwind/settings', '/c/northwind/members?page=2']) {
       const { router } = renderApp({
         path: `/login?returnTo=${encodeURIComponent(returnTo)}`,
@@ -77,7 +77,7 @@ describe('signing in with a code', () => {
     }
   })
 
-  it.fails('@id:access-91-1 "Usar otro email" keeps the way back', async () => {
+  it('@id:access-91-1 "Usar otro email" keeps the way back', async () => {
     const { router } = renderApp({
       path: `/login?returnTo=${encodeURIComponent('/c/northwind/settings')}`,
       answer: accountApi(),
@@ -91,7 +91,7 @@ describe('signing in with a code', () => {
     expect(router.state.location.search).toEqual({ returnTo: '/c/northwind/settings' })
   })
 
-  it.fails('@id:access-91-2 the Google link carries the way back', async () => {
+  it('@id:access-91-2 the Google link carries the way back', async () => {
     renderApp({
       path: `/login?returnTo=${encodeURIComponent('/c/northwind/settings')}`,
       answer: accountApi(),

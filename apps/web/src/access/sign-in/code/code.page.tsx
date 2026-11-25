@@ -6,8 +6,10 @@ import { CodeForm } from './code-form'
 // arrival: while the next page loads, the current location already lacks it.
 export function CodePage() {
   const router = useRouter()
-  const [email] = useState(() => router.state.location.state.signInEmail)
+  const [{ signInEmail: email, signInReturnTo: returnTo }] = useState(
+    () => router.state.location.state,
+  )
   if (!email) return <Navigate to="/login" />
 
-  return <CodeForm email={email} />
+  return <CodeForm email={email} returnTo={returnTo} />
 }
