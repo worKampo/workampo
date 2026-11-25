@@ -113,7 +113,7 @@ Rule: Solo sus miembros entran en una empresa, y para el resto es como si no exi
     When abro /c/northwind
     Then vuelvo a /login
 
-@wip(#91)
+@issue(#91)
 Rule: Al entrar llego a mi única empresa, al selector si tengo varias o a crear una si no tengo ninguna
 
   @id:companies-91-1
@@ -135,7 +135,7 @@ Rule: Al entrar llego a mi única empresa, al selector si tengo varias o a crear
     When entro
     Then llego al formulario de crear empresa
 
-@wip(#91)
+@issue(#91)
 Rule: En el selector elijo una de mis empresas o creo otra, y solo cuentan mis membresías activas
 
   @id:companies-91-4
@@ -158,7 +158,7 @@ Rule: En el selector elijo una de mis empresas o creo otra, y solo cuentan mis m
     Then "sol-bakery" no aparece en el selector
     And /c/sol-bakery me responde 404
 
-@wip(#91)
+@issue(#91)
 Rule: El inicio lleva a donde lleva entrar, y sin sesión a /login
 
   @id:companies-91-7

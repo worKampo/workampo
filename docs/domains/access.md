@@ -7,7 +7,7 @@ Quién puede entrar y cómo: inicio de sesión, sesión, códigos de un solo uso
 ## Rules
 
 ```gherkin
-@wip(#91)
+@issue(#91)
 Rule: Se entra con un código que llega por email; la primera vez se crea la cuenta
 
   @id:access-96-1
@@ -65,7 +65,7 @@ Rule: Se entra con Google
     When llega la respuesta
     Then no se crea ninguna sesión
 
-@wip(#91)
+@issue(#91)
 Rule: Tras entrar vuelvo a la página de la app que abrí; una dirección fuera de worKampo se ignora
 
   @id:access-91-1
