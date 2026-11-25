@@ -127,7 +127,7 @@ Decided by the person on 2026-11-25 (spike #164): numbered pages by default, wit
 ## Consequences
 
 - One shape per need: an agent derives the URL, the method, the status and the body from the table in code conventions.
-- Today's paths stay. The gaps become one MVP task: malformed JSON and unknown `/api` paths answer as plain text, the problem body has no `title`, 429 has no `Retry-After`, responses have no `Cache-Control: no-store` or `nosniff`, and there is no body limit.
+- Today's paths stay. The gaps (malformed JSON and unknown `/api` paths answering as plain text, no `title` in the problem body, no `Retry-After` on 429, no `Cache-Control: no-store` or `nosniff`, no body limit) were closed by issue 171.
 - Pages, PATCH with `version`, bulk, jobs and webhooks are built with the first endpoint that needs each.
 - `RateLimit` headers wait for their RFC; they would also publish the thresholds that `AGENTS.md` keeps out of the repo.
 - Accepting this ADR resolves "pagination, filters and ordering of the API", which ADR-0053 left for later.
