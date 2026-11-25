@@ -79,4 +79,18 @@ describe('the company home', () => {
     expect(await screen.findByRole('button', { name: 'Continuar' })).toBeTruthy()
     expect(router.state.location.pathname).toBe('/login')
   })
+
+  it('@id:companies-90-13 a session that expired while me was cached leads to /login', async () => {
+    const companies = workspaceApi({ northwind: 'Northwind Logistics' })
+    const { router } = renderApp({
+      path: '/c/northwind',
+      answer: (request) =>
+        new URL(request.url).pathname === '/api/t/northwind/'
+          ? problem({ status: 401, code: 'access.unauthenticated' })
+          : companies(request),
+    })
+
+    expect(await screen.findByRole('button', { name: 'Continuar' })).toBeTruthy()
+    expect(router.state.location.pathname).toBe('/login')
+  })
 })

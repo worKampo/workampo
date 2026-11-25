@@ -1,5 +1,5 @@
 import { createLazyRoute, createRoute, notFound, redirect } from '@tanstack/react-router'
-import { meQueryOptions } from '@workampo/app-core/access/me'
+import { meQueryOptions, replaceSession } from '@workampo/app-core/access/me'
 import { companyContextQueryOptions } from '@workampo/app-core/companies/workspace/read-context'
 import { errorKeyOf } from '@workampo/app-core/errors'
 import { rootRoute } from '../../_shared/router/root-route'
@@ -20,6 +20,11 @@ export const workspaceRoute = createRoute({
       )
     } catch (error) {
       if (errorKeyOf(error) === 'companies:errors.not_found') throw notFound()
+      // The session expired while me was still cached: the guard let the person in.
+      if (errorKeyOf(error) === 'access:errors.unauthenticated') {
+        await replaceSession(context.queryClient, null)
+        throw redirect({ to: '/login' })
+      }
       throw error
     }
   },
