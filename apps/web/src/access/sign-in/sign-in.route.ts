@@ -1,4 +1,5 @@
-import { createLazyRoute, createRoute } from '@tanstack/react-router'
+import { createLazyRoute, createRoute, redirect } from '@tanstack/react-router'
+import { meQueryOptions } from '@workampo/app-core/access/me'
 import { type AccessErrorCode, isAccessErrorCode } from '@workampo/domain/access/errors'
 import { safeReturnTo } from '@workampo/domain/access/sign-in/return-to'
 import { rootRoute } from '../../_shared/router/root-route'
@@ -23,6 +24,11 @@ export const loginRoute = createRoute({
     error: isAccessErrorCode(search.error) ? search.error : undefined,
     returnTo: safeReturnTo(search.returnTo),
   }),
+  // Already signed in: no form, straight to the page that asked or to the entry destination.
+  beforeLoad: async ({ context, search }) => {
+    const me = await context.queryClient.ensureQueryData(meQueryOptions(context.apiClient))
+    if (me) throw search.returnTo ? redirect({ href: search.returnTo }) : redirect({ to: '/' })
+  },
 }).lazy(() =>
   import('./login/login.page').then(({ LoginPage }) =>
     createLazyRoute('/login')({ component: LoginPage }),

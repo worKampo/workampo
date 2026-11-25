@@ -206,3 +206,40 @@ async function signInWithCode() {
 
 const pathOf = (router: ReturnType<typeof renderApp>['router']) =>
   `${router.state.location.pathname}${router.state.location.searchStr}`
+
+describe('/login with a session', () => {
+  it('@id:access-91-1 goes straight to a safe returnTo instead of asking again', async () => {
+    const { router } = renderApp({
+      path: '/login?returnTo=/c/northwind/',
+      answer: signedInApi([NORTHWIND, SOL_BAKERY]),
+    })
+
+    await waitFor(() => expect(router.state.location.pathname).toMatch(/^\/c\/northwind\/?$/))
+  })
+
+  it('@id:access-91-3 goes to the entry destination when returnTo is missing or unsafe', async () => {
+    const { router } = renderApp({
+      path: '/login?returnTo=https://otro-sitio.example.com',
+      answer: signedInApi([NORTHWIND]),
+    })
+
+    await waitFor(() => expect(router.state.location.pathname).toMatch(/^\/c\/northwind\/?$/))
+  })
+})
+
+it('a returnTo reads as a path in the URL, with its slashes unescaped', async () => {
+  const { router } = renderApp({ path: '/login', answer: signInApi })
+
+  await router.navigate({ to: '/login', search: { returnTo: '/c/northwind/' } })
+
+  expect(router.state.location.href).toBe('/login?returnTo=/c/northwind/')
+})
+
+// Already signed in: /api/me answers the person from the start.
+function signedInApi(companies: Item[]) {
+  const api = accountApi(companies)
+  return async (request: Request) =>
+    new URL(request.url).pathname === '/api/me'
+      ? Response.json({ id: 'u1', email: 'ana@example.com', name: 'Ana' })
+      : api(request)
+}
