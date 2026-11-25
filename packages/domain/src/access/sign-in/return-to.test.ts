@@ -1,10 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-// return-to.ts arrives with the domain rules task; a non-literal path keeps typecheck green until then.
-// Once it exists, import it statically.
-const RETURN_TO: string = './return-to'
-type ReturnToModule = { safeReturnTo: (value: unknown) => string | undefined }
-const load = (): Promise<ReturnToModule> => import(RETURN_TO)
+import { safeReturnTo } from './return-to'
 
 const ACCEPTED = [
   '/c/northwind/settings',
@@ -37,6 +33,9 @@ const REFUSED: [string, unknown][] = [
   ['an encoded control character', '/%09/x'],
   ['an encoded newline', '/%0a/x'],
   ['an encoded escape character', '/%1b/x'],
+  ['a dot-dot segment that resolves to sign-in', '/c/../login'],
+  ['a dot segment', '/c/./northwind'],
+  ['an encoded dot-dot segment that resolves to the API', '/c/%2e%2e/api/x'],
   ['an absolute URL', 'https://otro-sitio.example.com'],
   ['an absolute URL to our own path', 'https://otro-sitio.example.com/c/northwind'],
   ['javascript:', 'javascript:alert(1)'],
@@ -60,21 +59,16 @@ const REFUSED: [string, unknown][] = [
 
 describe('safeReturnTo', () => {
   for (const path of ACCEPTED)
-    it.fails(`@id:access-91-1 keeps the path of the app "${path}"`, async () => {
-      const { safeReturnTo } = await load()
-
+    it(`@id:access-91-1 keeps the path of the app "${path}"`, () => {
       expect(safeReturnTo(path)).toBe(path)
     })
 
   for (const [what, value] of REFUSED)
-    it.fails(`@id:access-91-3 ignores ${what}`, async () => {
-      const { safeReturnTo } = await load()
-
+    it(`@id:access-91-3 ignores ${what}`, () => {
       expect(safeReturnTo(value)).toBeUndefined()
     })
 
-  it.fails('@id:access-91-3 accepts up to 1024 characters and ignores 1025', async () => {
-    const { safeReturnTo } = await load()
+  it('@id:access-91-3 accepts up to 1024 characters and ignores 1025', () => {
     const at = (length: number) => `/c/northwind/${'a'.repeat(length - '/c/northwind/'.length)}`
 
     expect(at(1024)).toHaveLength(1024)
@@ -82,16 +76,12 @@ describe('safeReturnTo', () => {
     expect(safeReturnTo(at(1025))).toBeUndefined()
   })
 
-  it.fails('@id:access-91-1 keeps unicode and its percent-encoding', async () => {
-    const { safeReturnTo } = await load()
-
+  it('@id:access-91-1 keeps unicode and its percent-encoding', () => {
     expect(safeReturnTo('/c/northwind/búsqueda?q=Ñandú')).toBe('/c/northwind/búsqueda?q=Ñandú')
     expect(safeReturnTo('/c/northwind/b%C3%BAsqueda')).toBe('/c/northwind/b%C3%BAsqueda')
   })
 
-  it.fails('@id:access-91-1 does not refuse paths that only start like /api or /login', async () => {
-    const { safeReturnTo } = await load()
-
+  it('@id:access-91-1 does not refuse paths that only start like /api or /login', () => {
     expect(safeReturnTo('/c/api')).toBe('/c/api')
     expect(safeReturnTo('/c/northwind/login')).toBe('/c/northwind/login')
   })
