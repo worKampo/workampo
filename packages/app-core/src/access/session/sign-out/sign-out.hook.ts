@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useApiClient } from '../../../_shared/api-client-context'
-import { signOut } from '../../data/session.api'
+import { signOut } from '../../_api/session.api'
 import { replaceSession } from '../../me.hook'
 
 export function useSignOut() {
