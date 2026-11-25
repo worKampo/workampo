@@ -67,7 +67,7 @@ it('@id:access-96-15 a session created 29 days ago is still valid', async () => 
   expect(response.status).toBe(200)
 })
 
-it.fails('@id:companies-90-8 /api/me says an account without a name has none', async () => {
+it('@id:companies-90-8 /api/me says an account without a name has none', async () => {
   const token = sessionToken(await signIn({ email: newEmail() }))
 
   const response = await me(token)
@@ -79,7 +79,7 @@ it.fails('@id:companies-90-8 /api/me says an account without a name has none', a
   })
 })
 
-it.fails('@id:companies-90-9 /api/me gives the name of an account that has one', async () => {
+it('@id:companies-90-9 /api/me gives the name of an account that has one', async () => {
   const token = sessionToken(await signIn({ email: newEmail() }))
   const { id } = await (await me(token)).json<{ id: string }>()
   await env.DB_GLOBAL.prepare("UPDATE users SET name = 'Ana Núñez' WHERE id = ?").bind(id).run()

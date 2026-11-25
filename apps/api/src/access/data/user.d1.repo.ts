@@ -15,7 +15,11 @@ export function userRepo(env: { DB_GLOBAL: D1Database }) {
         .get(),
 
     findById: (id: string) =>
-      db.select({ id: users.id, email: users.email }).from(users).where(eq(users.id, id)).get(),
+      db
+        .select({ id: users.id, email: users.email, name: users.name })
+        .from(users)
+        .where(eq(users.id, id))
+        .get(),
 
     create: (user: typeof users.$inferInsert) => db.insert(users).values(user),
 
