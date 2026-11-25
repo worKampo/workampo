@@ -31,6 +31,17 @@ From [ADR-0032](../adr/0032-security-reviewer.md). Mandatory in critical zones a
 - Headers: CSP, HSTS, `X-Content-Type-Options`, `Referrer-Policy`.
 - No personal data in logs, Sentry, telemetry or analytics.
 
+### API checklist
+
+What the check over `app.routes` cannot see ([ADR-0078](../adr/0078-api-urls-contracts-and-behaviour.md)):
+
+- The noun matches the [glossary](../glossary.md); nested or flat; an action or a PATCH.
+- 404 or 403 in the logic's branches; the status chosen inside the logic.
+- The response mapped field by field, every field present, `null` against `[]`.
+- A new list pages with `page` and `pageSize` (only the repo knows the offset); query parameters in camelCase; a cursor only through an ADR Update.
+- PATCH with merge semantics and `version`; bulk limits; long work sent to a Workflow.
+- Changes only add: no field, code or endpoint removed without `Deprecation`.
+
 ## Important and Nit
 
 | Level     | What                                                                                                                                                                                                                                                                                                                                                          |

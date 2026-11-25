@@ -100,7 +100,7 @@ it('throws on /__debug/error with ENABLE_DEBUG_ERROR', async () => {
   expect(response.status).toBe(500)
 })
 
-// docs/process/code-conventions.md, "API URLs".
+// docs/process/code-conventions.md, "API URLs and contracts" (ADR-0078).
 it('every API route follows the URL rules', () => {
   const segment = /^([a-z0-9]+(-[a-z0-9]+)*|:[a-z][a-zA-Z]*)$/
   const broken = app.routes
