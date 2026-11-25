@@ -1,0 +1,7 @@
+{
+  "errors": {
+    "malformed_json": "No se ha podido leer la solicitud. Inténtalo de nuevo.",
+    "not_found": "No encontramos lo que buscas.",
+    "body_too_large": "Los datos enviados son demasiado grandes."
+  }
+}

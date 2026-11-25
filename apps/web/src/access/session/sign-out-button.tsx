@@ -6,7 +6,7 @@ import { Text } from '@workampo/ui/content'
 import { useTranslation } from 'react-i18next'
 
 export function SignOutButton() {
-  const { t } = useTranslation(['access', 'companies', 'common'])
+  const { t } = useTranslation(['access', 'companies', 'api', 'common'])
   const navigate = useNavigate()
   const signOut = useSignOut()
 

@@ -1,9 +1,11 @@
 import { env, exports } from 'cloudflare:workers'
 import { afterEach, expect, it, vi } from 'vitest'
+import { me, newEmail, newIp } from './_shared/testing/api-requests'
 import { app } from './index'
 
 afterEach(() => {
   vi.restoreAllMocks()
+  vi.useRealTimers()
 })
 
 it('answers /health with status, sha, version and environment', async () => {
@@ -124,4 +126,120 @@ it('every API route follows the URL rules', () => {
     })
 
   expect(broken).toEqual([])
+})
+
+// i#171, ADR-0078 sections 3, 6, 8 and 10.
+function startCode(
+  init: { body?: string; email?: string; ip?: string } = {},
+  bindings?: typeof env,
+) {
+  const request = {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'CF-Connecting-IP': init.ip ?? newIp() },
+    body: init.body ?? JSON.stringify({ email: init.email ?? newEmail() }),
+  }
+
+  return bindings
+    ? app.request('https://app.test/api/sign-in-codes', request, bindings)
+    : exports.default.fetch('https://app.test/api/sign-in-codes', request)
+}
+
+async function expectProblem(
+  response: Response,
+  { status, code, title }: { status: number; code: string; title: string },
+) {
+  expect(response.status).toBe(status)
+  expect(response.headers.get('Content-Type')).toContain('application/problem+json')
+  expect(await response.json()).toMatchObject({ status, code, title })
+}
+
+it('a malformed JSON body answers 400 problem+json with api.malformed_json', async () => {
+  await expectProblem(await startCode({ body: '{"email":' }), {
+    status: 400,
+    code: 'api.malformed_json',
+    title: 'Bad Request',
+  })
+})
+
+it('an unknown /api path answers 404 problem+json with api.not_found for any method', async () => {
+  for (const method of ['GET', 'POST']) {
+    // Same-origin, as the clients send it: csrf() refuses a POST without Origin before routing.
+    const response = await exports.default.fetch('https://app.test/api/nothing-here', {
+      method,
+      headers: { Origin: 'https://app.test' },
+    })
+
+    await expectProblem(response, { status: 404, code: 'api.not_found', title: 'Not Found' })
+  }
+})
+
+it('every problem+json carries the HTTP reason phrase as title', async () => {
+  // A fixed instant mid-window, so both requests fall in the same rate-limit window.
+  vi.useFakeTimers({ toFake: ['Date'] })
+  vi.setSystemTime(new Date('2026-01-01T00:00:30.000Z'))
+  const unauthorized = await me(undefined)
+  expect(unauthorized.status).toBe(401)
+  expect(await unauthorized.json()).toMatchObject({ title: 'Unauthorized' })
+
+  const bindings = Object.assign({}, env, { RATE_LIMIT_CODE_REQUESTS_PER_EMAIL: '1' })
+  const email = newEmail()
+  expect((await startCode({ email }, bindings)).status).toBe(202)
+  expect(await (await startCode({ email }, bindings)).json()).toMatchObject({
+    title: 'Too Many Requests',
+  })
+})
+
+it('a 429 carries Retry-After in whole seconds within the rate-limit window', async () => {
+  // A fixed instant mid-window, so both requests fall in the same rate-limit window.
+  vi.useFakeTimers({ toFake: ['Date'] })
+  vi.setSystemTime(new Date('2026-01-01T00:00:30.000Z'))
+  const bindings = Object.assign({}, env, { RATE_LIMIT_CODE_REQUESTS_PER_EMAIL: '1' })
+  const email = newEmail()
+  expect((await startCode({ email }, bindings)).status).toBe(202)
+
+  const response = await startCode({ email }, bindings)
+
+  expect(response.status).toBe(429)
+  const retryAfter = response.headers.get('Retry-After') ?? ''
+  expect(retryAfter).toMatch(/^\d+$/)
+  expect(Number(retryAfter)).toBeGreaterThanOrEqual(1)
+  expect(Number(retryAfter)).toBeLessThanOrEqual(Number(env.RATE_LIMIT_WINDOW_SECONDS))
+})
+
+it('/api responses, success and error, carry no-store and nosniff', async () => {
+  const responses = [await startCode(), await me(undefined)]
+
+  expect(responses.map((response) => response.status)).toEqual([202, 401])
+  for (const response of responses) {
+    expect(response.headers.get('Cache-Control')).toBe('no-store')
+    expect(response.headers.get('X-Content-Type-Options')).toBe('nosniff')
+  }
+})
+
+it('a JSON body over 100 KB answers 413 problem+json with api.body_too_large', async () => {
+  const body = JSON.stringify({ email: 'a'.repeat(100 * 1024) })
+
+  await expectProblem(await startCode({ body }), {
+    status: 413,
+    code: 'api.body_too_large',
+    title: 'Payload Too Large',
+  })
+})
+
+it('/api without a trailing slash answers 404 problem+json too', async () => {
+  const response = await exports.default.fetch('https://app.test/api')
+
+  await expectProblem(response, { status: 404, code: 'api.not_found', title: 'Not Found' })
+})
+
+it('the answer of csrf() also carries no-store and nosniff', async () => {
+  const response = await exports.default.fetch('https://app.test/api/sign-in-codes', {
+    method: 'POST',
+    headers: { Origin: 'https://evil.test', 'Content-Type': 'text/plain' },
+    body: '{}',
+  })
+
+  expect(response.status).toBe(403)
+  expect(response.headers.get('Cache-Control')).toBe('no-store')
+  expect(response.headers.get('X-Content-Type-Options')).toBe('nosniff')
 })

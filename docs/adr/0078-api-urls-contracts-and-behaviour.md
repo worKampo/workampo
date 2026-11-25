@@ -145,3 +145,7 @@ Guides compared on 2026-11-25:
 - OWASP API Security Top 10 (2023)
 
 The comparison table is in issue 164.
+
+## Updates
+
+- 2026-11-25 (issue 171): the gaps named in Consequences are closed: problem+json with `title` for malformed JSON, unknown `/api` paths and bodies over 100 KB, `Retry-After` on 429, and `no-store` and `nosniff` on every `/api` response.
