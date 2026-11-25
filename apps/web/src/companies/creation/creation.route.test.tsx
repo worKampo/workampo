@@ -30,6 +30,8 @@ function companiesApi({
   return async (request: Request) => {
     const { pathname, searchParams } = new URL(request.url)
     if (pathname === '/api/me') return Response.json({ id: 'u1', email: 'ana@example.com', name })
+    if (pathname === '/api/companies' && request.method === 'GET')
+      return Response.json({ items: [], total: 0 })
     if (pathname === '/api/companies/availability') {
       const slug = searchParams.get('slug') ?? ''
       return Response.json({ available: !taken.includes(slug) })
@@ -85,10 +87,8 @@ describe('creating a company', () => {
     expect(created[0]?.key).toMatch(/^[0-9a-f-]{36}$/)
   })
 
-  it('@id:companies-90-1 the home without a company links to the creation screen', async () => {
+  it('@id:companies-91-3 the start without a company opens the creation form directly', async () => {
     const { router } = renderApp({ path: '/', answer: companiesApi({ name: 'Ana' }) })
-
-    await userEvent.click(await screen.findByRole('link', { name: 'Crear empresa' }))
 
     expect(await nameField()).toBeTruthy()
     expect(router.state.location.pathname).toBe('/companies/new')
@@ -228,7 +228,7 @@ describe('creating a company', () => {
     expect(created).toEqual([])
   })
 
-  it('@id:companies-90-1 cancel leads back to the start without creating anything', async () => {
+  it('@id:companies-91-5 "Volver a mis empresas" leads back to the picker without creating anything', async () => {
     const created: Created[] = []
     const { router } = renderApp({
       path: '/companies/new',
@@ -236,10 +236,35 @@ describe('creating a company', () => {
     })
 
     await userEvent.type(await nameField(), 'Northwind Logistics')
-    await userEvent.click(screen.getByRole('link', { name: 'Cancelar' }))
+    expect(screen.queryByRole('link', { name: 'Cancelar' })).toBeNull()
+    await userEvent.click(screen.getByRole('link', { name: 'Volver a mis empresas' }))
 
-    await waitFor(() => expect(router.state.location.pathname).toBe('/'))
+    expect(await screen.findByRole('link', { name: 'Crear una empresa nueva' })).toBeTruthy()
+    expect(router.state.location.pathname).toBe('/companies')
     expect(created).toEqual([])
+  })
+
+  it('@id:companies-91-5 the creation form does not apply the destination: it stays with one company or more', async () => {
+    const { router } = renderApp({
+      path: '/companies/new',
+      answer: async (request) =>
+        new URL(request.url).pathname === '/api/companies' && request.method === 'GET'
+          ? Response.json({
+              items: [
+                {
+                  name: 'Northwind',
+                  slug: 'northwind',
+                  url: `${window.location.origin}/c/northwind/`,
+                },
+              ],
+              total: 1,
+            })
+          : companiesApi({ name: 'Ana' })(request),
+    })
+
+    expect(await nameField()).toBeTruthy()
+    expect(screen.getByRole('link', { name: 'Volver a mis empresas' })).toBeTruthy()
+    expect(router.state.location.pathname).toBe('/companies/new')
   })
 
   it('@id:companies-90-13 without a session the creation screen leads to /login', async () => {
@@ -250,5 +275,15 @@ describe('creating a company', () => {
 
     expect(await screen.findByRole('button', { name: 'Continuar' })).toBeTruthy()
     expect(router.state.location.pathname).toBe('/login')
+  })
+
+  it('@id:companies-90-13 without a session the creation screen leads to /login and back to it', async () => {
+    const { router } = renderApp({
+      path: '/companies/new',
+      answer: () => problem({ status: 401, code: 'access.unauthenticated' }),
+    })
+
+    expect(await screen.findByRole('button', { name: 'Continuar' })).toBeTruthy()
+    expect(router.state.location.search).toEqual({ returnTo: '/companies/new' })
   })
 })

@@ -11,10 +11,11 @@ const loginRoute = getRouteApi('/login')
 export function LoginPage() {
   const { t } = useTranslation(['access', 'companies', 'api', 'common'])
   const navigate = useNavigate()
-  const { error: googleError } = loginRoute.useSearch()
+  const { error: googleError, returnTo } = loginRoute.useSearch()
   const page = useLoginPage({
     googleError,
-    onCodeSent: (email) => navigate({ to: '/login/code', state: { signInEmail: email } }),
+    onCodeSent: (email) =>
+      navigate({ to: '/login/code', state: { signInEmail: email, signInReturnTo: returnTo } }),
   })
 
   return (
@@ -38,7 +39,14 @@ export function LoginPage() {
         {t('login.or')}
       </Text>
       {/* A full navigation: Google's flow leaves the app and comes back to our callback. */}
-      <a href="/api/sessions/google" className={buttonClassName({ variant: 'secondary' })}>
+      <a
+        href={
+          returnTo
+            ? `/api/sessions/google?returnTo=${encodeURIComponent(returnTo)}`
+            : '/api/sessions/google'
+        }
+        className={buttonClassName({ variant: 'secondary' })}
+      >
         {t('login.google')}
       </a>
     </CardScreen>

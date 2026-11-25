@@ -19,6 +19,8 @@ Each line is `- ` followed by one glob in backticks, then a dash and the reason.
 - `apps/api/e2e/acceptance/isolation.e2e.ts` - the suite that proves a foreign session gets 404 on every company route.
 - `packages/domain/src/companies/**` - company creation rules.
 - `packages/domain/src/_shared/slug.ts` - tenant slug rules, which tenancy validates with.
+- `packages/domain/src/access/sign-in/return-to.ts` - the rule that keeps returnTo inside worKampo (open redirect).
+- `apps/api/src/companies/selection/**` - my companies, filtered like `requireMember` (isolation).
 - `apps/api/src/access/**` - tenant isolation, permissions and the session (the web's screens are not critical; the person, 2026-11-23).
 - `apps/*/src/billing/**` - billing.
 - `scripts/github/app-token.mjs` - mints the agents' App token.

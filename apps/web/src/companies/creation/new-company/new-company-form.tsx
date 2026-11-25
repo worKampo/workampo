@@ -5,6 +5,7 @@ import { Button, buttonClassName } from '@workampo/ui/actions'
 import { Text } from '@workampo/ui/content'
 import { Field, Form, FormActions, Input, Select } from '@workampo/ui/forms'
 import { useTranslation } from 'react-i18next'
+import { inAppPath } from '../../../_shared/router/in-app-path'
 
 const SLUG_MESSAGES = {
   available: { help: 'new_company.available', error: undefined },
@@ -19,10 +20,9 @@ export function NewCompanyForm() {
   const navigate = useNavigate()
   const page = useNewCompanyPage({
     language: i18n.resolvedLanguage,
-    // The company's URL may live on another host (subdomain routing); only our own origin stays in the app.
     onCreated: (url) => {
-      const target = new URL(url)
-      if (target.origin === window.location.origin) navigate({ href: target.pathname })
+      const path = inAppPath(url)
+      if (path) navigate({ href: path })
       else window.location.assign(url)
     },
   })
@@ -77,8 +77,8 @@ export function NewCompanyForm() {
         </Field>
       )}
       <FormActions>
-        <Link to="/" className={buttonClassName({ variant: 'quiet' })}>
-          {t('new_company.cancel')}
+        <Link to="/companies" className={buttonClassName({ variant: 'quiet' })}>
+          {t('new_company.back_to_companies')}
         </Link>
         <Button type="submit" disabled={page.isPending}>
           {t('new_company.submit')}

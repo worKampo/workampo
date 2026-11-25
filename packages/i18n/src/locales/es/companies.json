@@ -12,7 +12,7 @@
     "language_hint": "Es el idioma que verán las personas de tu empresa por defecto.",
     "your_name": "Tu nombre",
     "submit": "Crear empresa",
-    "cancel": "Cancelar"
+    "back_to_companies": "Volver a mis empresas"
   },
   "company_home": {
     "welcome": "Bienvenido a {{name}}"
@@ -20,7 +20,12 @@
   "not_found": {
     "title": "No encontramos esta empresa",
     "body": "Puede que la dirección esté mal escrita o que no tengas acceso.",
-    "back": "Volver al inicio"
+    "back": "Volver a mis empresas"
+  },
+  "page_not_found": {
+    "title": "No encontramos esta página",
+    "body": "La dirección puede estar mal escrita o la página se ha movido.",
+    "back": "Volver a {{name}}"
   },
   "errors": {
     "invalid_request": "No se ha podido crear la empresa. Revisa los datos e inténtalo de nuevo.",
@@ -31,5 +36,10 @@
     "idempotency_mismatch": "No se ha podido crear la empresa. Vuelve a intentarlo.",
     "not_found": "No encontramos esta empresa.",
     "too_many_creations": "Has creado demasiadas empresas seguidas. Espera un poco antes de crear otra."
+  },
+  "company_picker": {
+    "title": "Elige una empresa",
+    "signed_in_as": "Has entrado como {{email}}",
+    "create": "Crear una empresa nueva"
   }
 }

@@ -6,11 +6,14 @@
     "./api-client": "./src/_shared/api-client.ts",
     "./api-client-context": "./src/_shared/api-client-context.ts",
     "./errors": "./src/_shared/error-key.ts",
+    "./session-expiry": "./src/_shared/session-expiry.ts",
     "./access/me": "./src/access/me.hook.ts",
     "./access/session/sign-out": "./src/access/session/sign-out/sign-out.hook.ts",
     "./access/sign-in/code": "./src/access/sign-in/code/code.hook.ts",
     "./access/sign-in/login": "./src/access/sign-in/login/login.hook.ts",
     "./companies/creation/new-company": "./src/companies/creation/new-company/new-company.hook.ts",
+    "./companies/selection/company-picker": "./src/companies/selection/company-picker/company-picker.hook.ts",
+    "./companies/selection/list-my-companies": "./src/companies/selection/list-my-companies/list-my-companies.hook.ts",
     "./companies/workspace/read-context": "./src/companies/workspace/read-context/read-context.hook.ts"
   },
   "scripts": {

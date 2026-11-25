@@ -15,12 +15,6 @@
     "resent": "We sent you a new code.",
     "other_email": "Use another email"
   },
-  "home": {
-    "title": "You do not belong to any company yet",
-    "body": "When a company invites you, or you create one, it will appear here.",
-    "create_company": "Create company",
-    "sign_out": "Sign out"
-  },
   "errors": {
     "invalid_email": "Enter a valid email address.",
     "invalid_code": "The code is not valid or has expired. You can ask for another one.",

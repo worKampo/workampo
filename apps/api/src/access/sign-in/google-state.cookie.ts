@@ -11,14 +11,24 @@ const ATTRIBUTES = {
   path: '/',
 } as const
 
-export function setStateCookie(c: Context, state: string) {
-  setCookie(c, NAME, state, { ...ATTRIBUTES, maxAge: 600 })
+// `state` or `state.<returnTo>`: the state is base64url, so the first dot ends it. Unsigned, so
+// the reader checks returnTo again.
+export function setStateCookie(
+  c: Context,
+  { state, returnTo }: { state: string; returnTo?: string | undefined },
+) {
+  const value = returnTo === undefined ? state : `${state}.${returnTo}`
+  setCookie(c, NAME, value, { ...ATTRIBUTES, maxAge: 600 })
 }
 
 // Read and delete in one step: a second callback with the same state finds no cookie.
-export function takeStateCookie(c: Context): string | undefined {
-  const state = getCookie(c, NAME, 'host')
+export function takeStateCookie(c: Context): { state?: string; returnTo?: string } {
+  const value = getCookie(c, NAME, 'host')
   deleteCookie(c, NAME, ATTRIBUTES)
+  if (value === undefined) return {}
 
-  return state
+  const dot = value.indexOf('.')
+  if (dot === -1) return { state: value }
+
+  return { state: value.slice(0, dot), returnTo: value.slice(dot + 1) }
 }

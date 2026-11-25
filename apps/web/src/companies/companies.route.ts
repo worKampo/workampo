@@ -1,4 +1,5 @@
 import { newCompanyRoute } from './creation/creation.route'
+import { companyPickerRoute } from './selection/selection.route'
 import { workspaceRoute } from './workspace/workspace.route'
 
-export const companiesRoutes = [newCompanyRoute, workspaceRoute] as const
+export const companiesRoutes = [companyPickerRoute, newCompanyRoute, workspaceRoute] as const

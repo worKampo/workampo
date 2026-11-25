@@ -172,6 +172,21 @@ describe('useNewCompanyPage', () => {
     expect(posts(sent)[0]?.headers.get('Idempotency-Key')).toMatch(UUID)
   })
 
+  it('@id:companies-91-7 creating a company marks my cached companies stale, so / sees the new one', async () => {
+    const { result, onCreated, queryClient } = await renderPage(api({ name: 'Ana' }))
+    const mine = ['companies', 'mine', 1, 100]
+    queryClient.setQueryData(mine, { items: [], total: 0 })
+    fill(result, { name: 'Clínica Norte' })
+    await waitFor(() => expect(result.current.slugStatus).toBe('available'))
+
+    await act(() => result.current.submit())
+
+    await waitFor(() => expect(onCreated).toHaveBeenCalledWith(URL_OF))
+    // Invalidated or removed: either way the next read asks the API again.
+    const state = queryClient.getQueryState(mine)
+    expect(state === undefined || state.isInvalidated).toBe(true)
+  })
+
   it('@id:companies-90-11 a retry after a failure sends the same idempotency key', async () => {
     let calls = 0
     const create = () =>

@@ -7,10 +7,13 @@ import { CardScreen } from '@workampo/ui/layout'
 import { Trans, useTranslation } from 'react-i18next'
 import { RouterTextLink } from '../../../_shared/router/router-text-link'
 
-export function CodeForm({ email }: { email: string }) {
+export function CodeForm({ email, returnTo }: { email: string; returnTo?: string | undefined }) {
   const { t } = useTranslation(['access', 'companies', 'api', 'common'])
   const navigate = useNavigate()
-  const page = useCodePage({ email, onSignedIn: () => navigate({ to: '/' }) })
+  const page = useCodePage({
+    email,
+    onSignedIn: () => (returnTo ? navigate({ href: returnTo }) : navigate({ to: '/' })),
+  })
 
   return (
     <CardScreen title={t('code.title')}>
@@ -51,7 +54,9 @@ export function CodeForm({ email }: { email: string }) {
         </Button>
       </Form>
       <Text align="center">
-        <RouterTextLink to="/login">{t('code.other_email')}</RouterTextLink>
+        <RouterTextLink to="/login" search={returnTo ? { returnTo } : {}}>
+          {t('code.other_email')}
+        </RouterTextLink>
       </Text>
     </CardScreen>
   )

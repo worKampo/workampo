@@ -2,7 +2,7 @@ import { cleanup, configure, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { initI18n } from '../../_shared/i18n/i18n'
-import { problem, renderApp } from '../../_shared/testing/render-app'
+import { problem, renderApp, sessionEndsAfterFirstMe } from '../../_shared/testing/render-app'
 
 // The first visit downloads the lazy screen and its translations; under a busy check that is slow.
 configure({ asyncUtilTimeout: 5000 })
@@ -65,7 +65,7 @@ describe('the company home', () => {
   it('@id:companies-90-12 the not-found state leads back to the start', async () => {
     const { router } = renderApp({ path: '/c/sol-bakery', answer: workspaceApi({}) })
 
-    await userEvent.click(await screen.findByRole('link', { name: 'Volver al inicio' }))
+    await userEvent.click(await screen.findByRole('link', { name: 'Volver a mis empresas' }))
 
     await waitFor(() => expect(router.state.location.pathname).toBe('/'))
   })
@@ -80,14 +80,77 @@ describe('the company home', () => {
     expect(router.state.location.pathname).toBe('/login')
   })
 
+  it('@id:companies-90-13 without a session a company page leads to /login carrying the way back', async () => {
+    const { router } = renderApp({
+      path: '/c/northwind',
+      answer: () => problem({ status: 401, code: 'access.unauthenticated' }),
+    })
+
+    expect(await screen.findByRole('button', { name: 'Continuar' })).toBeTruthy()
+    expect(router.state.location.pathname).toBe('/login')
+    expect(router.state.location.search).toEqual({ returnTo: '/c/northwind' })
+  })
+
+  it('@id:access-91-1 without a session a company subpage leads to /login carrying it, query included', async () => {
+    for (const path of ['/c/northwind/settings', '/c/northwind/members?page=2']) {
+      const { router } = renderApp({
+        path,
+        answer: () => problem({ status: 401, code: 'access.unauthenticated' }),
+      })
+
+      expect(await screen.findByRole('button', { name: 'Continuar' })).toBeTruthy()
+      expect(router.state.location.pathname, path).toBe('/login')
+      expect(router.state.location.search, path).toEqual({ returnTo: path })
+      cleanup()
+    }
+  })
+
+  it('@id:access-91-1 a company subpage that does not exist yet shows a page not-found state that leads back to the company', async () => {
+    const asked: string[] = []
+    const { router } = renderApp({
+      path: '/c/northwind/settings',
+      answer: workspaceApi({ northwind: 'Northwind Logistics' }, asked),
+    })
+
+    expect(await screen.findByRole('heading', { name: 'No encontramos esta página' })).toBeTruthy()
+    expect(
+      screen.getByText('La dirección puede estar mal escrita o la página se ha movido.'),
+    ).toBeTruthy()
+    expect(screen.queryByText('No encontramos esta empresa')).toBeNull()
+    expect(router.state.location.pathname).toBe('/c/northwind/settings')
+    expect(asked).toContain('/api/me')
+
+    await userEvent.click(screen.getByRole('link', { name: 'Volver a Northwind Logistics' }))
+
+    expect(await screen.findByText('Bienvenido a Northwind Logistics')).toBeTruthy()
+    expect(router.state.location.pathname).toMatch(/^\/c\/northwind\/?$/)
+  })
+
+  it('@id:companies-90-13 a session that expired while me was cached leads to /login carrying the way back', async () => {
+    const companies = workspaceApi({ northwind: 'Northwind Logistics' })
+    const { router } = renderApp({
+      path: '/c/northwind',
+      answer: sessionEndsAfterFirstMe((request) =>
+        new URL(request.url).pathname === '/api/t/northwind/'
+          ? problem({ status: 401, code: 'access.unauthenticated' })
+          : companies(request),
+      ),
+    })
+
+    expect(await screen.findByRole('button', { name: 'Continuar' })).toBeTruthy()
+    await waitFor(() => expect(router.state.location.pathname).toBe('/login'))
+    expect(router.state.location.search).toEqual({ returnTo: '/c/northwind' })
+  })
+
   it('@id:companies-90-13 a session that expired while me was cached leads to /login', async () => {
     const companies = workspaceApi({ northwind: 'Northwind Logistics' })
     const { router } = renderApp({
       path: '/c/northwind',
-      answer: (request) =>
+      answer: sessionEndsAfterFirstMe((request) =>
         new URL(request.url).pathname === '/api/t/northwind/'
           ? problem({ status: 401, code: 'access.unauthenticated' })
           : companies(request),
+      ),
     })
 
     expect(await screen.findByRole('button', { name: 'Continuar' })).toBeTruthy()

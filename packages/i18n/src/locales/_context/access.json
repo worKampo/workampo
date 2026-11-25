@@ -9,11 +9,6 @@
     "sent_to": "Keep <strong>…</strong> around the email; {{email}} is the address the person typed.",
     "submit": "Button that checks the code and signs in."
   },
-  "home": {
-    "_screen": "What a signed-in person sees before belonging to any company: an empty state with one action, signing out.",
-    "title": "Empty-state title: says what is not there yet.",
-    "create_company": "Link to the create-company screen."
-  },
   "errors": {
     "_screen": "Error messages of signing in and of the session, shown under the field or on the sign-in screen. One per error code the API returns. Short, say what happened and what to do next; never blame the person.",
     "too_many_code_requests": "Rate limit on asking for codes; do not give the limit or the wait time.",

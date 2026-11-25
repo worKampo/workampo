@@ -14,12 +14,13 @@ test('@id:access-96-8 a linked identity signs in to the same account', async ({ 
   expect((await currentUser(page)).id).toBe(first.id)
 
   await page.context().clearCookies()
+  // The fake's Google account has no company: each sign-in lands on the creation form.
   await signInWithGoogle(page)
-  await expect(page).toHaveURL(/\/$/)
+  await expect(page).toHaveURL(/\/companies\/new$/)
   const google = await currentUser(page)
   await page.context().clearCookies()
   await signInWithGoogle(page)
-  await expect(page).toHaveURL(/\/$/)
+  await expect(page).toHaveURL(/\/companies\/new$/)
   expect((await currentUser(page)).id).toBe(google.id)
 })
 

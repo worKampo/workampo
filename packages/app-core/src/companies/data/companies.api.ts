@@ -30,3 +30,16 @@ export async function getCompanyContext(client: ApiClient, slug: string) {
 
   return await response.json()
 }
+
+export async function listMyCompanies(
+  client: ApiClient,
+  query: { page: number; pageSize: number },
+) {
+  const response = await send(() =>
+    client.api.companies.$get({
+      query: { page: String(query.page), pageSize: String(query.pageSize) },
+    }),
+  )
+
+  return await response.json()
+}

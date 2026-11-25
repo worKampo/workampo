@@ -12,7 +12,7 @@
     "language_hint": "The language people in your company see by default.",
     "your_name": "Your name",
     "submit": "Create company",
-    "cancel": "Cancel"
+    "back_to_companies": "Back to my companies"
   },
   "company_home": {
     "welcome": "Welcome to {{name}}"
@@ -20,7 +20,12 @@
   "not_found": {
     "title": "We could not find this company",
     "body": "The address may be mistyped, or you may not have access.",
-    "back": "Back to home"
+    "back": "Back to my companies"
+  },
+  "page_not_found": {
+    "title": "We could not find this page",
+    "body": "The address may be mistyped, or the page may have moved.",
+    "back": "Back to {{name}}"
   },
   "errors": {
     "invalid_request": "The company could not be created. Check the details and try again.",
@@ -31,5 +36,10 @@
     "idempotency_mismatch": "The company could not be created. Try again.",
     "not_found": "We could not find this company.",
     "too_many_creations": "You have created too many companies in a row. Wait a while before creating another one."
+  },
+  "company_picker": {
+    "title": "Choose a company",
+    "signed_in_as": "You are signed in as {{email}}",
+    "create": "Create a new company"
   }
 }

@@ -8,7 +8,8 @@
     "reserved": "The URL is a word the product keeps for itself.",
     "invalid_format": "The URL has characters or a length we do not accept.",
     "language_hint": "Short help under the language field.",
-    "your_name": "Asked only when the account has no name yet."
+    "your_name": "Asked only when the account has no name yet.",
+    "back_to_companies": "Link on the create-company screen that returns to the picker without creating anything."
   },
   "company_home": {
     "_screen": "The first screen inside a company: a welcome with the company name.",
@@ -18,12 +19,24 @@
     "_screen": "Shown when the company address does not exist or the person is not a member. Must not reveal which of the two it is.",
     "title": "Heading of the not-found state.",
     "body": "One sentence; covers both cases without saying which.",
-    "back": "The one action of the not-found state: a link to the start screen."
+    "back": "The one action of the not-found state: a link to /, which leads to the company picker or to the person's only company."
+  },
+  "page_not_found": {
+    "_screen": "Shown to a member inside a company when the address under the company does not match any page.",
+    "title": "Heading of the page-not-found state.",
+    "body": "One sentence: the address may be wrong or the page moved.",
+    "back": "The one action: a link to the company home; {{name}} is the company name, rendered as plain text."
   },
   "errors": {
     "_screen": "Error messages of creating a company and of opening one, shown under the field or on the screen. One per error code the API returns. Short, say what happened and what to do next; never blame the person.",
     "invalid_request": "Generic failure of the creation request.",
     "idempotency_mismatch": "The same attempt was reused with other data; asking to try again is enough.",
     "too_many_creations": "Rate limit on creating companies; do not give the limit or the wait time."
+  },
+  "company_picker": {
+    "_screen": "The company picker (/companies): the person's companies to choose from, who is signed in, a way to create a new company and to sign out.",
+    "title": "Heading of the picker; a short invitation to choose.",
+    "signed_in_as": "Says which account is signed in; {{email}} is the account email, rendered as plain text.",
+    "create": "Link to the create-company screen."
   }
 }

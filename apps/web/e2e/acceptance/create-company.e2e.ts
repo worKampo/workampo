@@ -14,8 +14,8 @@ const AVAILABLE = /^Disponible/
 const TAKEN = /^No disponible/
 
 async function openForm(page: Page) {
+  // A new account has no company, so signing in lands on the form.
   await signInWithCode(page, newEmail())
-  await page.getByRole('link', { name: 'Crear empresa' }).click()
   await expect(page).toHaveURL(/\/companies\/new$/)
   await expect(nameField(page)).toBeVisible()
 }

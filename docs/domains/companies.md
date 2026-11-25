@@ -112,6 +112,66 @@ Rule: Solo sus miembros entran en una empresa, y para el resto es como si no exi
     Given no tengo sesión
     When abro /c/northwind
     Then vuelvo a /login
+
+@issue(#91)
+Rule: Al entrar llego a mi única empresa, al selector si tengo varias o a crear una si no tengo ninguna
+
+  @id:companies-91-1
+  Example: Con una sola empresa llego a ella
+    Given pertenezco solo a "northwind"
+    When entro
+    Then llego a /c/northwind
+
+  @id:companies-91-2
+  Example: Con varias empresas veo el selector, por orden alfabético y sin rol
+    Given pertenezco a "northwind", "sol-bakery" y "clinica-norte"
+    When entro
+    Then veo el selector con las tres empresas por orden alfabético, cada una con su nombre y su dirección
+    And no veo mi rol en ninguna
+
+  @id:companies-91-3
+  Example: Sin ninguna empresa llego a crear una
+    Given no pertenezco a ninguna empresa
+    When entro
+    Then llego al formulario de crear empresa
+
+@issue(#91)
+Rule: En el selector elijo una de mis empresas o creo otra, y solo cuentan mis membresías activas
+
+  @id:companies-91-4
+  Example: Elegir una empresa lleva a ella
+    Given estoy en el selector
+    When elijo "Sol Bakery"
+    Then llego a /c/sol-bakery
+
+  @id:companies-91-5
+  Example: Desde el selector creo una empresa y puedo volver
+    Given estoy en el selector
+    When pulso "Crear una empresa nueva"
+    Then llego al formulario de crear empresa
+    And "Volver a mis empresas" me devuelve al selector
+
+  @id:companies-91-6
+  Example: Una membresía suspendida no aparece ni abre la empresa
+    Given mi membresía en "sol-bakery" está suspendida
+    When entro
+    Then "sol-bakery" no aparece en el selector
+    And /c/sol-bakery me responde 404
+
+@issue(#91)
+Rule: El inicio lleva a donde lleva entrar, y sin sesión a /login
+
+  @id:companies-91-7
+  Example: Con sesión, el inicio lleva al mismo destino que entrar
+    Given tengo sesión
+    When abro /
+    Then llego a donde me lleva tener una empresa, varias o ninguna
+
+  @id:companies-91-8
+  Example: Sin sesión, el inicio lleva a /login
+    Given no tengo sesión
+    When abro /
+    Then llego a /login
 ```
 
 ## Terms

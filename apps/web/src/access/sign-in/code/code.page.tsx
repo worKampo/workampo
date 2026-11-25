@@ -1,4 +1,5 @@
 import { Navigate, useRouter } from '@tanstack/react-router'
+import { safeReturnTo } from '@workampo/domain/access/sign-in/return-to'
 import { useState } from 'react'
 import { CodeForm } from './code-form'
 
@@ -6,8 +7,11 @@ import { CodeForm } from './code-form'
 // arrival: while the next page loads, the current location already lacks it.
 export function CodePage() {
   const router = useRouter()
-  const [email] = useState(() => router.state.location.state.signInEmail)
+  const [{ signInEmail: email, signInReturnTo: returnTo }] = useState(
+    () => router.state.location.state,
+  )
   if (!email) return <Navigate to="/login" />
 
-  return <CodeForm email={email} />
+  // History state is writable by any script on the origin: check it again, like the URL's.
+  return <CodeForm email={email} returnTo={safeReturnTo(returnTo)} />
 }

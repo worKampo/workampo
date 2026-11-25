@@ -1,8 +1,8 @@
 import { cleanup, configure, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeAll, expect, it } from 'vitest'
-import { initI18n } from '../../_shared/i18n/i18n'
-import { problem, renderApp } from '../../_shared/testing/render-app'
+import { initI18n } from '../i18n/i18n'
+import { problem, renderApp } from '../testing/render-app'
 
 // The first visit downloads the lazy screen and its translations; under a busy check that is slow.
 configure({ asyncUtilTimeout: 5000 })
@@ -14,7 +14,7 @@ beforeAll(async () => {
 afterEach(cleanup)
 
 it('@id:access-96-14 a sign-out that fails says so and lets the person try again', async () => {
-  renderApp({ path: '/', answer: failingSignOutApi })
+  renderApp({ path: '/companies', answer: failingSignOutApi })
   const signOut = await screen.findByRole('button', { name: 'Cerrar sesión' })
 
   await userEvent.click(signOut)
@@ -27,8 +27,10 @@ it('@id:access-96-14 a sign-out that fails says so and lets the person try again
 
 function failingSignOutApi(request: Request) {
   if (request.method === 'DELETE') return new Response('down', { status: 503 })
+  const { pathname } = new URL(request.url)
+  if (pathname === '/api/companies') return Response.json({ items: [], total: 0 })
 
-  return new URL(request.url).pathname === '/api/me'
+  return pathname === '/api/me'
     ? Response.json({ id: 'u1', email: 'ana@example.com' })
     : problem({ status: 404, code: 'access.unauthenticated' })
 }

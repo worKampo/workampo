@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { fakeApi, problem } from '../../_shared/testing/fake-api'
-import { checkSlug, createCompany, getCompanyContext } from './companies.api'
+import { checkSlug, createCompany, getCompanyContext, listMyCompanies } from './companies.api'
 
 const company = {
   id: '01940000-0000-7000-8000-000000000201',
@@ -76,6 +76,32 @@ describe('companies api', () => {
     await expect(getCompanyContext(client, 'sol-bakery')).rejects.toMatchObject({
       status: 404,
       code: 'companies.not_found',
+    })
+  })
+})
+
+describe('my companies api', () => {
+  it('@id:companies-91-2 asks for one page of my companies and gives items and total', async () => {
+    const answer = {
+      items: [{ name: 'Northwind', slug: 'northwind', url: 'https://app.test/c/northwind/' }],
+      total: 1,
+    }
+    const { client, sent } = fakeApi(() => Response.json(answer))
+
+    expect(await listMyCompanies(client, { page: 1, pageSize: 100 })).toEqual(answer)
+    expect(sent).toHaveLength(1)
+    expect(sent[0]?.method).toBe('GET')
+    const url = new URL(sent[0]?.url ?? '')
+    expect(url.pathname).toBe('/api/companies')
+    expect(Object.fromEntries(url.searchParams)).toEqual({ page: '1', pageSize: '100' })
+  })
+
+  it('@id:companies-91-2 without a session it fails with the unauthenticated code', async () => {
+    const { client } = fakeApi(() => problem({ status: 401, code: 'access.unauthenticated' }))
+
+    await expect(listMyCompanies(client, { page: 1, pageSize: 100 })).rejects.toMatchObject({
+      status: 401,
+      code: 'access.unauthenticated',
     })
   })
 })

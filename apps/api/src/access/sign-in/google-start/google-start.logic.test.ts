@@ -34,3 +34,46 @@ describe('isSameState', () => {
     expect(isSameState('abc', undefined)).toBe(false)
   })
 })
+
+function recordingProvider() {
+  const inputs: unknown[] = []
+  const provider = {
+    googleAuthorizationUrl: (input: unknown) => {
+      inputs.push(input)
+      return 'https://provider.test/authorize'
+    },
+  } as unknown as IdentityProvider
+
+  return { provider, inputs }
+}
+
+describe('startGoogleSignIn with a way back', () => {
+  it('@id:access-91-2 keeps a safe returnTo for the cookie and never sends it to Google', () => {
+    const { provider, inputs } = recordingProvider()
+
+    const started = startGoogleSignIn({
+      provider,
+      origin: 'https://app.test',
+      returnTo: '/c/northwind/settings',
+    })
+
+    expect(started.returnTo).toBe('/c/northwind/settings')
+    expect(inputs).toEqual([
+      { state: started.state, redirectUri: 'https://app.test/api/sessions/google/callback' },
+    ])
+    expect(started.url).not.toContain('northwind')
+  })
+
+  for (const returnTo of ['https://otro-sitio.example.com', '//x', '/\\x', '/login', '/api/me', ''])
+    it(`@id:access-91-3 drops the returnTo "${returnTo}" without refusing the start`, () => {
+      const { provider } = recordingProvider()
+
+      const started = startGoogleSignIn({ provider, origin: 'https://app.test', returnTo })
+
+      expect(started).toMatchObject({ url: 'https://provider.test/authorize' })
+      expect(started.state).toMatch(/^[A-Za-z0-9_-]{43}$/)
+      expect(started.returnTo).toBeUndefined()
+      // Kept apart from the state with a dot, the state itself must never hold one.
+      expect(started.state).not.toContain('.')
+    })
+})

@@ -49,7 +49,7 @@ shadcn `Input`, `Select`, `Textarea`, `InputGroup`, `Label`.
 | Select | Chevron at the right, padding-right 32 |
 | Input group | One bordered box with a prefix (`--text-2`, e.g. a URL base) and the input; the focus ring goes on the group (`:focus-within`) |
 | Search | Input with a 16 px icon at left 12, padding-left 36, background `--chrome-control`; label visually hidden |
-| Form | `Form` stacks its fields and actions 16 px apart and turns off the browser's validation; our messages show the errors. `FormActions` holds its buttons right-aligned, secondary then primary, 8 px apart, wrapping on a narrow screen |
+| Form | `Form` stacks its fields and actions 16 px apart and turns off the browser's validation; our messages show the errors. When it opens, its first field takes the focus, since the form is the page's task (the person, 2026-11-25); a form that is not, such as a list's filters, opts out with `focusFirstField={false}`. One form per screen takes the focus: with two, the one that is not the screen's task opts out, or the last one shown would win. `FormActions` holds its buttons right-aligned, secondary then primary, 8 px apart, wrapping on a narrow screen |
 
 ### Choice controls
 
@@ -118,6 +118,7 @@ shadcn `Table` on desktop; a card list on touch with the same rows.
 | Actions column | 56 wide, a quiet small icon button `aria-label="Actions for {name}"` opening a menu; header text visually hidden |
 | Selection | First column with checkboxes and "Select all" |
 | Card list (touch) | `<ul>`, `--surface`, radius 12; each `<li>` padding 12: checkbox, avatar + name line, then badges and meta, row actions as a `…` icon button |
+| Row link | `CardList` + `ListRowLink` (content family; `createLink(ListRowLink)` for routes): the whole row is the link, for lists that only open a record (the company picker). Flex, gap 12, min height 56, padding 12, hover `--surface-hover`, inset focus outline; leading slot (avatar), title (weight 500 `--text`), secondary line (12/16 `--text-2`, `aria-hidden`, so the link name is the title), decorative chevron `--text-3`. Rows divided by `--muted` |
 
 ### Bulk bar
 
