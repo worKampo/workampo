@@ -9,6 +9,7 @@ import { deployedSha, versionId } from './_shared/http/cloudflare-version'
 import { mountProviderPages } from './_shared/identity/provider-registry'
 import { deleteExpiredCounters } from './_shared/rate-limit/delete-expired-counters'
 import { accessRouter } from './access/access.router'
+import { companiesRouter } from './companies/companies.router'
 
 export const app = new Hono<AppEnv>()
 
@@ -21,7 +22,7 @@ app.on('POST', '/api/*', csrf())
 app.use('/api/*', parsedEnv)
 mountProviderPages(app)
 
-const api = app.route('/api', accessRouter)
+const api = app.route('/api', accessRouter).route('/api', companiesRouter)
 
 // The typed contract of hc (ADR-0019); clients import it as a type only.
 export type AppType = typeof api

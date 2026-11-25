@@ -1,14 +1,11 @@
 import { env, exports } from 'cloudflare:workers'
-import { Hono, type MiddlewareHandler } from 'hono'
+import { Hono } from 'hono'
 import { describe, expect, it } from 'vitest'
 import { type Bindings, type ParsedEnv, parsedEnv } from '../_shared/env'
 import { toProblem } from '../_shared/http/problem-json'
 import { me, newEmail, sessionToken, signIn } from '../_shared/testing/api-requests'
 import { requireSession, type SessionVariables } from '../access/require-session.middleware'
-
-// require-member.middleware.ts arrives with the API workspace task; a non-literal path keeps
-// typecheck green until then. Once it exists, import it statically.
-const REQUIRE_MEMBER: string = './require-member.middleware'
+import { requireMember } from './require-member.middleware'
 
 const ORIGIN = 'https://app.test'
 
@@ -16,9 +13,7 @@ type Company = { id: string; slug: string; name: string }
 type Variables = SessionVariables & { env: ParsedEnv; company: unknown }
 
 // The order every company route has: session, then membership, then the route.
-async function probeApp() {
-  const { requireMember }: { requireMember: MiddlewareHandler } = await import(REQUIRE_MEMBER)
-
+function probeApp() {
   return new Hono<{ Bindings: Bindings; Variables: Variables }>()
     .use(parsedEnv)
     .use(requireSession)
@@ -40,7 +35,7 @@ async function probe(
     query = '',
   }: { token?: string; headers?: Record<string, string>; query?: string } = {},
 ) {
-  const app = await probeApp()
+  const app = probeApp()
 
   return app.request(
     `${ORIGIN}/api/t/${slug}/probe${query}`,
