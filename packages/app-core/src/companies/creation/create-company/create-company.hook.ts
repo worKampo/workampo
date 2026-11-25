@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useApiClient } from '../../../_shared/api-client-context'
 import { meQueryOptions } from '../../../access/me.hook'
 import { createCompany } from '../../data/companies.api'
+import { myCompaniesQueryPrefix } from '../../data/query-keys'
 
 type CreateCompanyVariables = {
   input: Parameters<typeof createCompany>[1]
@@ -19,7 +20,7 @@ export function useCreateCompany() {
     onSuccess: () =>
       Promise.all([
         queryClient.invalidateQueries({ queryKey: meQueryOptions(client).queryKey }),
-        queryClient.invalidateQueries({ queryKey: ['companies', 'mine'] }),
+        queryClient.invalidateQueries({ queryKey: myCompaniesQueryPrefix }),
       ]),
   })
 }
