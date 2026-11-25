@@ -28,3 +28,4 @@ This replaces those three points of ADR-0029 and ADR-0030; the rest of both stan
 ## Updates
 
 - 2026-11-24 (the person, ticket 150): E2E go with what they cover. Journeys through the pages live in `apps/web/e2e/` (sign-in screens, code, Google, the staging smoke); server behaviour in `apps/api/e2e/` (session cookie and expiry, rate limits, linking, `/health`). Both suites start the same API Worker, which serves the web; the shared helpers stay in `apps/api/e2e/acceptance/support.ts`.
+- 2026-11-25 (the person, ticket 180): the helpers both e2e suites share live in `e2e/support/acceptance-support.ts` at the repo root, not in `apps/api/e2e/acceptance/support.ts`, so no app imports another app's files. `@playwright/test` is a root dev dependency and each app's tsconfig includes the folder.

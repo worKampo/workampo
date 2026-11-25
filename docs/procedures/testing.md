@@ -13,7 +13,7 @@ The `it.fails` form is the first wave of a ticket ([cycle](../process/cycle.md))
 
 ## Acceptance scenarios
 
-Live in `apps/<app>/e2e/acceptance/`, one per approved example, citing its `@id`. Why: [ADR-0030](../adr/0030-test-designer.md).
+Live in `apps/<app>/e2e/acceptance/`, one per approved example, citing its `@id`. The helpers both suites share (sign-in, codes, cookies) live in `e2e/support/acceptance-support.ts` at the repo root. Why: [ADR-0030](../adr/0030-test-designer.md).
 
 `pnpm e2e` runs every `*.e2e.ts` of the apps with Playwright, against the API Worker's `wrangler dev` on a migrated and seeded local database, never reusing a server already running: the API's suite on port 8788 (`apps/api/.wrangler/e2e`), the web's on 8789 (`apps/api/.wrangler/e2e-web`). The API's e2e task depends on the web's (`turbo.json`), so they never run at once (two `wrangler dev` collide) and a change in either app runs both: the web's scenarios exercise the API, and the API serves the web. CI runs it on every PR for the affected apps (`.github/workflows/e2e.yml`).
 
