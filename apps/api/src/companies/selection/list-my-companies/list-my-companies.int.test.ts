@@ -56,7 +56,7 @@ async function addCompany(
 }
 
 describe('GET /api/companies', () => {
-  it.fails('@id:companies-91-2 lists my companies by name, each with exactly name, slug and url', async () => {
+  it('@id:companies-91-2 lists my companies by name, each with exactly name, slug and url', async () => {
     const { token, userId } = await newSession()
     const sol = await addCompany(userId, { name: 'Sol Bakery' })
     const northwind = await addCompany(userId, { name: 'Northwind' })
@@ -73,7 +73,7 @@ describe('GET /api/companies', () => {
     expect(items[0]?.name).toBe('Clinica Norte')
   })
 
-  it.fails('@id:companies-91-1 the url of a created company is the one its creation gave', async () => {
+  it('@id:companies-91-1 the url of a created company is the one its creation gave', async () => {
     const { token } = await newSession()
     const slug = `northwind-${random()}`
     const created = await exports.default.fetch(`${ORIGIN}/api/companies`, {
@@ -94,13 +94,13 @@ describe('GET /api/companies', () => {
     })
   })
 
-  it.fails('@id:companies-91-3 with no company the list is empty', async () => {
+  it('@id:companies-91-3 with no company the list is empty', async () => {
     const { token } = await newSession()
 
     expect(await page(token)).toEqual({ items: [], total: 0 })
   })
 
-  it.fails('@id:companies-91-6 leaves out suspended and leaving memberships and deleting companies, and total counts only what is listed', async () => {
+  it('@id:companies-91-6 leaves out suspended and leaving memberships and deleting companies, and total counts only what is listed', async () => {
     const { token, userId } = await newSession()
     const active = await addCompany(userId, { name: 'Alfa' })
     const trialing = await addCompany(userId, { name: 'Beta', status: 'trialing' })
@@ -117,7 +117,7 @@ describe('GET /api/companies', () => {
     expect(slugs(items)).not.toContain(foreign.slug)
   })
 
-  it.fails('@id:companies-91-6 a suspended membership answers the same 404 as a missing company', async () => {
+  it('@id:companies-91-6 a suspended membership answers the same 404 as a missing company', async () => {
     const { token, userId } = await newSession()
     const suspended = await addCompany(userId, { name: 'Sol Bakery', memberStatus: 'suspended' })
     const context = (slug: string) =>
@@ -136,7 +136,7 @@ describe('GET /api/companies', () => {
     expect(await foreign.text()).toBe(await missing.text())
   })
 
-  it.fails('@id:companies-91-2 two sessions see only their own companies, and ?userId= changes nothing', async () => {
+  it('@id:companies-91-2 two sessions see only their own companies, and ?userId= changes nothing', async () => {
     const ana = await newSession()
     const bea = await newSession()
     const anaCompany = await addCompany(ana.userId, { name: 'Ana Co' })
@@ -151,7 +151,7 @@ describe('GET /api/companies', () => {
     expect(beaUserId).toEqual(beaPage)
   })
 
-  it.fails('@id:companies-91-2 orders equal names by id, so pages never skip or repeat', async () => {
+  it('@id:companies-91-2 orders equal names by id, so pages never skip or repeat', async () => {
     const { token, userId } = await newSession()
     const twins = [
       await addCompany(userId, { name: 'Twin' }),
@@ -168,7 +168,7 @@ describe('GET /api/companies', () => {
     expect(second.total).toBe(3)
   })
 
-  it.fails('@id:companies-91-2 caps pageSize at 100 and counts every company in total', async () => {
+  it('@id:companies-91-2 caps pageSize at 100 and counts every company in total', async () => {
     const { token, userId } = await newSession()
     for (let i = 0; i < 101; i++)
       await addCompany(userId, { name: `Company ${String(i).padStart(3, '0')}` })
@@ -183,7 +183,7 @@ describe('GET /api/companies', () => {
     expect(beyond).toEqual({ items: [], total: 101 })
   })
 
-  it.fails('@id:companies-91-2 gives unicode and markup in a name back exactly', async () => {
+  it('@id:companies-91-2 gives unicode and markup in a name back exactly', async () => {
     const { token, userId } = await newSession()
     const name = 'Cooperativa Agrícola Ñandú <img src=x onerror=alert(1)> 日本'
     await addCompany(userId, { name })
@@ -192,7 +192,7 @@ describe('GET /api/companies', () => {
   })
 
   for (const query of ['?page=0', '?page=abc', '?page=-1', '?pageSize=0', '?pageSize=abc'])
-    it.fails(`@id:companies-91-2 refuses ${query} with 400 invalid_request`, async () => {
+    it(`@id:companies-91-2 refuses ${query} with 400 invalid_request`, async () => {
       const { token } = await newSession()
 
       const response = await list(token, query)
@@ -202,7 +202,7 @@ describe('GET /api/companies', () => {
       expect(await response.json()).toMatchObject({ code: 'companies.invalid_request' })
     })
 
-  it.fails('@id:companies-91-2 answers with no-store and nosniff', async () => {
+  it('@id:companies-91-2 answers with no-store and nosniff', async () => {
     const { token } = await newSession()
 
     const response = await list(token)
@@ -212,7 +212,7 @@ describe('GET /api/companies', () => {
     expect(response.headers.get('X-Content-Type-Options')).toBe('nosniff')
   })
 
-  it.fails('@id:companies-91-2 without a session answers 401', async () => {
+  it('@id:companies-91-2 without a session answers 401', async () => {
     const response = await list(undefined)
 
     expect(response.status).toBe(401)
