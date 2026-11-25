@@ -8,6 +8,7 @@
   "include": [
     "src",
     "e2e",
+    "../../e2e/support",
     "playwright.config.ts",
     "vite.config.ts",
     "../../packages/i18n/src/i18next.d.ts",
