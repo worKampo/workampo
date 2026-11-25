@@ -28,13 +28,13 @@ function workspaceApi(companies: Record<string, string>, asked: string[] = []) {
 }
 
 describe('the company home', () => {
-  it.fails('@id:companies-90-1 welcomes me with the company name', async () => {
+  it('@id:companies-90-1 welcomes me with the company name', async () => {
     renderApp({ path: '/c/northwind', answer: workspaceApi({ northwind: 'Northwind Logistics' }) })
 
     expect(await screen.findByText('Bienvenido a Northwind Logistics')).toBeTruthy()
   })
 
-  it.fails('@id:companies-90-1 shows a long name with unicode and markup as text', async () => {
+  it('@id:companies-90-1 shows a long name with unicode and markup as text', async () => {
     const name = 'Cooperativa Agrícola Ñandú <img src=x onerror=alert(1)> 日本 — Sociedad Limitada'
     renderApp({ path: '/c/northwind', answer: workspaceApi({ northwind: name }) })
 
@@ -42,7 +42,7 @@ describe('the company home', () => {
     expect(document.querySelector('img[src="x"]')).toBeNull()
   })
 
-  it.fails('@id:companies-90-12 another company looks the same as one that does not exist', async () => {
+  it('@id:companies-90-12 another company looks the same as one that does not exist', async () => {
     const asked: string[] = []
     const api = workspaceApi({ northwind: 'Northwind Logistics' }, asked)
     renderApp({ path: '/c/sol-bakery', answer: api })
@@ -61,7 +61,7 @@ describe('the company home', () => {
     expect(foreignText).toBe(missingText)
   })
 
-  it.fails('@id:companies-90-13 without a session a company page leads to /login', async () => {
+  it('@id:companies-90-13 without a session a company page leads to /login', async () => {
     const { router } = renderApp({
       path: '/c/northwind',
       answer: () => problem({ status: 401, code: 'access.unauthenticated' }),
