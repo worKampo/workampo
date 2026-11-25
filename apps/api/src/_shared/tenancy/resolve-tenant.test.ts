@@ -29,7 +29,7 @@ describe('resolveTenant in path mode', () => {
       'https://app.test/cc/northwind',
       'https://app.test/x/c/northwind',
       'https://app.test/companies/new',
-      'https://app.test/api/company-slugs/northwind',
+      'https://app.test/api/companies/availability?slug=northwind',
     ])
       expect(resolveTenant(url, path), url).toBeNull()
   })

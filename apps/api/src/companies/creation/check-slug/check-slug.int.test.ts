@@ -8,9 +8,12 @@ const newSlug = (prefix: string) => `${prefix}-${crypto.randomUUID().slice(0, 8)
 const newSession = async () => sessionToken(await signIn({ email: newEmail() }))
 
 function check(slug: string, token?: string) {
-  return exports.default.fetch(`${ORIGIN}/api/company-slugs/${encodeURIComponent(slug)}`, {
-    headers: token ? { Cookie: `__Host-session=${token}` } : {},
-  })
+  return exports.default.fetch(
+    `${ORIGIN}/api/companies/availability?slug=${encodeURIComponent(slug)}`,
+    {
+      headers: token ? { Cookie: `__Host-session=${token}` } : {},
+    },
+  )
 }
 
 async function createCompany(slug: string) {
@@ -36,8 +39,8 @@ async function expectProblem(response: Response, code: string) {
   expect(await response.json()).toMatchObject({ code })
 }
 
-describe('GET /api/company-slugs/:slug', () => {
-  it.fails('@id:companies-90-2 a free slug is available', async () => {
+describe('GET /api/companies/availability?slug=', () => {
+  it('@id:companies-90-2 a free slug is available', async () => {
     const response = await check(newSlug('clinica-norte'), await newSession())
 
     expect(response.status).toBe(200)
@@ -66,14 +69,14 @@ describe('GET /api/company-slugs/:slug', () => {
     expect(await (await check(slug, await newSession())).json()).toEqual({ available: false })
   })
 
-  it.fails('@id:companies-90-4 a reserved slug answers 400 reserved_slug', async () => {
+  it('@id:companies-90-4 a reserved slug answers 400 reserved_slug', async () => {
     const token = await newSession()
 
     for (const slug of ['api', 'www', 'workampo', 'login'])
       await expectProblem(await check(slug, token), 'companies.reserved_slug')
   })
 
-  it.fails('@id:companies-90-5 an invalid slug answers 400 invalid_slug', async () => {
+  it('@id:companies-90-5 an invalid slug answers 400 invalid_slug', async () => {
     const token = await newSession()
 
     for (const slug of [
@@ -88,7 +91,7 @@ describe('GET /api/company-slugs/:slug', () => {
       await expectProblem(await check(slug, token), 'companies.invalid_slug')
   })
 
-  it.fails('@id:companies-90-12 without a session answers 401, even for a valid slug', async () => {
+  it('@id:companies-90-12 without a session answers 401, even for a valid slug', async () => {
     const response = await check(newSlug('sin-sesion'))
 
     expect(response.status).toBe(401)

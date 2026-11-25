@@ -30,7 +30,7 @@ function companiesApi({
   return async (request: Request) => {
     const { pathname } = new URL(request.url)
     if (pathname === '/api/me') return Response.json({ id: 'u1', email: 'ana@example.com', name })
-    if (pathname.startsWith('/api/company-slugs/')) {
+    if (pathname === '/api/companies/availability') {
       const slug = decodeURIComponent(pathname.split('/').at(-1) ?? '')
       return Response.json({ available: !taken.includes(slug) })
     }
