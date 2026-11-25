@@ -5,9 +5,10 @@ Rules an implementer applies. Why: [ADR-0053](../adr/0053-code-conventions.md) (
 ## Layout
 
 - Inside each package's and app's `src/` there are only `_shared/` and one folder per domain (same names as [`docs/domains/`](../domains/README.md); per family in `packages/ui`), so the tree reads the same however many domains there are (the person, 2026-11-23). No technical-layer folders (`controllers/`, `services/`).
-- The same domain and feature folders everywhere, with identical feature names in every package and app (the person, 2026-11-22). A domain holds its use cases, its layer folder and `errors.ts`. The use case is the unit, in business language (`verify-code`, `invite-member`); the endpoint is the technical term for the HTTP route its `.route.ts` exposes (the person, 2026-11-24).
+- The same domain and feature folders everywhere, with identical feature names in every package and app (the person, 2026-11-22). A domain holds its use cases, `errors.ts` and, in the API and app-core, its layer folder. The use case is the unit, in business language (`verify-code`, `invite-member`); the endpoint is the technical term for the HTTP route its `.route.ts` exposes (the person, 2026-11-24).
 - A folder starts with `_` only for a layer the whole domain shares: `_repo/` (the API's repos), `_api/` (app-core's `hc` calls and `query-keys.ts`), and `_shared/` across domains; without the `_`, `repo/` would read as one more feature beside `creation/`. What belongs to one use case or one page lives in its folder, labelled by its suffix (`new-company.page.tsx`, `new-company.hook.ts`, `new-company-form.tsx`); never a folder per type such as `_hook/` or `_form/`. A hook the whole domain uses sits at the domain's root (`me.hook.ts`) (the person, 2026-11-25).
 - `_shared/` holds code no single domain owns: `http/problem-json.ts`, `ids/`, the adapters and technical capabilities such as `rate-limit/`, which keep their own repo beside them (`rate-limit.d1.repo.ts`), outside the `_repo/` rule (the person, 2026-11-23, 2026-11-25); `tenancy/` reads the `shards` row and gives the company shard client. It imports no domain.
+- Pure core, with no I/O and shared by the API, the web and the mobile app, goes in `packages/domain/<domain>/`: Zod schemas, rules, permissions (`can`), error codes and values (`Email`, `Slug`, `Money`). `apps/api` keeps routes, use cases and repos; `apps/web` keeps pages and their page hooks; `packages/app-core` keeps what the clients share.
 - A domain imports only the top-level files of another domain, never its internals.
 - Internal packages by name (`@workampo/…`); no barrel files that re-export everything; no cycles.
 - A folder with more than 8 code files, tests not counted, is split into subfolders by feature or use case (the person, 2026-11-23).
@@ -24,7 +25,7 @@ packages/domain/src/                 pure core: no Hono, Drizzle, React, fetch o
   access/sign-in/email.ts            a pure rule or value of a feature, email.test.ts beside it
 
 packages/app-core/src/               what the web and the mobile app share; no DOM, no router
-  _shared/api-client.ts              the hc client, its context, ApiError; testing/ for test helpers
+  _shared/api-client.ts              the hc client; api-client-context.ts and api-error.ts beside it, testing/ for test helpers
   access/_api/sign-in.api.ts         the hc calls of a resource
   access/_api/query-keys.ts          every query key of the domain
   access/me.hook.ts                  a hook the whole domain uses
