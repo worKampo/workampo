@@ -134,6 +134,20 @@ describe('signing in with a code', () => {
       expect(router.state.location.pathname).toBe('/companies/new')
     })
 
+  it('@id:access-91-3 an unsafe way back in the history state is ignored too', async () => {
+    const { router } = renderApp({ path: '/login', answer: accountApi() })
+    await screen.findByRole('textbox')
+    await router.navigate({
+      to: '/login/code',
+      state: { signInEmail: 'ana@example.com', signInReturnTo: '//otro-sitio.example.com' },
+    })
+
+    await userEvent.type(await screen.findByRole('textbox'), '424242{Enter}')
+
+    expect(await screen.findByLabelText('Nombre de la empresa')).toBeTruthy()
+    expect(router.state.location.pathname).toBe('/companies/new')
+  })
+
   it('@id:access-96-15 without a session / goes to /login', async () => {
     const { router } = renderApp({ path: '/', answer: signInApi })
 

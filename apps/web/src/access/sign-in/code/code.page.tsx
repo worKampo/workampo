@@ -1,4 +1,5 @@
 import { Navigate, useRouter } from '@tanstack/react-router'
+import { safeReturnTo } from '@workampo/domain/access/sign-in/return-to'
 import { useState } from 'react'
 import { CodeForm } from './code-form'
 
@@ -11,5 +12,6 @@ export function CodePage() {
   )
   if (!email) return <Navigate to="/login" />
 
-  return <CodeForm email={email} returnTo={returnTo} />
+  // History state is writable by any script on the origin: check it again, like the URL's.
+  return <CodeForm email={email} returnTo={safeReturnTo(returnTo)} />
 }
