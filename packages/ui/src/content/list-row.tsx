@@ -1,4 +1,4 @@
-import type { ComponentProps, ReactNode } from 'react'
+import { type ComponentProps, type ReactNode, useId } from 'react'
 import { cx } from '../_shared/cx'
 
 // docs/design/components.md, "Tables and card lists": a bordered card whose rows divide it.
@@ -15,7 +15,7 @@ export function CardList({ className, ...props }: ComponentProps<'ul'>) {
 }
 
 // A whole row that opens a record; routers wrap it (TanStack Router: createLink(ListRowLink)).
-// The secondary line is hidden from the link name, so the row reads as its title alone.
+// The secondary line stays out of the link name but describes it: a description may point at hidden text.
 export function ListRowLink({
   leading,
   title,
@@ -27,8 +27,11 @@ export function ListRowLink({
   title: ReactNode
   subtitle?: ReactNode
 }) {
+  const id = useId()
+
   return (
     <a
+      aria-describedby={subtitle ? `${id}-subtitle` : undefined}
       className={cx(
         'flex min-h-14 items-center gap-3 p-3 text-body hover:bg-surface-hover',
         // Inset: the card list clips its rows to its rounded corners.
@@ -41,7 +44,11 @@ export function ListRowLink({
       <span className="flex min-w-0 grow flex-col">
         <span className="font-medium wrap-break-word text-text">{title}</span>
         {subtitle && (
-          <span aria-hidden="true" className="text-xs wrap-break-word text-text-2">
+          <span
+            id={`${id}-subtitle`}
+            aria-hidden="true"
+            className="text-xs wrap-break-word text-text-2"
+          >
             {subtitle}
           </span>
         )}
