@@ -1,3 +1,4 @@
+import { newCompanyRoute } from './creation/creation.route'
 import { workspaceRoute } from './workspace/workspace.route'
 
-export const companiesRoutes = [workspaceRoute] as const
+export const companiesRoutes = [newCompanyRoute, workspaceRoute] as const

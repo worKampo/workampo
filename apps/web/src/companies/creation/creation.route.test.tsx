@@ -28,10 +28,10 @@ function companiesApi({
   create?: () => Response
 } = {}) {
   return async (request: Request) => {
-    const { pathname } = new URL(request.url)
+    const { pathname, searchParams } = new URL(request.url)
     if (pathname === '/api/me') return Response.json({ id: 'u1', email: 'ana@example.com', name })
     if (pathname === '/api/companies/availability') {
-      const slug = decodeURIComponent(pathname.split('/').at(-1) ?? '')
+      const slug = searchParams.get('slug') ?? ''
       return Response.json({ available: !taken.includes(slug) })
     }
     if (pathname === '/api/companies' && request.method === 'POST') {
@@ -39,7 +39,12 @@ function companiesApi({
       created.push({ url: request.url, body, key: request.headers.get('Idempotency-Key') })
       if (create) return create()
       return Response.json(
-        { id: 'c1', slug: body.slug, name: body.name, url: `https://app.test/c/${body.slug}/` },
+        {
+          id: 'c1',
+          slug: body.slug,
+          name: body.name,
+          url: `${window.location.origin}/c/${body.slug}/`,
+        },
         { status: 201 },
       )
     }
@@ -62,7 +67,7 @@ async function typeSlug(slug: string) {
 }
 
 describe('creating a company', () => {
-  it.fails('@id:companies-90-1 creating the company leads to its home', async () => {
+  it('@id:companies-90-1 creating the company leads to its home', async () => {
     const created: Created[] = []
     const { router } = renderApp({ path: '/companies/new', answer: companiesApi({ created }) })
 
@@ -77,7 +82,7 @@ describe('creating a company', () => {
     expect(created[0]?.key).toMatch(/^[0-9a-f-]{36}$/)
   })
 
-  it.fails('@id:companies-90-1 the home without a company links to the creation screen', async () => {
+  it('@id:companies-90-1 the home without a company links to the creation screen', async () => {
     const { router } = renderApp({ path: '/', answer: companiesApi({ name: 'Ana' }) })
 
     await userEvent.click(await screen.findByRole('link', { name: 'Crear empresa' }))
@@ -86,7 +91,7 @@ describe('creating a company', () => {
     expect(router.state.location.pathname).toBe('/companies/new')
   })
 
-  it.fails('@id:companies-90-2 the URL is proposed from the name without accents and is available', async () => {
+  it('@id:companies-90-2 the URL is proposed from the name without accents and is available', async () => {
     renderApp({ path: '/companies/new', answer: companiesApi() })
 
     await userEvent.type(await nameField(), 'Clínica Norte')
@@ -95,7 +100,7 @@ describe('creating a company', () => {
     expect(await screen.findByText(/^Disponible/)).toBeTruthy()
   })
 
-  it.fails('@id:companies-90-3 a URL another company has is not available and nothing is sent', async () => {
+  it('@id:companies-90-3 a URL another company has is not available and nothing is sent', async () => {
     const created: Created[] = []
     renderApp({
       path: '/companies/new',
@@ -110,7 +115,7 @@ describe('creating a company', () => {
     expect(created).toEqual([])
   })
 
-  it.fails('@id:companies-90-4 a reserved URL says so and nothing is sent', async () => {
+  it('@id:companies-90-4 a reserved URL says so and nothing is sent', async () => {
     const created: Created[] = []
     renderApp({ path: '/companies/new', answer: companiesApi({ created }) })
 
@@ -123,7 +128,7 @@ describe('creating a company', () => {
   })
 
   for (const slug of ['ab', 'mi--empresa', '-norte', 'norte-stg'])
-    it.fails(`@id:companies-90-5 the URL "${slug}" has an invalid format`, async () => {
+    it(`@id:companies-90-5 the URL "${slug}" has an invalid format`, async () => {
       const created: Created[] = []
       renderApp({ path: '/companies/new', answer: companiesApi({ created }) })
 
@@ -135,7 +140,7 @@ describe('creating a company', () => {
       expect(created).toEqual([])
     })
 
-  it.fails('@id:companies-90-6 there is no terms checkbox', async () => {
+  it('@id:companies-90-6 there is no terms checkbox', async () => {
     renderApp({ path: '/companies/new', answer: companiesApi() })
 
     await nameField()
@@ -144,7 +149,7 @@ describe('creating a company', () => {
     expect(screen.queryByText(/términos|condiciones|DPA/i)).toBeNull()
   })
 
-  it.fails('@id:companies-90-7 the chosen default language is sent', async () => {
+  it('@id:companies-90-7 the chosen default language is sent', async () => {
     const created: Created[] = []
     renderApp({ path: '/companies/new', answer: companiesApi({ name: 'Ana', created }) })
 
@@ -156,7 +161,7 @@ describe('creating a company', () => {
     await waitFor(() => expect(created[0]?.body).toMatchObject({ defaultLanguage: 'es' }))
   })
 
-  it.fails('@id:companies-90-8 an account without a name is asked for it and sends it', async () => {
+  it('@id:companies-90-8 an account without a name is asked for it and sends it', async () => {
     const created: Created[] = []
     renderApp({ path: '/companies/new', answer: companiesApi({ name: null, created }) })
 
@@ -168,7 +173,7 @@ describe('creating a company', () => {
     await waitFor(() => expect(created[0]?.body).toMatchObject({ userName: 'Ana' }))
   })
 
-  it.fails('@id:companies-90-9 an account with a name is not asked for it', async () => {
+  it('@id:companies-90-9 an account with a name is not asked for it', async () => {
     renderApp({ path: '/companies/new', answer: companiesApi({ name: 'Ana' }) })
 
     await nameField()
@@ -176,7 +181,7 @@ describe('creating a company', () => {
     expect(screen.queryByLabelText('Tu nombre')).toBeNull()
   })
 
-  it.fails('@id:companies-90-10 a URL taken while sending shows as not available', async () => {
+  it('@id:companies-90-10 a URL taken while sending shows as not available', async () => {
     renderApp({
       path: '/companies/new',
       answer: companiesApi({
@@ -192,7 +197,7 @@ describe('creating a company', () => {
     expect(await screen.findByText(/^No disponible/)).toBeTruthy()
   })
 
-  it.fails('@id:companies-90-13 without a session the creation screen leads to /login', async () => {
+  it('@id:companies-90-13 without a session the creation screen leads to /login', async () => {
     const { router } = renderApp({
       path: '/companies/new',
       answer: () => problem({ status: 401, code: 'access.unauthenticated' }),

@@ -1,5 +1,5 @@
 import { createLazyRoute, createRoute, notFound, redirect } from '@tanstack/react-router'
-import { meQueryOptions } from '@workampo/app-core/access/session/me'
+import { meQueryOptions } from '@workampo/app-core/access/me'
 import { companyContextQueryOptions } from '@workampo/app-core/companies/workspace/read-context'
 import { errorKeyOf } from '@workampo/app-core/errors'
 import { rootRoute } from '../../_shared/router/root-route'

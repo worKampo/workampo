@@ -1,5 +1,5 @@
 import { createLazyRoute, createRoute, redirect } from '@tanstack/react-router'
-import { meQueryOptions } from '@workampo/app-core/access/session/me'
+import { meQueryOptions } from '@workampo/app-core/access/me'
 import { rootRoute } from '../../_shared/router/root-route'
 
 export const homeRoute = createRoute({
