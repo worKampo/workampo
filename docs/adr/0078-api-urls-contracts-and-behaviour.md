@@ -1,5 +1,5 @@
 ---
-status: proposed
+status: accepted
 date: 2026-11-25
 related: [6, 8, 19, 48, 50, 51, 53, 54, 56, 57, 59, 62, 72, 73, 77]
 ---
