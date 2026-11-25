@@ -12,14 +12,14 @@ The only rules were "plural, kebab-case" ([ADR-0053](0053-code-conventions.md)),
 
 ## Decision
 
-Decided by the person on 2026-11-25 (spike #164): numbered pages by default, with `page` and `size` in the web and the API alike and cursors kept for very large tables; `version` and 409 for concurrent edits; 404 for what the caller cannot see and 403 for what they see but may not do; the caller's companies at `GET /api/companies`.
+Decided by the person on 2026-11-25 (spike #164): numbered pages by default, with `page` and `pageSize` in the web and the API alike and cursors kept for very large tables; `version` and 409 for concurrent edits; 404 for what the caller cannot see and 403 for what they see but may not do; the caller's companies at `GET /api/companies`.
 
 ### 1. URLs
 
 1. Inside a company, only `/api/t/:slug/<collection>…`, behind `requireSession` then `requireMember` (ADR-0006).
 2. Outside a company, `/api/<collection>…`; never `/api/companies/:x/…` on the app Worker, which would open a second space beside `/api/t/:slug`.
 3. Segments are lowercase kebab-case nouns; collections are plural (`invitations`, `permission-changes`).
-4. Path parameters are camelCase: `:id` for the item of the collection just before it, `:<singular>Id` for a parent (`:unitId`).
+4. Path parameters are camelCase: `:id` for the item of the collection just before it, `:<singular>Id` for a parent (`:unitId`). Query parameters are camelCase too, like the JSON fields they name (`?unitId=…&pageSize=50`); only path segments are kebab-case (the person, 2026-11-25).
 5. Nest only a child that exists only inside one parent, with at most two ids after `/api/t/:slug`. A child of two parents is a flat collection filtered by query (`/assignments?memberId=…&unitId=…`).
 6. Singletons have no id: `/api/me`, `/api/sessions/current`, `/api/t/:slug/settings`, `/api/t/:slug/logo`. They have no create or list (Google AIP-156).
 7. Two item aliases: `me`, the caller's own item (`/api/t/:slug/members/me`), and `current`, the caller's session.
@@ -68,8 +68,8 @@ Decided by the person on 2026-11-25 (spike #164): numbered pages by default, wit
 ### 5. Lists
 
 1. Every GET on a collection pages from its first version: adding pages later breaks clients (Google AIP-158).
-2. **Numbered pages by default** (the person, 2026-11-25): `?page=&size=`, `page` from 1, `size` 50 by default and at most 100 (more is capped, not refused), and the answer `{ items, total }`. The web's own URL uses the same names (`/c/northwind/members?page=2&size=50`), so one name goes end to end (ADR-0053); only the repo turns them into the engine's `offset = (page - 1) × size`. It feeds the numbered pager of the design system ("Showing 1–6 of 6"). Deviation from the guides that page by offset with `limit` and `offset` (Microsoft `top` and `skip`): no screen asks for an arbitrary row, and one vocabulary from the URL to the repo is worth more.
-3. **Cursor for a very large table**, chosen per endpoint with a dated Update of this ADR: `?size=&cursor=` and the answer `{ items, nextCursor }`, `nextCursor` a string or `null`, opaque and never built by the client, with no total. Zalando, Google and Stripe use it because it neither skips nor repeats rows when the list changes between pages and it stays fast on large tables.
+2. **Numbered pages by default** (the person, 2026-11-25): `?page=&pageSize=`, `page` from 1, `pageSize` 50 by default and at most 100 (more is capped, not refused), and the answer `{ items, total }`. The web's own URL uses the same names (`/c/northwind/members?page=2&pageSize=50`), so one name goes end to end (ADR-0053); only the repo turns them into the engine's `offset = (page - 1) × pageSize`. It feeds the numbered pager of the design system ("Showing 1–6 of 6"). Deviation from the guides that page by offset with `limit` and `offset` (Microsoft `top` and `skip`): no screen asks for an arbitrary row, and one vocabulary from the URL to the repo is worth more. `pageSize`, not `size`, so it never meets a filter on a field called `size`.
+3. **Cursor for a very large table**, chosen per endpoint with a dated Update of this ADR: `?pageSize=&cursor=` and the answer `{ items, nextCursor }`, `nextCursor` a string or `null`, opaque and never built by the client, with no total. Zalando, Google and Stripe use it because it neither skips nor repeats rows when the list changes between pages and it stays fast on large tables.
 4. Filters are plain query fields named like the response field (`?status=active&unitId=…`); `q` is the free-text search over the normalised column (ADR-0053).
 5. `sort=field` or `sort=-field`, only on allowlisted fields, with a stable default order and `id` as the tie-breaker.
 6. No filter expression language (Google AIP-160) until a real need.
