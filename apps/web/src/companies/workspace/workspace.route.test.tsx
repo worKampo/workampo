@@ -80,7 +80,7 @@ describe('the company home', () => {
     expect(router.state.location.pathname).toBe('/login')
   })
 
-  it.fails('@id:companies-90-13 without a session a company page leads to /login carrying the way back', async () => {
+  it('@id:companies-90-13 without a session a company page leads to /login carrying the way back', async () => {
     const { router } = renderApp({
       path: '/c/northwind',
       answer: () => problem({ status: 401, code: 'access.unauthenticated' }),
@@ -91,7 +91,7 @@ describe('the company home', () => {
     expect(router.state.location.search).toEqual({ returnTo: '/c/northwind' })
   })
 
-  it.fails('@id:access-91-1 without a session a company subpage leads to /login carrying it, query included', async () => {
+  it('@id:access-91-1 without a session a company subpage leads to /login carrying it, query included', async () => {
     for (const path of ['/c/northwind/settings', '/c/northwind/members?page=2']) {
       const { router } = renderApp({
         path,
@@ -105,7 +105,7 @@ describe('the company home', () => {
     }
   })
 
-  it.fails('@id:access-91-1 a company subpage that does not exist yet shows the company not-found state', async () => {
+  it('@id:access-91-1 a company subpage that does not exist yet shows the company not-found state', async () => {
     const asked: string[] = []
     const { router } = renderApp({
       path: '/c/northwind/settings',
@@ -117,7 +117,7 @@ describe('the company home', () => {
     expect(asked).toContain('/api/me')
   })
 
-  it.fails('@id:companies-90-13 a session that expired while me was cached leads to /login carrying the way back', async () => {
+  it('@id:companies-90-13 a session that expired while me was cached leads to /login carrying the way back', async () => {
     const companies = workspaceApi({ northwind: 'Northwind Logistics' })
     const { router } = renderApp({
       path: '/c/northwind',

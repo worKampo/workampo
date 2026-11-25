@@ -17,8 +17,9 @@ export const BUDGETS = [
   },
   {
     name: 'signed-in shell',
-    screen: 'src/access/home/home.page.tsx',
-    namespaces: ['common', 'access'],
+    // Where / lands a person with several companies; / itself has no page.
+    screen: 'src/companies/selection/company-picker/company-picker.page.tsx',
+    namespaces: ['common', 'access', 'companies'],
     maxBytes: 132_800,
   },
 ]

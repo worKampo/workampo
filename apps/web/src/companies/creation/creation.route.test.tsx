@@ -87,7 +87,7 @@ describe('creating a company', () => {
     expect(created[0]?.key).toMatch(/^[0-9a-f-]{36}$/)
   })
 
-  it.fails('@id:companies-91-3 the start without a company opens the creation form directly', async () => {
+  it('@id:companies-91-3 the start without a company opens the creation form directly', async () => {
     const { router } = renderApp({ path: '/', answer: companiesApi({ name: 'Ana' }) })
 
     expect(await nameField()).toBeTruthy()
@@ -228,7 +228,7 @@ describe('creating a company', () => {
     expect(created).toEqual([])
   })
 
-  it.fails('@id:companies-91-5 "Volver a mis empresas" leads back to the picker without creating anything', async () => {
+  it('@id:companies-91-5 "Volver a mis empresas" leads back to the picker without creating anything', async () => {
     const created: Created[] = []
     const { router } = renderApp({
       path: '/companies/new',
@@ -244,7 +244,7 @@ describe('creating a company', () => {
     expect(created).toEqual([])
   })
 
-  it.fails('@id:companies-91-5 the creation form does not apply the destination: it stays with one company or more', async () => {
+  it('@id:companies-91-5 the creation form does not apply the destination: it stays with one company or more', async () => {
     const { router } = renderApp({
       path: '/companies/new',
       answer: async (request) =>
@@ -277,7 +277,7 @@ describe('creating a company', () => {
     expect(router.state.location.pathname).toBe('/login')
   })
 
-  it.fails('@id:companies-90-13 without a session the creation screen leads to /login and back to it', async () => {
+  it('@id:companies-90-13 without a session the creation screen leads to /login and back to it', async () => {
     const { router } = renderApp({
       path: '/companies/new',
       answer: () => problem({ status: 401, code: 'access.unauthenticated' }),

@@ -77,8 +77,8 @@ export function NewCompanyForm() {
         </Field>
       )}
       <FormActions>
-        <Link to="/" className={buttonClassName({ variant: 'quiet' })}>
-          {t('new_company.cancel')}
+        <Link to="/companies" className={buttonClassName({ variant: 'quiet' })}>
+          {t('new_company.back_to_companies')}
         </Link>
         <Button type="submit" disabled={page.isPending}>
           {t('new_company.submit')}

@@ -35,7 +35,7 @@ describe('signing in with a code', () => {
     expect(screen.getByRole('button', { name: 'Reenviar código' })).toBeTruthy()
   })
 
-  it.fails('@id:access-96-2 the right code of a new account signs in and lands on the creation form', async () => {
+  it('@id:access-96-2 the right code of a new account signs in and lands on the creation form', async () => {
     const { router } = renderApp({ path: '/login', answer: accountApi() })
 
     await signInWithCode()
@@ -45,7 +45,7 @@ describe('signing in with a code', () => {
     expect(screen.queryByText('Aún no perteneces a ninguna empresa')).toBeNull()
   })
 
-  it.fails('@id:companies-91-1 with one company the code leads to it', async () => {
+  it('@id:companies-91-1 with one company the code leads to it', async () => {
     const { router } = renderApp({ path: '/login', answer: accountApi([NORTHWIND]) })
 
     await signInWithCode()
@@ -54,7 +54,7 @@ describe('signing in with a code', () => {
     expect(router.state.location.pathname).toMatch(/^\/c\/northwind\/?$/)
   })
 
-  it.fails('@id:companies-91-2 with several companies the code leads to the picker', async () => {
+  it('@id:companies-91-2 with several companies the code leads to the picker', async () => {
     const { router } = renderApp({ path: '/login', answer: accountApi([NORTHWIND, SOL_BAKERY]) })
 
     await signInWithCode()
@@ -120,7 +120,7 @@ describe('signing in with a code', () => {
     '/login',
     '/api/me',
   ])
-    it.fails(`@id:access-91-3 the way back ${JSON.stringify(returnTo)} is ignored: the code leads where signing in leads`, async () => {
+    it(`@id:access-91-3 the way back ${JSON.stringify(returnTo)} is ignored: the code leads where signing in leads`, async () => {
       const { router } = renderApp({
         path: `/login?returnTo=${encodeURIComponent(returnTo)}`,
         answer: accountApi(),

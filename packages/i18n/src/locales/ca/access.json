@@ -15,12 +15,6 @@
     "resent": "T'hem enviat un codi nou.",
     "other_email": "Fes servir una altra adreça"
   },
-  "home": {
-    "title": "Encara no formes part de cap empresa",
-    "body": "Quan una empresa et convidi, o en creïs una, apareixerà aquí.",
-    "create_company": "Crear empresa",
-    "sign_out": "Tanca la sessió"
-  },
   "errors": {
     "invalid_email": "Escriu una adreça electrònica vàlida.",
     "invalid_code": "El codi no és vàlid o ha caducat. Pots demanar-ne un altre.",

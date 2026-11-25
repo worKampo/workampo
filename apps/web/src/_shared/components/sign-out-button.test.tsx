@@ -14,7 +14,7 @@ beforeAll(async () => {
 afterEach(cleanup)
 
 it('@id:access-96-14 a sign-out that fails says so and lets the person try again', async () => {
-  renderApp({ path: '/', answer: failingSignOutApi })
+  renderApp({ path: '/companies', answer: failingSignOutApi })
   const signOut = await screen.findByRole('button', { name: 'Cerrar sesión' })
 
   await userEvent.click(signOut)
@@ -27,8 +27,10 @@ it('@id:access-96-14 a sign-out that fails says so and lets the person try again
 
 function failingSignOutApi(request: Request) {
   if (request.method === 'DELETE') return new Response('down', { status: 503 })
+  const { pathname } = new URL(request.url)
+  if (pathname === '/api/companies') return Response.json({ items: [], total: 0 })
 
-  return new URL(request.url).pathname === '/api/me'
+  return pathname === '/api/me'
     ? Response.json({ id: 'u1', email: 'ana@example.com' })
     : problem({ status: 404, code: 'access.unauthenticated' })
 }

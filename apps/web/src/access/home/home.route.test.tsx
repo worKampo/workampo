@@ -38,7 +38,7 @@ function homeApi(companies: Item[], asked: string[] = []) {
 }
 
 describe('the start, /', () => {
-  it.fails('@id:companies-91-7 with one company it leads to that company', async () => {
+  it('@id:companies-91-7 with one company it leads to that company', async () => {
     const { router } = renderApp({
       path: '/',
       answer: homeApi([company('Northwind', 'northwind')]),
@@ -48,7 +48,7 @@ describe('the start, /', () => {
     expect(router.state.location.pathname).toMatch(/^\/c\/northwind\/?$/)
   })
 
-  it.fails('@id:companies-91-7 with several companies it leads to the picker', async () => {
+  it('@id:companies-91-7 with several companies it leads to the picker', async () => {
     const { router } = renderApp({
       path: '/',
       answer: homeApi([company('Northwind', 'northwind'), company('Sol Bakery', 'sol-bakery')]),
@@ -58,7 +58,7 @@ describe('the start, /', () => {
     expect(router.state.location.pathname).toBe('/companies')
   })
 
-  it.fails('@id:companies-91-7 with no company it leads straight to the creation form', async () => {
+  it('@id:companies-91-7 with no company it leads straight to the creation form', async () => {
     const { router } = renderApp({ path: '/', answer: homeApi([]) })
 
     expect(await screen.findByLabelText('Nombre de la empresa')).toBeTruthy()
@@ -66,7 +66,7 @@ describe('the start, /', () => {
     expect(screen.queryByText('Aún no perteneces a ninguna empresa')).toBeNull()
   })
 
-  it.fails('@id:companies-91-7 asks the API for one page of 100 of my companies', async () => {
+  it('@id:companies-91-7 asks the API for one page of 100 of my companies', async () => {
     const asked: string[] = []
     renderApp({ path: '/', answer: homeApi([], asked) })
 

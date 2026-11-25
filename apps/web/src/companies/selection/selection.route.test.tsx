@@ -58,7 +58,7 @@ async function companyLinks(names: string[]) {
 }
 
 describe('the company picker, /companies', () => {
-  it.fails('@id:companies-91-2 lists my companies in alphabetical order, with name and address, and no role', async () => {
+  it('@id:companies-91-2 lists my companies in alphabetical order, with name and address, and no role', async () => {
     renderApp({ path: '/companies', answer: pickerApi() })
 
     expect(await companyLinks(MINE.map((c) => c.name))).toEqual([
@@ -72,7 +72,7 @@ describe('the company picker, /companies', () => {
     expect(screen.queryByText(ROLE)).toBeNull()
   })
 
-  it.fails('@id:companies-91-2 says who I am signed in as and lets me sign out', async () => {
+  it('@id:companies-91-2 says who I am signed in as and lets me sign out', async () => {
     renderApp({ path: '/companies', answer: pickerApi() })
 
     await screen.findByRole('link', { name: /Northwind/ })
@@ -81,7 +81,7 @@ describe('the company picker, /companies', () => {
     expect(screen.getByRole('button', { name: 'Cerrar sesión' })).toBeTruthy()
   })
 
-  it.fails('@id:companies-91-2 each company links to the url the API gives', async () => {
+  it('@id:companies-91-2 each company links to the url the API gives', async () => {
     renderApp({ path: '/companies', answer: pickerApi() })
 
     const link = await screen.findByRole('link', { name: /Sol Bakery/ })
@@ -89,7 +89,7 @@ describe('the company picker, /companies', () => {
     expect(link.getAttribute('href')).toMatch(/\/c\/sol-bakery\/?$/)
   })
 
-  it.fails('@id:companies-91-2 a company name with markup is shown as text', async () => {
+  it('@id:companies-91-2 a company name with markup is shown as text', async () => {
     const name = '<img src=x onerror=alert(1)> Ñandú 日本'
     renderApp({ path: '/companies', answer: pickerApi([company(name, 'nandu'), NORTHWIND]) })
 
@@ -98,7 +98,7 @@ describe('the company picker, /companies', () => {
     expect(document.querySelector('[onerror]')).toBeNull()
   })
 
-  it.fails('@id:companies-91-2 an email with markup is shown as text', async () => {
+  it('@id:companies-91-2 an email with markup is shown as text', async () => {
     renderApp({
       path: '/companies',
       answer: (request) =>
@@ -116,7 +116,7 @@ describe('the company picker, /companies', () => {
     expect(document.querySelector('img[src="x"]')).toBeNull()
   })
 
-  it.fails('@id:companies-91-4 choosing a company leads to it', async () => {
+  it('@id:companies-91-4 choosing a company leads to it', async () => {
     const { router } = renderApp({ path: '/companies', answer: pickerApi() })
 
     await userEvent.click(await screen.findByRole('link', { name: /Sol Bakery/ }))
@@ -125,7 +125,7 @@ describe('the company picker, /companies', () => {
     expect(router.state.location.pathname).toMatch(/^\/c\/sol-bakery\/?$/)
   })
 
-  it.fails('@id:companies-91-5 "Crear una empresa nueva" leads to the creation form', async () => {
+  it('@id:companies-91-5 "Crear una empresa nueva" leads to the creation form', async () => {
     const { router } = renderApp({ path: '/companies', answer: pickerApi() })
 
     await userEvent.click(await screen.findByRole('link', { name: 'Crear una empresa nueva' }))
@@ -134,14 +134,14 @@ describe('the company picker, /companies', () => {
     expect(router.state.location.pathname).toBe('/companies/new')
   })
 
-  it.fails('@id:companies-91-3 with no company the picker stays, empty, with the way to create one', async () => {
+  it('@id:companies-91-3 with no company the picker stays, empty, with the way to create one', async () => {
     const { router } = renderApp({ path: '/companies', answer: pickerApi([]) })
 
     expect(await screen.findByRole('link', { name: 'Crear una empresa nueva' })).toBeTruthy()
     expect(router.state.location.pathname).toBe('/companies')
   })
 
-  it.fails('@id:companies-91-2 without a session it leads to /login and back to the picker', async () => {
+  it('@id:companies-91-2 without a session it leads to /login and back to the picker', async () => {
     const { router } = renderApp({
       path: '/companies',
       answer: () => problem({ status: 401, code: 'access.unauthenticated' }),
@@ -152,7 +152,7 @@ describe('the company picker, /companies', () => {
     expect(router.state.location.search).toEqual({ returnTo: '/companies' })
   })
 
-  it.fails('@id:companies-91-2 a session that expired while me was cached leads to /login', async () => {
+  it('@id:companies-91-2 a session that expired while me was cached leads to /login', async () => {
     const { router } = renderApp({
       path: '/companies',
       answer: pickerApi(MINE, {
