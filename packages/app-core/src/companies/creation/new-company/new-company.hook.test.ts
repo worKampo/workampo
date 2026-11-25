@@ -40,10 +40,10 @@ const checks = (sent: Sent[]) =>
   sent.filter((s) => s.url.includes('/api/companies/availability?slug='))
 
 async function renderPage(answer = api(), onCreated = vi.fn()) {
-  const { wrapper, sent } = hookWrapper(answer)
+  const { wrapper, sent, queryClient } = hookWrapper(answer)
   const { result } = renderHook(() => useNewCompanyPage({ onCreated }), { wrapper })
 
-  return { result, sent, onCreated }
+  return { result, sent, onCreated, queryClient }
 }
 
 function fill(page: { current: NewCompanyPage }, values: Partial<Record<Field, string>>) {
@@ -192,6 +192,36 @@ describe('useNewCompanyPage', () => {
     const keys = posts(sent).map((s) => s.headers.get('Idempotency-Key'))
     expect(keys).toHaveLength(2)
     expect(keys[0]).toMatch(UUID)
+    expect(keys[1]).toBe(keys[0])
+  })
+
+  it('@id:companies-90-11 a retry completes the half-created company that now holds the slug', async () => {
+    let created = 0
+    const answer = api({ create: () => new Response('down', { status: 503 }) })
+    const halfCreated = (sent: Sent) => {
+      const { pathname } = new URL(sent.url)
+      if (pathname === '/api/companies/availability') return Response.json({ available: !created })
+      if (pathname === '/api/companies' && sent.method === 'POST' && created++ > 0)
+        return Response.json(
+          { id: 'c1', slug: 'clinica-norte', name: 'Clínica Norte', url: URL_OF },
+          { status: 201 },
+        )
+
+      return answer(sent)
+    }
+    const { result, sent, onCreated, queryClient } = await renderPage(halfCreated)
+    fill(result, { name: 'Clínica Norte', userName: 'Ana' })
+    await waitFor(() => expect(result.current.slugStatus).toBe('available'))
+    await act(() => result.current.submit())
+    await waitFor(() => expect(result.current.messageKey).toBe('common:errors.unexpected'))
+
+    await act(() => queryClient.invalidateQueries())
+    await waitFor(() => expect(result.current.slugStatus).toBe('taken'))
+    await act(() => result.current.submit())
+
+    await waitFor(() => expect(onCreated).toHaveBeenCalledWith(URL_OF))
+    const keys = posts(sent).map((s) => s.headers.get('Idempotency-Key'))
+    expect(keys).toHaveLength(2)
     expect(keys[1]).toBe(keys[0])
   })
 

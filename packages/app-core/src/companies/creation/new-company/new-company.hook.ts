@@ -48,8 +48,9 @@ export function useNewCompanyPage({
 
   const submit = form.handleSubmit(({ userName, ...company }) => {
     // The schema already refused an invalid or reserved slug; one still being checked goes on,
-    // and the API answers slug_taken if it is.
-    if (status === 'taken') {
+    // and the API answers slug_taken if it is. After a server failure the half-created company
+    // holds the slug, so the check says taken; the retry with the same key is what completes it.
+    if (status === 'taken' && !failedOnServer()) {
       form.setFocus('slug')
       return
     }
@@ -97,6 +98,10 @@ export function useNewCompanyPage({
     return check.isError ? undefined : 'checking'
   }
 
+  function failedOnServer() {
+    return isServerFailure(create.error) && create.variables?.idempotencyKey === idempotencyKey
+  }
+
   // Server answers only; the form's own errors show at their field.
   function messageKey() {
     if (create.error && !isSlugTaken(create.error)) return errorKeyOf(create.error)
@@ -108,6 +113,10 @@ export function useNewCompanyPage({
 
 function isSlugTaken(error: unknown) {
   return error instanceof ApiError && error.code === 'companies.slug_taken'
+}
+
+function isServerFailure(error: unknown) {
+  return error instanceof ApiError && (error.status === 0 || error.status >= 500)
 }
 
 // The value once it has not changed for CHECK_DELAY_MS, so typing sends one check, not one per key.
