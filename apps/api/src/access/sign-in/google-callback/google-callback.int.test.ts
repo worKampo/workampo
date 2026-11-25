@@ -54,6 +54,8 @@ const SETTINGS = '/c/northwind/settings'
 const withReturnTo = (returnTo: string) => `?returnTo=${encodeURIComponent(returnTo)}`
 const pathOf = (response: Response) => {
   const url = new URL(response.headers.get('Location') ?? '', 'https://app.test')
+  // A tampered returnTo must stay in the app, not only end on the expected path.
+  expect(url.origin).toBe('https://app.test')
   return `${url.pathname}${url.search}`
 }
 // The state Google carries back, which the start also put in the URL it redirected to.
