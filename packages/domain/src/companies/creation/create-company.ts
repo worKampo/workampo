@@ -2,7 +2,7 @@ import { z } from 'zod'
 import { slugSchema } from '../../_shared/slug'
 
 // C0/C1 controls plus the bidi marks and isolates that can reorder rendered text.
-const FORBIDDEN_CHARS = /[\p{Cc}؜‎‏‪-‮⁦-⁩]/u
+const FORBIDDEN_CHARS = /[\p{Cc}\u061C\u200E\u200F\u202A-\u202E\u2066-\u2069]/u
 
 const textSchema = z
   .string()
