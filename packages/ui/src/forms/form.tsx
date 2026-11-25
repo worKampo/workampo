@@ -15,7 +15,13 @@ export function Form({
   const ref = useRef<HTMLFormElement>(null)
 
   useEffect(() => {
-    if (focusFirstField) ref.current?.querySelector<HTMLElement>(FIELDS)?.focus()
+    if (!focusFirstField) return
+    // A field that is not rendered refuses the focus: go on to the next one.
+    for (const field of ref.current?.querySelectorAll<HTMLElement>(FIELDS) ?? []) {
+      if (field.closest('[hidden], [inert]')) continue
+      field.focus()
+      if (document.activeElement === field) return
+    }
   }, [focusFirstField])
 
   return <form {...props} ref={ref} noValidate className="flex flex-col gap-4" />

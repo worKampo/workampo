@@ -11,11 +11,15 @@ describe('Form', () => {
     expect(form.hasAttribute('novalidate')).toBe(true)
   })
 
-  it('puts the focus on its first field, skipping hidden and disabled ones', () => {
+  it('puts the focus on its first field, skipping hidden, unrendered and disabled ones', () => {
     render(
       <Form aria-label="Create">
         <input type="hidden" name="token" />
         <input aria-label="Locked" disabled />
+        <input aria-label="Not rendered" hidden />
+        <div hidden>
+          <input aria-label="In a hidden section" />
+        </div>
         <input aria-label="Name" />
         <input aria-label="Slug" />
       </Form>,
