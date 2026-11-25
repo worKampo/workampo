@@ -1,5 +1,9 @@
 import { expect, type Page, test } from '@playwright/test'
-import { newEmail, signInWithCodeAt, signInWithGoogle } from '../../../api/e2e/acceptance/support'
+import {
+  newEmail,
+  signInWithCodeAt,
+  signInWithGoogle,
+} from '../../../../e2e/support/acceptance-support'
 
 test.use({ locale: 'es-ES' })
 

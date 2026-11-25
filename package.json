@@ -28,6 +28,7 @@
     "@biomejs/biome": "2.6.7",
     "@commitlint/cli": "21.2.4",
     "@commitlint/config-conventional": "21.2.4",
+    "@playwright/test": "1.65.1",
     "@sentry/cli": "3.8.2",
     "dependency-cruiser": "18.7.2",
     "jscpd": "5.4.3",

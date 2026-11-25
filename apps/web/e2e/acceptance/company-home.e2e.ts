@@ -1,5 +1,5 @@
 import { type APIRequestContext, expect, type Page, test } from '@playwright/test'
-import { newEmail, signInWithCode } from '../../../api/e2e/acceptance/support'
+import { newEmail, signInWithCode } from '../../../../e2e/support/acceptance-support'
 
 test.use({ locale: 'es-ES' })
 

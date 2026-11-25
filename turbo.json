@@ -1,7 +1,9 @@
 {
   "$schema": "https://turborepo.com/schema.json",
   "tasks": {
-    "typecheck": {},
+    "typecheck": {
+      "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/e2e/support/**"]
+    },
     "lint": {},
     "test": {
       "dependsOn": ["^build"]

@@ -11,7 +11,7 @@ const PROVIDER_HOSTS = { 'api.workos.com': 'apps/api/src/_shared/identity/workos
 const RAW_ENV_READERS = [
   'apps/api/src/_shared/env.ts',
   'apps/api/src/index.ts',
-  'apps/api/src/_shared/http/app-version-header.ts',
+  'apps/api/src/_shared/client-version/app-version-header.ts',
 ]
 
 // A router only lists: methods live in the use cases' .route.ts.
