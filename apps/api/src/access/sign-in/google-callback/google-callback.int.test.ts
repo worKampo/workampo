@@ -59,7 +59,7 @@ const pathOf = (response: Response) => {
 // The state Google carries back, which the start also put in the URL it redirected to.
 const providerState = (location: string) => new URL(location).searchParams.get('state') ?? ''
 
-it.fails('@id:access-91-2 the callback comes back to the returnTo the start kept', async () => {
+it('@id:access-91-2 the callback comes back to the returnTo the start kept', async () => {
   const { state, location } = await startGoogle(withReturnTo(SETTINGS))
 
   const back = await callback({ url: await throughConsent(location), stateCookie: state })
@@ -71,7 +71,7 @@ it.fails('@id:access-91-2 the callback comes back to the returnTo the start kept
   })
 })
 
-it.fails('@id:access-91-2 the returnTo travels in the state cookie, never to Google', async () => {
+it('@id:access-91-2 the returnTo travels in the state cookie, never to Google', async () => {
   const { response, state, location } = await startGoogle(withReturnTo(SETTINGS))
   const setCookie = response.headers.get('Set-Cookie') ?? ''
 
@@ -83,7 +83,7 @@ it.fails('@id:access-91-2 the returnTo travels in the state cookie, never to Goo
   expect(setCookie).not.toMatch(/Domain=/i)
 })
 
-it.fails('@id:access-91-1 a query in the returnTo comes back whole', async () => {
+it('@id:access-91-1 a query in the returnTo comes back whole', async () => {
   const members = '/c/northwind/members?page=2'
   const { state, location } = await startGoogle(withReturnTo(members))
 
@@ -100,7 +100,7 @@ for (const tampered of [
   '/login',
   '/api/me',
 ])
-  it.fails(`@id:access-91-3 a cookie tampered to return to ${JSON.stringify(tampered)} signs in and comes back to /`, async () => {
+  it(`@id:access-91-3 a cookie tampered to return to ${JSON.stringify(tampered)} signs in and comes back to /`, async () => {
     const { location } = await startGoogle()
     const state = providerState(location)
 
@@ -114,7 +114,6 @@ for (const tampered of [
     expect(sessionCookie(back)).toBeDefined()
   })
 
-// Pass today, when the start ignores returnTo; they must keep passing once it is read.
 it('@id:access-91-3 an unsafe returnTo is dropped at the start: a bare state cookie and back to /', async () => {
   const { response, state, location } = await startGoogle(withReturnTo('https://evil.test'))
 

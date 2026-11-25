@@ -1,3 +1,4 @@
+import { safeReturnTo } from '@workampo/domain/access/sign-in/return-to'
 import { Hono } from 'hono'
 import type { AppEnv } from '../../../_shared/http/app-env'
 import { requestOrigin } from '../../../_shared/http/cloudflare-request-origin'
@@ -10,7 +11,7 @@ import { completeGoogleSignIn } from './google-callback.logic'
 export const googleCallbackRoute = new Hono<AppEnv>().get(
   '/sessions/google/callback',
   async (c) => {
-    const expectedState = takeStateCookie(c)
+    const { state: expectedState, returnTo } = takeStateCookie(c)
 
     try {
       const { sessionToken } = await completeGoogleSignIn(c.env, {
@@ -22,7 +23,8 @@ export const googleCallbackRoute = new Hono<AppEnv>().get(
       })
       setSessionCookie(c, sessionToken)
 
-      return c.redirect('/', 302)
+      // The cookie is unsigned: returnTo counts only if it is still safe.
+      return c.redirect(safeReturnTo(returnTo) ?? '/', 302)
     } catch (error) {
       if (!(error instanceof AccessError)) throw error
 

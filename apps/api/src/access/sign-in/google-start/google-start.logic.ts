@@ -1,3 +1,4 @@
+import { safeReturnTo } from '@workampo/domain/access/sign-in/return-to'
 import { randomToken } from '../../../_shared/crypto/random-token'
 import type { IdentityProvider } from '../../../_shared/identity/identity-provider'
 
@@ -9,13 +10,16 @@ const workersSubtle = crypto.subtle as SubtleCrypto & {
   timingSafeEqual(a: ArrayBufferView, b: ArrayBufferView): boolean
 }
 
-// The state ties Google's answer to this browser: it goes to Google and into a cookie.
+// The state ties Google's answer to this browser: it goes to Google and into a cookie. returnTo
+// goes only into the cookie; an unsafe one is dropped, never refused.
 export function startGoogleSignIn({
   provider,
   origin,
+  returnTo,
 }: {
   provider: IdentityProvider
   origin: string
+  returnTo?: unknown
 }) {
   const state = randomToken()
   const url = provider.googleAuthorizationUrl({
@@ -23,7 +27,7 @@ export function startGoogleSignIn({
     redirectUri: `${origin}${GOOGLE_CALLBACK_PATH}`,
   })
 
-  return { state, url }
+  return { state, url, returnTo: safeReturnTo(returnTo) }
 }
 
 // Constant time, so the comparison leaks nothing about the expected state.

@@ -35,15 +35,6 @@ describe('isSameState', () => {
   })
 })
 
-// The returnTo argument arrives with the returnTo task; a non-literal path keeps typecheck green
-// until then. Once it exists, call the static import above.
-const GOOGLE_START: string = './google-start.logic'
-type StartWithReturnTo = (input: {
-  provider: IdentityProvider
-  origin: string
-  returnTo: unknown
-}) => { state: string; url: string; returnTo: string | undefined }
-
 function recordingProvider() {
   const inputs: unknown[] = []
   const provider = {
@@ -57,13 +48,10 @@ function recordingProvider() {
 }
 
 describe('startGoogleSignIn with a way back', () => {
-  it.fails('@id:access-91-2 keeps a safe returnTo for the cookie and never sends it to Google', async () => {
-    const { startGoogleSignIn: start }: { startGoogleSignIn: StartWithReturnTo } = await import(
-      GOOGLE_START
-    )
+  it('@id:access-91-2 keeps a safe returnTo for the cookie and never sends it to Google', () => {
     const { provider, inputs } = recordingProvider()
 
-    const started = start({
+    const started = startGoogleSignIn({
       provider,
       origin: 'https://app.test',
       returnTo: '/c/northwind/settings',
@@ -76,15 +64,11 @@ describe('startGoogleSignIn with a way back', () => {
     expect(started.url).not.toContain('northwind')
   })
 
-  // Passes today only because the argument is ignored; it must keep passing once it is read.
   for (const returnTo of ['https://otro-sitio.example.com', '//x', '/\\x', '/login', '/api/me', ''])
-    it(`@id:access-91-3 drops the returnTo "${returnTo}" without refusing the start`, async () => {
-      const { startGoogleSignIn: start }: { startGoogleSignIn: StartWithReturnTo } = await import(
-        GOOGLE_START
-      )
+    it(`@id:access-91-3 drops the returnTo "${returnTo}" without refusing the start`, () => {
       const { provider } = recordingProvider()
 
-      const started = start({ provider, origin: 'https://app.test', returnTo })
+      const started = startGoogleSignIn({ provider, origin: 'https://app.test', returnTo })
 
       expect(started).toMatchObject({ url: 'https://provider.test/authorize' })
       expect(started.state).toMatch(/^[A-Za-z0-9_-]{43}$/)
