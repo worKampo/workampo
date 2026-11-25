@@ -2,7 +2,7 @@ import { env } from 'cloudflare:workers'
 import { Hono } from 'hono'
 import { describe, expect, it } from 'vitest'
 import type { AppEnv } from '../_shared/http/app-env'
-import { sessionRepo } from './data/session.d1.repo'
+import { sessionRepo } from './_repo/session.d1.repo'
 import { requireSession, type SessionVariables } from './require-session.middleware'
 import { hashSessionToken, newSessionToken } from './session/session-token.logic'
 

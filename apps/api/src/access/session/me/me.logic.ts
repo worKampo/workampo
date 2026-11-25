@@ -1,4 +1,4 @@
-import { userRepo } from '../../data/user.d1.repo'
+import { userRepo } from '../../_repo/user.d1.repo'
 import { AccessError } from '../../errors'
 
 export async function readMe(env: { DB_GLOBAL: D1Database }, userId: string) {

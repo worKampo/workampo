@@ -2,7 +2,7 @@ import { createMiddleware } from 'hono/factory'
 import type { AppEnv } from '../_shared/http/app-env'
 import { resolveTenant } from '../_shared/tenancy/resolve-tenant'
 import type { SessionVariables } from '../access/require-session.middleware'
-import { memberRepo } from './data/member.d1.repo'
+import { memberRepo } from './_repo/member.d1.repo'
 import { CompaniesError } from './errors'
 
 export type CompanyVariables = {

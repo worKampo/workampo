@@ -1,5 +1,5 @@
 import type { PageQuery } from '../../../_shared/pagination/page-query'
-import { memberRepo } from '../../data/member.d1.repo'
+import { memberRepo } from '../../_repo/member.d1.repo'
 
 export async function listMyCompanies(
   env: { DB_GLOBAL: D1Database },
