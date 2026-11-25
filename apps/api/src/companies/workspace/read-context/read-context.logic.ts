@@ -1,4 +1,4 @@
-import { assignmentRepo } from '../../data/assignment.d1.repo'
+import { assignmentRepo } from '../../_repo/assignment.d1.repo'
 import { CompaniesError } from '../../errors'
 import type { CompanyVariables } from '../../require-member.middleware'
 

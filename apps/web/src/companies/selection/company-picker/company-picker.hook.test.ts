@@ -1,8 +1,7 @@
 import { renderHook, waitFor } from '@testing-library/react'
+import { replaceSession } from '@workampo/app-core/access/me'
 import { describe, expect, it } from 'vitest'
-import { problem, type Sent } from '../../../_shared/testing/fake-api'
-import { hookWrapper } from '../../../_shared/testing/hook-wrapper'
-import { replaceSession } from '../../../access/me.hook'
+import { hookWrapper, problem, type Sent } from '../../../_shared/testing/hook-wrapper'
 import { useCompanyPicker } from './company-picker.hook'
 
 type Item = { name: string; slug: string; url: string }

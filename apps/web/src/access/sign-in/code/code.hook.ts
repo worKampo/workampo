@@ -1,9 +1,9 @@
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useStartCodeSignIn } from '@workampo/app-core/access/sign-in/start-code'
+import { useVerifyCode } from '@workampo/app-core/access/sign-in/verify-code'
+import { verifyCodeFormSchema } from '@workampo/app-core/access/sign-in/verify-code/form'
+import { errorKey, errorKeyOf } from '@workampo/app-core/errors'
 import { useForm } from 'react-hook-form'
-import { errorKey, errorKeyOf } from '../../../_shared/error-key'
-import { useStartCodeSignIn } from '../start-code/start-code.hook'
-import { verifyCodeFormSchema } from '../verify-code/verify-code.form'
-import { useVerifyCode } from '../verify-code/verify-code.hook'
 
 // The code page checks a code or sends a new one; each clears the other's error.
 export function useCodePage({ email, onSignedIn }: { email: string; onSignedIn: () => void }) {

@@ -1,6 +1,6 @@
 import { useMutation } from '@tanstack/react-query'
 import { useApiClient } from '../../../_shared/api-client-context'
-import { startCodeSignIn } from '../../data/sign-in.api'
+import { startCodeSignIn } from '../../_api/sign-in.api'
 
 export function useStartCodeSignIn() {
   const client = useApiClient()

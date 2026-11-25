@@ -10,7 +10,12 @@ import {
   routerErrors,
 } from './api-rules.mjs'
 import { exportPatternErrors, reexportErrors } from './package-rules.mjs'
-import { folderSizeErrors, srcLayoutErrors } from './structure-rules.mjs'
+import {
+  folderSizeErrors,
+  hookMirrorErrors,
+  layerFolderErrors,
+  srcLayoutErrors,
+} from './structure-rules.mjs'
 import { arbitraryValueErrors, handwrittenTextErrors, pageClassErrors } from './web-rules.mjs'
 
 const ROOT = fileURLToPath(new URL('../..', import.meta.url))
@@ -33,6 +38,8 @@ export function conventionErrors({ files, read, domains }) {
   return [
     ...srcLayoutErrors({ files, domains }),
     ...folderSizeErrors(files),
+    ...hookMirrorErrors(files),
+    ...layerFolderErrors(files),
     ...scanned.flatMap((path) => {
       const text = read(path)
 

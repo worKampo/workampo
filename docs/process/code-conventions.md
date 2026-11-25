@@ -1,48 +1,85 @@
 # Code conventions
 
-Rules an implementer applies. Why: [ADR-0053](../adr/0053-code-conventions.md) (also [ADR-0054](../adr/0054-roles-and-permissions.md), [ADR-0057](../adr/0057-ready-for-a-mobile-app.md)). Enforced by `pnpm check`: [`.dependency-cruiser.cjs`](../../.dependency-cruiser.cjs) (boundaries, cycles, purity) [`biome.json`](../../biome.json) (format, lint, no `export default`) and [`scripts/conventions/`](../../scripts/conventions/conventions.mjs) (the rules that are not imports: `src/` layout, folder size, routers that only list, `c.env` reads, database bindings, provider hosts, handwritten texts, arbitrary values, page classes, export patterns and re-exports). Do not restate those rules in code review.
+Rules an implementer applies. Why: [ADR-0053](../adr/0053-code-conventions.md) (also [ADR-0054](../adr/0054-roles-and-permissions.md), [ADR-0057](../adr/0057-ready-for-a-mobile-app.md)). Enforced by `pnpm check`: [`.dependency-cruiser.cjs`](../../.dependency-cruiser.cjs) (boundaries, cycles, purity) [`biome.json`](../../biome.json) (format, lint, no `export default`) and [`scripts/conventions/`](../../scripts/conventions/conventions.mjs) (the rules that are not imports: `src/` layout, folder size, routers that only list, `c.env` reads, database bindings, provider hosts, handwritten texts, arbitrary values, page classes, export patterns and re-exports, page hooks kept out of app-core by mirroring the API's use cases, `.repo.ts` only in `_repo/` and `.api.ts` only in `_api/`). Do not restate those rules in code review.
 
 ## Layout
 
-- The top level of each app's `src/` is directly the domains (same names as [`docs/domains/`](../domains/README.md)). Every folder there is a domain except `_shared/`. No technical-layer folders (`controllers/`, `services/`).
-- A domain holds its use cases, its data and `errors.ts`. The use case is the unit, in business language (`verify-code`, `invite-member`); the endpoint is the technical term for the HTTP route its `.route.ts` exposes (the person, 2026-11-24).
-- `_shared/` holds code no single domain owns: `http/problem-json.ts`, `ids/`, the adapters and technical capabilities such as `rate-limit/`, which may have their own repo (the person, 2026-11-23); `tenancy/` reads the `shards` row and gives the company shard client. It imports no domain.
-- Example: `apps/api/src/companies/companies.router.ts`, `companies/invitations/invite-member/invite-member.logic.ts`, `companies/data/invitation.d1.repo.ts`.
-- Pure core (no I/O, shared by API, web and the future mobile app) goes in `packages/domain/<domain>/`: Zod schemas, rules, permissions (`can`), error codes, values (`Email`, `Slug`, `Money`). It imports no Hono, Drizzle, React, `fetch` or `apps/`. `apps/api` keeps routes, use cases and repos; `apps/web` keeps pages; hooks live in `packages/app-core` and do not touch the DOM.
+- Inside each package's and app's `src/` there are only `_shared/` and one folder per domain (same names as [`docs/domains/`](../domains/README.md); per family in `packages/ui`), so the tree reads the same however many domains there are (the person, 2026-11-23). No technical-layer folders (`controllers/`, `services/`).
+- The same domain and feature folders everywhere, with identical feature names in every package and app (the person, 2026-11-22). A domain holds its use cases, `errors.ts` and, in the API and app-core, its layer folder. The use case is the unit, in business language (`verify-code`, `invite-member`); the endpoint is the technical term for the HTTP route its `.route.ts` exposes (the person, 2026-11-24).
+- A folder starts with `_` only for a layer the whole domain shares: `_repo/` (the API's repos), `_api/` (app-core's `hc` calls and `query-keys.ts`), and `_shared/` across domains; without the `_`, `repo/` would read as one more feature beside `creation/`. What belongs to one use case or one page lives in its folder, labelled by its suffix (`new-company.page.tsx`, `new-company.hook.ts`, `new-company-form.tsx`); never a folder per type such as `_hook/` or `_form/`. A hook the whole domain uses sits at the domain's root (`me.hook.ts`) (the person, 2026-11-25).
+- `_shared/` holds code no single domain owns: `http/problem-json.ts`, `ids/`, the adapters and technical capabilities such as `rate-limit/`, which keep their own repo beside them (`rate-limit.d1.repo.ts`), outside the `_repo/` rule (the person, 2026-11-23, 2026-11-25); `tenancy/` reads the `shards` row and gives the company shard client. It imports no domain.
+- Pure core, with no I/O and shared by the API, the web and the mobile app, goes in `packages/domain/<domain>/`: Zod schemas, rules, permissions (`can`), error codes and values (`Email`, `Slug`, `Money`). `apps/api` keeps routes, use cases and repos; `apps/web` keeps pages and their page hooks; `packages/app-core` keeps what the clients share.
 - A domain imports only the top-level files of another domain, never its internals.
 - Internal packages by name (`@workampo/…`); no barrel files that re-export everything; no cycles.
+- A folder with more than 8 code files, tests not counted, is split into subfolders by feature or use case (the person, 2026-11-23).
+- The root of a package or app holds only configuration, generated files and the folders an external tool reads as they are (`migrations/`, `seed/`, `backfills/`, `public/`, `e2e/`, `test/` setup) (the person, 2026-11-22). Everything our code imports, code or data such as translations and styles, lives in `src/`. Two written exceptions (the person, 2026-11-24): `packages/ui/src/styles/`, the tokens and CSS every family uses; and `packages/i18n/src/`, a one-purpose package whose "domains" are the JSON files of `locales/`, so its few modules sit at the root of `src/`. `packages/db` keeps `schema/` at its root, a folder drizzle-kit reads; one schema per engine, the engine in the name ([ADR-0077](../adr/0077-database-engines-behind-the-repos.md)).
+- The root of `src/` also holds the files that gather every domain, because `_shared/` may not import domains: `apps/web/src/route-tree.ts` (the person, 2026-11-22), `apps/api/src/index.ts` and `contract.ts`, and `packages/domain/src/errors.ts` with the union of every domain's error codes (the person, 2026-11-23).
 
-## Layout of a domain across packages and apps
-
-The same domain and feature folders everywhere, with identical feature names in every package and app (the person, 2026-11-22). Example, `access` with its features `sign-in` and `session`:
+One example per kind of file, with the domain `access` and its features `sign-in` and `session`; tests sit beside their file:
 
 ```
-packages/domain/src/_shared/     identity.ts, choose-provider.ts     the identity seam's types, shared by every domain
-packages/domain/src/access/      errors.ts                  what the whole domain shares (errors, types, values)
-  sign-in/  session/             pure business rules and their tests
-packages/app-core/src/access/
-  data/                          sign-in.api.ts, session.api.ts (the hc calls) and query-keys.ts
-  sign-in/
-    verify-code/                 verify-code.hook.ts (use-case hook), verify-code.form.ts
-    code/                        code.hook.ts (page hook: useCodePage); no DOM, no router; shared by web and mobile
-packages/i18n/src/locales/<lang>/access.json   texts grouped by screen, plus `errors`; `_context/access.json` for translators
-apps/api/src/access/             access.router.ts (lists the features), errors.ts, require-session.middleware.ts (what other domains use)
-  data/                          one repo per table: user.d1.repo.ts, identity.d1.repo.ts, session.d1.repo.ts
-  sign-in/                       sign-in.router.ts (lists its use cases' routes), complete-sign-in.logic.ts (logic its use cases share)
-    start-code/                  start-code.route.ts (POST /sign-in-codes), start-code.logic.ts, start-code.int.test.ts
-apps/web/src/access/             access.route.ts (gathers its features' routes)
-  sign-in/                       sign-in.route.ts (URLs of the feature)
-    code/                        code.page.tsx (the root of /login/code), code-form.tsx (a piece of that page)
-apps/mobile/src/access/          when the app arrives: the same folders, `<page>.screen.tsx` as the root, the same hooks from packages/app-core
+packages/domain/src/                 pure core: no Hono, Drizzle, React, fetch or apps/
+  errors.ts                          union of every domain's error codes
+  _shared/identity.ts                types several domains share (the identity seam)
+  access/errors.ts                   what the whole domain shares (errors, types, values)
+  access/sign-in/email.ts            a pure rule or value of a feature, email.test.ts beside it
+
+packages/app-core/src/               what the web and the mobile app share; no DOM, no router
+  _shared/api-client.ts              the hc client; api-client-context.ts and api-error.ts beside it, testing/ for test helpers
+  access/_api/sign-in.api.ts         the hc calls of a resource
+  access/_api/query-keys.ts          every query key of the domain
+  access/me.hook.ts                  a hook the whole domain uses
+  access/sign-in/verify-code/        mirrors the API's use case
+    verify-code.hook.ts              use-case hook: one call, its keys and invalidation
+    verify-code.form.ts              its form schema
+
+packages/ui/src/                     per component family, mirroring the headings of components.md
+  _shared/cx.ts                      what the families use inside
+  styles/tokens.css                  tokens and CSS (written exception)
+  forms/forms.ts                     the family's entry, @workampo/ui/forms
+  forms/input.tsx                    a component, input.test.tsx beside it
+
+packages/i18n/src/                   its modules at the root (written exception)
+  load-namespace.ts                  a module
+  locales/<lang>/access.json         texts grouped by screen, plus `errors`
+  locales/_context/access.json       context for translators
+
+packages/db/                         drizzle-kit's folders at the root
+  schema/global.d1.ts                one schema per engine
+  migrations/global.d1/0007_create_members.sql
+  seed/global/0001-access.sql
+
+apps/api/src/
+  index.ts, contract.ts              gather every domain
+  _shared/http/problem-json.ts       code no domain owns
+  _shared/rate-limit/rate-limit.d1.repo.ts   a capability's own repo, beside it
+  access/access.router.ts            lists the features
+  access/errors.ts                   the domain's error class and statuses
+  access/require-session.middleware.ts   what other domains use
+  access/_repo/user.d1.repo.ts       one repo per table
+  access/sign-in/
+    sign-in.router.ts                lists its use cases' routes
+    complete-sign-in.logic.ts        logic its use cases share
+    google-state.cookie.ts           an HTTP helper of the feature
+    start-code/
+      start-code.route.ts            entry: POST /sign-in-codes
+      start-code.logic.ts            logic
+      start-code.int.test.ts         the use case's test
+
+apps/web/src/
+  main.tsx                           entry
+  route-tree.ts                      gathers the domains' routes
+  _shared/components/sign-out-button.tsx   knows the app, not a domain
+  access/access.route.ts             gathers its features' routes
+  access/sign-in/
+    sign-in.route.ts                 URLs of the feature
+    code/
+      code.page.tsx                  the root of /login/code
+      code-form.tsx                  a piece of that page
+      code.hook.ts                   page hook (useCodePage)
+
+apps/mobile/src/access/              when the app arrives: the same folders, <page>.screen.tsx, its own page hooks, app-core's hooks
 ```
-
-`packages/ui/src/` is not per domain: it is grouped by component family in folders that mirror the headings of [components.md](../design/components.md) (`actions/`, `forms/`, `content/`, `brand/`…), each component with its test beside it, and imported per family: `@workampo/ui/forms` (the person, 2026-11-22).
-
-The root of a package or app holds only configuration, generated files and the folders an external tool reads as they are (`migrations/`, `seed/`, `backfills/`, `public/`, `e2e/`, `test/` setup) (the person, 2026-11-22). Everything our code imports, code or data such as translations and styles, lives in `src/`, in every package and app; inside `src/` there are only `_shared/` and one folder per domain (or per family in `packages/ui`), so the tree reads the same however many domains there are (the person, 2026-11-23). Two written exceptions (the person, 2026-11-24): `packages/ui/src/styles/`, the tokens and CSS every family uses; and `packages/i18n/src/`, a one-purpose package whose "domains" are the JSON files of `locales/`, so its few modules sit at the root of `src/`. `packages/db` keeps `schema/` at its root, a folder drizzle-kit reads; one schema per engine, the engine in the name ([ADR-0077](../adr/0077-database-engines-behind-the-repos.md)).
-
-The root of `src/` also holds the files that gather every domain, because `_shared/` may not import domains: `apps/web/src/route-tree.ts` (the person, 2026-11-22), `apps/api/src/index.ts` and `contract.ts`, and `packages/domain/src/errors.ts` with the union of every domain's error codes (the person, 2026-11-23).
-
-A folder with more than 8 code files, tests not counted, is split into subfolders by feature or use case (the person, 2026-11-23).
 
 ### API routing (the person, 2026-11-23)
 
@@ -52,7 +89,7 @@ Entry, logic and data are apart at a glance; the role goes after a dot, as in `.
 
 - **Entry** `<use-case>.route.ts`: a Hono sub-app with the one endpoint the use case exposes; a flow that needs two endpoints is two use cases (`google-start`, `google-callback`). It validates, calls its logic and answers; it never touches a repo (dependency-cruiser).
 - **Logic** `<use-case>.logic.ts`: every use case has one, however short. It orchestrates the domain rules, the providers and the repos, and knows no Hono (dependency-cruiser). Logic several use cases of a feature share sits at the feature's root (`complete-sign-in.logic.ts`).
-- **Data** `<table>.<provider>.repo.ts`, one per table, all in `<domain>/data/`: only Drizzle, no rules; the only files that touch the database (dependency-cruiser). A repo may also hold an atomic write across the domain's tables (`sign-in.d1.repo.ts`). A domain reads only its own tables: another domain asks its logic.
+- **Data** `<table>.<provider>.repo.ts`, one per table, all in `<domain>/_repo/`: only Drizzle, no rules; the only files that touch the database (dependency-cruiser). A repo may also hold an atomic write across the domain's tables (`sign-in.d1.repo.ts`). A domain reads only its own tables: another domain asks its logic.
 - Inside a use case's folder every file carries the use case's name (`verify-code.route.ts`, `verify-code.logic.ts`, `verify-code.int.test.ts`). HTTP helpers of a feature also say their role: `session.cookie.ts`, `require-session.middleware.ts`.
 
 ### API URLs and contracts (ADR-0078)
@@ -93,21 +130,21 @@ Why and the guides behind each rule: [ADR-0078](../adr/0078-api-urls-contracts-a
 The web and the mobile app mirror the API: the view, its logic and the data are apart at a glance.
 
 - **Page**: the root of a URL is `<page>.page.tsx` in the web and `<page>.screen.tsx` in the mobile app, in a folder with the page's name; only UI and what belongs to its platform (focus, keyboard, `<Navigate>`). Its pieces are components without a role suffix (`code-form.tsx`) in the same folder; if several pages of the feature use one it moves to the feature's root, across domains to `_shared/components/`, and generic ones to `packages/ui` (dependency-cruiser keeps a page's pieces in its folder).
-- **Page hook** `<page>/<page>.hook.ts` in `packages/app-core` (`code/code.hook.ts`, `useCodePage`): combines use-case hooks, the form and the page's rules (what resets, which message shows, when it is done), and returns i18n keys, not texts. It knows no router and no DOM: navigation arrives as a callback (`onSignedIn`), so the mobile app reuses it (dependency-cruiser). Only when the page has logic of its own.
-- **Use-case hook** `<use-case>/<use-case>.hook.ts` in `packages/app-core`, mirroring the API's use case (`verify-code/verify-code.hook.ts`): wraps one call (query or mutation, keys, invalidation), with its `queryOptions` if the router needs them; it never knows a page. Its form schema beside it: `<use-case>.form.ts`.
-- **Data** `<domain>/data/<resource>.api.ts`: the `hc` calls, and `query-keys.ts`. Only these files and the client's own module use `hc`; the apps never import `hono` (dependency-cruiser).
+- **Page hook** `<page>/<page>.hook.ts` in the app, beside its page (`apps/web/src/access/sign-in/code/code.hook.ts`, `useCodePage`): combines use-case hooks, the form and the page's rules (what resets, which message shows, when it is done), and returns i18n keys, not texts. It may use the router and the DOM. Only when the page has logic of its own. It moves to `packages/app-core` only when a second app uses it almost as it is, like a component's promotion (the person, 2026-11-25).
+- **Use-case hook** `<use-case>/<use-case>.hook.ts` in `packages/app-core`, mirroring the API's use case (`verify-code/verify-code.hook.ts`): wraps one call (query or mutation, keys, invalidation), with its `queryOptions` if the router needs them; it never knows a page, the router or the DOM (dependency-cruiser). Its form schema beside it: `<use-case>.form.ts`.
+- **Data** `<domain>/_api/<resource>.api.ts`: the `hc` calls, and `query-keys.ts` beside them. Only these files and the client's own module use `hc`; the apps never import `hono` (dependency-cruiser).
 3. Moving between screens goes through typed URLs (`navigate({ to: '/login/code' })`, `<Link to>`), never by importing another screen.
 4. Data never passes between screens by import: through the app-core query cache or the URL; router history state only for values that must stay out of the URL, such as the sign-in email.
 5. A feature may use a component of another feature of its domain (home uses session's sign-out button); across domains it may not (dependency-cruiser), and the component is promoted to `_shared/components/` or `packages/ui`.
 
 ## Names
 
-A file is not named only by its kind when that name repeats in other folders: `sign-in.api.ts`, `me.hook.ts`, `sign-in.router.ts`, not `api.ts`, `hook.ts`, `router.ts` (the person, 2026-11-22). Exception: `errors.ts` at the root of a domain keeps one fixed name in every domain, and so does `query-keys.ts` in each domain's `data/` in `packages/app-core`: every TanStack Query key of the domain lives there, and hooks import keys from it, never from another hook (the person, 2026-11-22).
+A file is not named only by its kind when that name repeats in other folders: `sign-in.api.ts`, `me.hook.ts`, `sign-in.router.ts`, not `api.ts`, `hook.ts`, `router.ts` (the person, 2026-11-22). Exception: `errors.ts` at the root of a domain keeps one fixed name in every domain, and so does `query-keys.ts` in each domain's `_api/` in `packages/app-core`: every TanStack Query key of the domain lives there, and hooks import keys from it, never from another hook (the person, 2026-11-22).
 
 - The suffix after the dot says the type of what is inside, always in the singular, not how many: `.page`, `.screen`, `.hook`, `.api`, `.form`, `.route`, `.router`, `.logic`, `.repo`, `.cookie`, `.middleware`, `.contract`, `.test` (the person, 2026-11-24).
 - A file that uses a provider names it, even when it is the only one: services, engines and infrastructure we could change (database, identity, email, payments, error tracking, analytics, storage, Cloudflare's own APIs), not the base frameworks used directly (Hono, React, TanStack, Drizzle, Zod, i18next). `user.d1.repo.ts`, `cloudflare-request-origin.ts`, `sentry-error-tracking.ts`; dependency-cruiser checks it for D1 (the person, 2026-11-24).
 
-- No barrel `index` files: a package's entries are only those declared in its `exports`. A package exports only what other packages and apps may use; internals (`*.api.ts`, forms, use-case hooks only pages use) and test helpers stay unexported (the person, 2026-11-22). Every entry is named in `exports`, never a `"./*"` pattern; the only re-exporting files are the entry of each `packages/ui` family (`forms.ts`, `actions.ts`…) (the person, 2026-11-23).
+- No barrel `index` files: a package's entries are only those declared in its `exports`. A package exports only what other packages and apps may use; forms and use-case hooks are exported once an app uses them (the person, 2026-11-25); `*.api.ts` and test helpers stay unexported (the person, 2026-11-22). Every entry is named in `exports`, never a `"./*"` pattern; the only re-exporting files are the entry of each `packages/ui` family (`forms.ts`, `actions.ts`…) (the person, 2026-11-23).
 - Seeds are numbered like migrations: `NNNN-<domain>.sql`, four digits (the person, 2026-11-22).
 - Test files (the person, 2026-11-22): a unit test is `<source>.test.ts`; a feature's HTTP test `<feature>.router.int.test.ts`, or `<spec-topic>.int.test.ts` when it covers a rule of the living spec; a use case's test `<use-case>.int.test.ts` in its folder (the person, 2026-11-23); acceptance scenarios always in `e2e/acceptance/<topic>.e2e.ts` (`e2e/health.e2e.ts` stays as infrastructure); they go with what they cover: journeys through the pages in `apps/web/e2e/`, server behaviour (cookies, limits, linking, `/health`) in `apps/api/e2e/`; both suites start the same API Worker, which serves the web (the person, 2026-11-24).
 - The brand "worKampo" is not translated (the person, 2026-11-22).
@@ -145,7 +182,7 @@ Use one name end to end: living-spec rule (`@id:companies-15-1`) → use case �
 
 ## Data access
 
-- Always through the domain's `data/<table>.d1.repo.ts`; explicit columns, never `SELECT *`; every list has a maximum page size; no queries in a loop.
+- Always through the domain's `_repo/<table>.d1.repo.ts`; explicit columns, never `SELECT *`; every list has a maximum page size; no queries in a loop.
 - Repos receive the company's database client from `_shared/tenancy/` once the company shard exists (today `_shared/db/d1-global-db.ts`); never use the D1 binding directly.
 - Drizzle builder only; no SQLite-specific SQL (`strftime`, JSON functions, `ROWID`, `AUTOINCREMENT`). If unavoidable, isolate it and comment why.
 - Split long lists (many parameters, big `batch()`) inside the repo (D1 limits).

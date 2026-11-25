@@ -1,14 +1,14 @@
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useMe } from '@workampo/app-core/access/me'
+import { ApiError } from '@workampo/app-core/api-error'
+import { useCheckSlug } from '@workampo/app-core/companies/creation/check-slug'
+import { useCreateCompany } from '@workampo/app-core/companies/creation/create-company'
+import { createCompanyFormSchema } from '@workampo/app-core/companies/creation/create-company/form'
+import { errorKey, errorKeyOf } from '@workampo/app-core/errors'
 import { proposeSlug, type SlugProblem, slugProblem } from '@workampo/domain/_shared/slug'
 import { LANGUAGES } from '@workampo/i18n'
 import { useEffect, useState } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
-import { ApiError } from '../../../_shared/api-error'
-import { errorKey, errorKeyOf } from '../../../_shared/error-key'
-import { useMe } from '../../../access/me.hook'
-import { useCheckSlug } from '../check-slug/check-slug.hook'
-import { createCompanyFormSchema } from '../create-company/create-company.form'
-import { useCreateCompany } from '../create-company/create-company.hook'
 
 const CHECK_DELAY_MS = 300
 

@@ -1,9 +1,9 @@
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useStartCodeSignIn } from '@workampo/app-core/access/sign-in/start-code'
+import { startCodeFormSchema } from '@workampo/app-core/access/sign-in/start-code/form'
+import { errorKey, errorKeyOf } from '@workampo/app-core/errors'
 import type { AccessErrorCode } from '@workampo/domain/access/errors'
 import { useForm } from 'react-hook-form'
-import { errorKey, errorKeyOf } from '../../../_shared/error-key'
-import { startCodeFormSchema } from '../start-code/start-code.form'
-import { useStartCodeSignIn } from '../start-code/start-code.hook'
 
 // The login page asks for an email, or shows the error Google's callback sent back.
 export function useLoginPage({

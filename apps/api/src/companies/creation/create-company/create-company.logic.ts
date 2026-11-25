@@ -8,8 +8,8 @@ import {
   commitShardCreation,
   type ShardCreation,
   userHasName,
-} from '../../data/company-creation.d1.repo'
-import { companyCreationRequestRepo } from '../../data/company-creation-request.d1.repo'
+} from '../../_repo/company-creation.d1.repo'
+import { companyCreationRequestRepo } from '../../_repo/company-creation-request.d1.repo'
 import { CompaniesError } from '../../errors'
 
 type Env = { DB_GLOBAL: D1Database }

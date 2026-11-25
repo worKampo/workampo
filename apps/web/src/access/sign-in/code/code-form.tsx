@@ -1,11 +1,11 @@
 import { useNavigate } from '@tanstack/react-router'
-import { useCodePage } from '@workampo/app-core/access/sign-in/code'
 import { Button } from '@workampo/ui/actions'
 import { Text } from '@workampo/ui/content'
 import { Field, Form, Input } from '@workampo/ui/forms'
 import { CardScreen } from '@workampo/ui/layout'
 import { Trans, useTranslation } from 'react-i18next'
 import { RouterTextLink } from '../../../_shared/router/router-text-link'
+import { useCodePage } from './code.hook'
 
 export function CodeForm({ email, returnTo }: { email: string; returnTo?: string | undefined }) {
   const { t } = useTranslation(['access', 'companies', 'api', 'common'])

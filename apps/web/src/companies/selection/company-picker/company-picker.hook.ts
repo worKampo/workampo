@@ -1,5 +1,5 @@
+import { useMyCompanies } from '@workampo/app-core/companies/selection/list-my-companies'
 import { useMemo } from 'react'
-import { useMyCompanies } from '../list-my-companies/list-my-companies.hook'
 
 // The API orders by the raw name; the picker orders the page as people of `language` read it.
 export function useCompanyPicker(language: string) {

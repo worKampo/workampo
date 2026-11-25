@@ -8,7 +8,7 @@ import {
 } from './api-rules.mjs'
 import { conventionErrors } from './conventions.mjs'
 import { exportPatternErrors, reexportErrors } from './package-rules.mjs'
-import { folderSizeErrors, srcLayoutErrors } from './structure-rules.mjs'
+import * as rules from './structure-rules.mjs'
 import { arbitraryValueErrors, handwrittenTextErrors, pageClassErrors } from './web-rules.mjs'
 
 const DOMAINS = ['access']
@@ -25,17 +25,67 @@ test('src/ holds only _shared/, domains and the files that gather them', () => {
   ]
   const bad = ['apps/api/src/helpers/x.ts', 'apps/web/src/utils.ts']
 
-  assert.deepEqual(srcLayoutErrors({ files: ok, domains: DOMAINS }), [])
-  assert.equal(srcLayoutErrors({ files: bad, domains: DOMAINS }).length, 2)
+  assert.deepEqual(rules.srcLayoutErrors({ files: ok, domains: DOMAINS }), [])
+  assert.equal(rules.srcLayoutErrors({ files: bad, domains: DOMAINS }).length, 2)
 })
 
 test('a folder with more than 8 code files fails; tests do not count', () => {
   const folder = (dir, n, suffix = '.ts') =>
     Array.from({ length: n }, (_, i) => `${dir}/f${i}${suffix}`)
 
-  assert.deepEqual(folderSizeErrors([...folder('a', 8), ...folder('a', 5, '.test.ts')]), [])
-  assert.match(folderSizeErrors(folder('b', 9))[0], /^b\/: 9 code files/)
-  assert.deepEqual(folderSizeErrors(folder('scripts/checks', 14, '.mjs')), [])
+  assert.deepEqual(rules.folderSizeErrors([...folder('a', 8), ...folder('a', 5, '.test.ts')]), [])
+  assert.match(rules.folderSizeErrors(folder('b', 9))[0], /^b\/: 9 code files/)
+  assert.deepEqual(rules.folderSizeErrors(folder('scripts/checks', 14, '.mjs')), [])
+})
+
+test('an app-core hook folder needs its API use case twin; hooks at the domain root are exempt', () => {
+  const app = 'packages/app-core/src'
+  const api = 'apps/api/src'
+
+  assert.equal(
+    rules.hookMirrorErrors([`${app}/companies/creation/new-company/new-company.hook.ts`]).length,
+    1,
+  )
+  assert.deepEqual(
+    rules.hookMirrorErrors([
+      `${app}/companies/creation/create-company/create-company.hook.ts`,
+      `${api}/companies/creation/create-company/create-company.route.ts`,
+    ]),
+    [],
+  )
+  assert.equal(
+    rules.hookMirrorErrors([
+      `${app}/access/sign-in/sign-in-page.hook.ts`,
+      `${api}/access/sign-in/sign-in.router.ts`,
+    ]).length,
+    1,
+  )
+  assert.deepEqual(rules.hookMirrorErrors([`${app}/access/me.hook.ts`]), [])
+  assert.deepEqual(
+    rules.hookMirrorErrors([`${app}/companies/creation/new-company/new-company.hook.test.ts`]),
+    [],
+  )
+})
+
+test('repos live only in _repo/ and API clients only in _api/; _shared/ is out', () => {
+  assert.equal(rules.layerFolderErrors(['apps/api/src/access/data/member.d1.repo.ts']).length, 1)
+  assert.deepEqual(rules.layerFolderErrors(['apps/api/src/access/_repo/member.d1.repo.ts']), [])
+  assert.equal(rules.layerFolderErrors(['packages/app-core/src/access/data/me.api.ts']).length, 1)
+  assert.equal(
+    rules.layerFolderErrors(['packages/app-core/src/access/data/me.api.test.ts']).length,
+    1,
+  )
+  assert.deepEqual(
+    rules.layerFolderErrors([
+      'packages/app-core/src/access/_api/me.api.ts',
+      'packages/app-core/src/access/_api/me.api.test.ts',
+    ]),
+    [],
+  )
+  assert.deepEqual(
+    rules.layerFolderErrors(['apps/api/src/_shared/rate-limit/rate-limit.d1.repo.ts']),
+    [],
+  )
 })
 
 test('a router only chains .route()', () => {
@@ -62,7 +112,7 @@ test('database bindings and batch() only in repos and _shared/db/', () => {
   assert.equal(databaseBindingErrors({ path: logic, text: 'db.batch([a])' }).length, 1)
   assert.deepEqual(
     databaseBindingErrors({
-      path: 'apps/api/src/access/data/sign-in.d1.repo.ts',
+      path: 'apps/api/src/access/_repo/sign-in.d1.repo.ts',
       text: 'db.batch([a])',
     }),
     [],

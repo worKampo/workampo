@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useApiClient } from '../../../_shared/api-client-context'
-import { verifyCode } from '../../data/sign-in.api'
+import { verifyCode } from '../../_api/sign-in.api'
 import { replaceSession } from '../../me.hook'
 
 export function useVerifyCode() {

@@ -1,10 +1,10 @@
 import { getRouteApi, useNavigate } from '@tanstack/react-router'
-import { useLoginPage } from '@workampo/app-core/access/sign-in/login'
 import { Button, buttonClassName } from '@workampo/ui/actions'
 import { Text } from '@workampo/ui/content'
 import { Field, Form, Input } from '@workampo/ui/forms'
 import { CardScreen } from '@workampo/ui/layout'
 import { useTranslation } from 'react-i18next'
+import { useLoginPage } from './login.hook'
 
 const loginRoute = getRouteApi('/login')
 

@@ -1,7 +1,7 @@
 import { act, renderHook } from '@testing-library/react'
 import { expect, it } from 'vitest'
 import { hookWrapper } from '../../../_shared/testing/hook-wrapper'
-import { ME_QUERY_KEY } from '../../data/query-keys'
+import { ME_QUERY_KEY } from '../../_api/query-keys'
 import { useVerifyCode } from './verify-code.hook'
 
 // Another domain's key, written by hand: access does not import companies' internals.

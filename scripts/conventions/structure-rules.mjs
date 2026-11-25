@@ -1,4 +1,4 @@
-// Layout of code folders (docs/process/code-conventions.md, "Layout of a domain").
+// Layout of code folders (docs/process/code-conventions.md, "Layout").
 import { posix } from 'node:path'
 
 const MAX_CODE_FILES = 8
@@ -47,4 +47,47 @@ export function folderSizeErrors(files) {
       ([dir, count]) =>
         `${dir}/: ${count} code files, more than ${MAX_CODE_FILES}; split it into subfolders by feature or use case`,
     )
+}
+
+const APP_CORE = 'packages/app-core/src/'
+
+// A use-case hook calls one API route, so its folder mirrors the route's folder in apps/api.
+export function hookMirrorErrors(files) {
+  const hookDirs = new Set(
+    files
+      .filter((path) => path.startsWith(APP_CORE) && path.endsWith('.hook.ts'))
+      .map((path) => posix.dirname(path.slice(APP_CORE.length)))
+      .filter((dir) => dir.includes('/') && !dir.startsWith('_shared/')),
+  )
+
+  return (
+    [...hookDirs]
+      // A use case is a folder with its .route.ts; a feature's folder alone does not count.
+      .filter(
+        (dir) =>
+          !files.some(
+            (path) => posix.dirname(path) === `apps/api/src/${dir}` && path.endsWith('.route.ts'),
+          ),
+      )
+      .map(
+        (dir) =>
+          `${APP_CORE}${dir}/: a use-case hook folder needs apps/api/src/${dir}/; a page hook belongs in apps/web`,
+      )
+  )
+}
+
+const LAYER_FOLDERS = [
+  [/\.repo\.ts$/, '_repo'],
+  [/\.api(\.test)?\.ts$/, '_api'],
+]
+
+export function layerFolderErrors(files) {
+  return files
+    .filter((path) => /^(?:apps|packages)\/[^/]+\/src\/(?!_shared\/)[^/]+\//.test(path))
+    .flatMap((path) => {
+      const rule = LAYER_FOLDERS.find(([pattern]) => pattern.test(path))
+      if (!rule || posix.basename(posix.dirname(path)) === rule[1]) return []
+
+      return [`${path}: inside a domain this file lives only in a ${rule[1]}/ folder`]
+    })
 }
