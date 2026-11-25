@@ -1,5 +1,5 @@
 import { createMiddleware } from 'hono/factory'
-import type { AppEnv } from './app-env'
+import type { AppEnv } from '../http/app-env'
 
 export const appVersionHeader = createMiddleware<AppEnv>(async (c, next) => {
   await next()

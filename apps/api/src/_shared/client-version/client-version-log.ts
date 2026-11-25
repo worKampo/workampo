@@ -1,5 +1,5 @@
 import { createMiddleware } from 'hono/factory'
-import type { AppEnv } from './app-env'
+import type { AppEnv } from '../http/app-env'
 
 // A build hash or a version; anything else is not logged, so the header cannot carry free text.
 const CLIENT_VERSION = /^[A-Za-z0-9._-]{1,64}$/

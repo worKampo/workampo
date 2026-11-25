@@ -1,5 +1,8 @@
 import { Hono } from 'hono'
 import { csrf } from 'hono/csrf'
+import { appVersionHeader } from './_shared/client-version/app-version-header'
+import { clientVersionLog } from './_shared/client-version/client-version-log'
+import { deployedSha, versionId } from './_shared/client-version/cloudflare-version'
 import { parsedEnv } from './_shared/env'
 import { errorTracking } from './_shared/error-tracking/sentry-error-tracking'
 import {
@@ -9,9 +12,6 @@ import {
   apiResponseHeaders,
 } from './_shared/http/api-behaviour'
 import type { AppEnv } from './_shared/http/app-env'
-import { appVersionHeader } from './_shared/http/app-version-header'
-import { clientVersionLog } from './_shared/http/client-version-log'
-import { deployedSha, versionId } from './_shared/http/cloudflare-version'
 import { mountProviderPages } from './_shared/identity/provider-registry'
 import { deleteExpiredCounters } from './_shared/rate-limit/delete-expired-counters'
 import { accessRouter } from './access/access.router'
