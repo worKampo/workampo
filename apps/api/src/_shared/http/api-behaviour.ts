@@ -27,7 +27,9 @@ export const apiResponseHeaders: MiddlewareHandler<AppEnv> = async (c, next) => 
 }
 
 export function apiNotFound(c: Context<AppEnv>): Response {
-  return new URL(c.req.url).pathname.startsWith('/api/')
+  const { pathname } = new URL(c.req.url)
+
+  return pathname === '/api' || pathname.startsWith('/api/')
     ? problemJson({ code: 'api.not_found', status: 404 })
     : c.text('404 Not Found', 404)
 }

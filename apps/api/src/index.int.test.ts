@@ -5,6 +5,7 @@ import { app } from './index'
 
 afterEach(() => {
   vi.restoreAllMocks()
+  vi.useRealTimers()
 })
 
 it('answers /health with status, sha, version and environment', async () => {
@@ -173,6 +174,9 @@ it('an unknown /api path answers 404 problem+json with api.not_found for any met
 })
 
 it('every problem+json carries the HTTP reason phrase as title', async () => {
+  // A fixed instant mid-window, so both requests fall in the same rate-limit window.
+  vi.useFakeTimers({ toFake: ['Date'] })
+  vi.setSystemTime(new Date('2026-01-01T00:00:30.000Z'))
   const unauthorized = await me(undefined)
   expect(unauthorized.status).toBe(401)
   expect(await unauthorized.json()).toMatchObject({ title: 'Unauthorized' })
@@ -186,6 +190,9 @@ it('every problem+json carries the HTTP reason phrase as title', async () => {
 })
 
 it('a 429 carries Retry-After in whole seconds within the rate-limit window', async () => {
+  // A fixed instant mid-window, so both requests fall in the same rate-limit window.
+  vi.useFakeTimers({ toFake: ['Date'] })
+  vi.setSystemTime(new Date('2026-01-01T00:00:30.000Z'))
   const bindings = Object.assign({}, env, { RATE_LIMIT_CODE_REQUESTS_PER_EMAIL: '1' })
   const email = newEmail()
   expect((await startCode({ email }, bindings)).status).toBe(202)
@@ -217,4 +224,22 @@ it('a JSON body over 100 KB answers 413 problem+json with api.body_too_large', a
     code: 'api.body_too_large',
     title: 'Payload Too Large',
   })
+})
+
+it('/api without a trailing slash answers 404 problem+json too', async () => {
+  const response = await exports.default.fetch('https://app.test/api')
+
+  await expectProblem(response, { status: 404, code: 'api.not_found', title: 'Not Found' })
+})
+
+it('the answer of csrf() also carries no-store and nosniff', async () => {
+  const response = await exports.default.fetch('https://app.test/api/sign-in-codes', {
+    method: 'POST',
+    headers: { Origin: 'https://evil.test', 'Content-Type': 'text/plain' },
+    body: '{}',
+  })
+
+  expect(response.status).toBe(403)
+  expect(response.headers.get('Cache-Control')).toBe('no-store')
+  expect(response.headers.get('X-Content-Type-Options')).toBe('nosniff')
 })

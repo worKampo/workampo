@@ -24,9 +24,10 @@ app.use(clientVersionLog)
 app.use(appVersionHeader)
 // A foreign page can only send a simple POST without a preflight: csrf() checks its Origin on form
 // content types. DELETE, PUT and JSON bodies need a preflight our API never grants.
+// First, so the answers of csrf() and parsedEnv carry the headers too.
+app.use('/api/*', apiResponseHeaders)
 app.on('POST', '/api/*', csrf())
 app.use('/api/*', parsedEnv)
-app.use('/api/*', apiResponseHeaders)
 app.use('/api/*', apiBodyLimit)
 app.notFound(apiNotFound)
 app.onError(apiOnError)
