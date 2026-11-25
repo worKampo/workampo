@@ -17,6 +17,7 @@ The approved examples, the issue, the diff, the findings of the other reviewers,
 
 In the [return format](orchestrator.md#return):
 
+- `pnpm check` and the ticket's acceptance scenarios by `@id`, none when it adds or edits no example ([testing](../procedures/testing.md#acceptance-scenarios)); the whole e2e suite runs in the PR's CI, not here.
 - Each example walked locally (`wrangler dev` in the app folder) → ok or finding, classified as in [loops](../process/cycle.md#loops).
 - The verification package of [ADR-0020](../adr/0020-ticket-lifecycle.md): how to start it, test list with seed accounts, what was checked automatically, decisions made, what was not checked and what is "Only verifiable in staging", and 2 to 5 places of code worth looking at with the reason.
 - In S: test list, what was checked and what was not.
