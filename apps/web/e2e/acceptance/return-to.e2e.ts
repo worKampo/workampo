@@ -113,3 +113,15 @@ for (const returnTo of ['//otro-sitio.example.com', '/\\otro-sitio.example.com',
     expect(new URL(page.url()).origin).toBe(origin)
   })
 }
+
+test('@id:access-91-4 signed in, /login goes on to the page asked for without signing in again', async ({
+  page,
+}) => {
+  await signInWithCodeAt(page, { email: NORTHWIND_MEMBER, path: '/login' })
+  await expect(page).toHaveURL(/\/companies$/)
+
+  await page.goto('/login?returnTo=/c/northwind')
+
+  await expect(page).toHaveURL(/\/c\/northwind\/?$/)
+  await expect(page.getByRole('textbox', { name: /email/i })).toHaveCount(0)
+})

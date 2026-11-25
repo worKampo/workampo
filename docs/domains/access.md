@@ -87,6 +87,12 @@ Rule: Tras entrar vuelvo a la página de la app que abrí; una dirección fuera 
     Then no salgo de worKampo
     And llego a donde me lleva tener una empresa, varias o ninguna
 
+  @id:access-91-4
+  Example: Con sesión, /login no vuelve a pedir que entre
+    Given tengo sesión
+    When abro /login con returnTo "/c/northwind"
+    Then llego a /c/northwind sin volver a entrar
+
 @issue(#96)
 Rule: Una identidad abre solo su cuenta enlazada; un email igual nunca enlaza solo
 
