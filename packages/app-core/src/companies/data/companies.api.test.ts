@@ -1,22 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import type { ApiClient } from '../../_shared/api-client'
 import { fakeApi, problem } from '../../_shared/testing/fake-api'
-import { getCompanyContext } from './companies.api'
-
-// createCompany and checkSlug arrive with the creation task; a non-literal path keeps typecheck
-// green until then. Once they exist, import them statically.
-const COMPANIES_API: string = './companies.api'
-type CreateCompanyInput = { name: string; slug: string; defaultLanguage: string; userName?: string }
-type Company = { id: string; slug: string; name: string; url: string }
-type CompaniesApi = {
-  createCompany: (
-    client: ApiClient,
-    input: CreateCompanyInput,
-    idempotencyKey: string,
-  ) => Promise<Company>
-  checkSlug: (client: ApiClient, slug: string) => Promise<{ available: boolean }>
-}
-const load = (): Promise<CompaniesApi> => import(COMPANIES_API)
+import { checkSlug, createCompany, getCompanyContext } from './companies.api'
 
 const company = {
   id: '01940000-0000-7000-8000-000000000201',
@@ -27,8 +11,7 @@ const company = {
 const input = { name: 'Northwind Logistics', slug: 'northwind-logistics', defaultLanguage: 'es' }
 
 describe('companies api', () => {
-  it.fails('@id:companies-90-1 creates a company with a JSON body and the Idempotency-Key header', async () => {
-    const { createCompany } = await load()
+  it('@id:companies-90-1 creates a company with a JSON body and the Idempotency-Key header', async () => {
     const { client, sent } = fakeApi(() => Response.json(company, { status: 201 }))
     const key = crypto.randomUUID()
 
@@ -44,8 +27,7 @@ describe('companies api', () => {
     expect(sent[0]?.headers.get('Content-Type')).toContain('application/json')
   })
 
-  it.fails('@id:companies-90-10 a taken slug fails with the slug_taken code', async () => {
-    const { createCompany } = await load()
+  it('@id:companies-90-10 a taken slug fails with the slug_taken code', async () => {
     const { client } = fakeApi(() => problem({ status: 409, code: 'companies.slug_taken' }))
 
     const creating = createCompany(client, input, crypto.randomUUID())
@@ -53,8 +35,7 @@ describe('companies api', () => {
     await expect(creating).rejects.toMatchObject({ status: 409, code: 'companies.slug_taken' })
   })
 
-  it.fails('@id:companies-90-2 checks a slug and gives its availability', async () => {
-    const { checkSlug } = await load()
+  it('@id:companies-90-2 checks a slug and gives its availability', async () => {
     const { client, sent } = fakeApi(() => Response.json({ available: true }))
 
     const answer = await checkSlug(client, 'clinica-norte')
@@ -66,15 +47,13 @@ describe('companies api', () => {
     })
   })
 
-  it.fails('@id:companies-90-3 a taken slug is not available', async () => {
-    const { checkSlug } = await load()
+  it('@id:companies-90-3 a taken slug is not available', async () => {
     const { client } = fakeApi(() => Response.json({ available: false }))
 
     expect(await checkSlug(client, 'clinica-norte')).toEqual({ available: false })
   })
 
-  it.fails('@id:companies-90-4 a reserved slug fails with the reserved_slug code', async () => {
-    const { checkSlug } = await load()
+  it('@id:companies-90-4 a reserved slug fails with the reserved_slug code', async () => {
     const { client } = fakeApi(() => problem({ status: 400, code: 'companies.reserved_slug' }))
 
     await expect(checkSlug(client, 'api')).rejects.toMatchObject({

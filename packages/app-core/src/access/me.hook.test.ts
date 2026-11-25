@@ -1,7 +1,7 @@
 import { renderHook, waitFor } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
-import { problem } from '../../../_shared/testing/fake-api'
-import { hookWrapper } from '../../../_shared/testing/hook-wrapper'
+import { problem } from '../_shared/testing/fake-api'
+import { hookWrapper } from '../_shared/testing/hook-wrapper'
 import { useMe } from './me.hook'
 
 describe('useMe', () => {

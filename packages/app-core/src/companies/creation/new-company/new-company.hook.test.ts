@@ -2,27 +2,10 @@ import { act, renderHook, waitFor } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { problem, type Sent } from '../../../_shared/testing/fake-api'
 import { hookWrapper } from '../../../_shared/testing/hook-wrapper'
+import { useNewCompanyPage } from './new-company.hook'
 
-// new-company.hook.ts arrives with the app-core creation task; a non-literal path keeps typecheck
-// green until then. Once it exists, import it statically.
-const NEW_COMPANY: string = './new-company.hook'
 type Field = 'name' | 'slug' | 'defaultLanguage' | 'userName'
-type SlugStatus = 'checking' | 'available' | 'taken' | 'invalid' | 'reserved' | undefined
-type NewCompanyPage = {
-  form: {
-    setValue: (field: Field, value: string, options?: { shouldDirty?: boolean }) => void
-    getValues: (field: Field) => string | undefined
-  }
-  submit: () => Promise<void>
-  slugStatus: SlugStatus
-  askUserName: boolean
-}
-type UseNewCompanyPage = (options: { onCreated: (url: string) => void }) => NewCompanyPage
-const load = async () => {
-  const module: { useNewCompanyPage: UseNewCompanyPage } = await import(NEW_COMPANY)
-
-  return module.useNewCompanyPage
-}
+type NewCompanyPage = ReturnType<typeof useNewCompanyPage>
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 const URL_OF = 'https://app.test/c/clinica-norte/'
@@ -57,7 +40,6 @@ const checks = (sent: Sent[]) =>
   sent.filter((s) => s.url.includes('/api/companies/availability?slug='))
 
 async function renderPage(answer = api(), onCreated = vi.fn()) {
-  const useNewCompanyPage = await load()
   const { wrapper, sent } = hookWrapper(answer)
   const { result } = renderHook(() => useNewCompanyPage({ onCreated }), { wrapper })
 
@@ -72,7 +54,7 @@ function fill(page: { current: NewCompanyPage }, values: Partial<Record<Field, s
 }
 
 describe('useNewCompanyPage', () => {
-  it.fails('@id:companies-90-2 proposes the slug from the name and finds it available', async () => {
+  it('@id:companies-90-2 proposes the slug from the name and finds it available', async () => {
     const { result, sent } = await renderPage()
 
     fill(result, { name: 'Clínica Norte' })
@@ -84,7 +66,7 @@ describe('useNewCompanyPage', () => {
     )
   })
 
-  it.fails('@id:companies-90-2 stops proposing once the slug is edited', async () => {
+  it('@id:companies-90-2 stops proposing once the slug is edited', async () => {
     const { result } = await renderPage()
     fill(result, { name: 'Clínica Norte' })
     await waitFor(() => expect(result.current.form.getValues('slug')).toBe('clinica-norte'))
@@ -96,7 +78,7 @@ describe('useNewCompanyPage', () => {
     expect(result.current.form.getValues('slug')).toBe('mi-clinica')
   })
 
-  it.fails('@id:companies-90-2 checks once, 300 ms after the last change', async () => {
+  it('@id:companies-90-2 checks once, 300 ms after the last change', async () => {
     const { result, sent } = await renderPage()
 
     fill(result, { slug: 'sol-a' })
@@ -109,7 +91,7 @@ describe('useNewCompanyPage', () => {
     ])
   })
 
-  it.fails('@id:companies-90-3 a taken slug is not available and the company is not created', async () => {
+  it('@id:companies-90-3 a taken slug is not available and the company is not created', async () => {
     const { result, sent } = await renderPage(api({ available: false }))
     fill(result, { name: 'Clínica Norte', userName: 'Ana' })
     await waitFor(() => expect(result.current.slugStatus).toBe('taken'))
@@ -119,7 +101,7 @@ describe('useNewCompanyPage', () => {
     expect(posts(sent)).toEqual([])
   })
 
-  it.fails('@id:companies-90-4 a reserved slug says so without asking the API, and is not created', async () => {
+  it('@id:companies-90-4 a reserved slug says so without asking the API, and is not created', async () => {
     const { result, sent } = await renderPage()
     fill(result, { name: 'Reservada', slug: 'api', userName: 'Ana' })
 
@@ -130,7 +112,7 @@ describe('useNewCompanyPage', () => {
     expect(posts(sent)).toEqual([])
   })
 
-  it.fails('@id:companies-90-5 an invalid slug says so without asking the API, and is not created', async () => {
+  it('@id:companies-90-5 an invalid slug says so without asking the API, and is not created', async () => {
     for (const slug of ['ab', 'mi--empresa', '-norte', 'norte-stg']) {
       const { result, sent } = await renderPage()
       fill(result, { name: 'Formato', slug, userName: 'Ana' })
@@ -143,13 +125,13 @@ describe('useNewCompanyPage', () => {
     }
   })
 
-  it.fails('@id:companies-90-8 asks for my name when my account has none', async () => {
+  it('@id:companies-90-8 asks for my name when my account has none', async () => {
     const { result } = await renderPage(api({ name: null }))
 
     await waitFor(() => expect(result.current.askUserName).toBe(true))
   })
 
-  it.fails('@id:companies-90-9 does not ask for my name, nor send one, when my account has it', async () => {
+  it('@id:companies-90-9 does not ask for my name, nor send one, when my account has it', async () => {
     const { result, sent } = await renderPage(api({ name: 'Ana' }))
     await waitFor(() => expect(sent.some((s) => s.url.endsWith('/api/me'))).toBe(true))
     await waitFor(() => expect(result.current.askUserName).toBe(false))
@@ -162,7 +144,7 @@ describe('useNewCompanyPage', () => {
     expect(posts(sent)[0]?.body).not.toHaveProperty('userName')
   })
 
-  it.fails('@id:companies-90-1 creates the company with one idempotency key and hands over its URL', async () => {
+  it('@id:companies-90-1 creates the company with one idempotency key and hands over its URL', async () => {
     const { result, sent, onCreated } = await renderPage(api({ name: null }))
     fill(result, { name: 'Clínica Norte', defaultLanguage: 'es', userName: 'Ana' })
     await waitFor(() => expect(result.current.slugStatus).toBe('available'))
@@ -179,7 +161,7 @@ describe('useNewCompanyPage', () => {
     expect(posts(sent)[0]?.headers.get('Idempotency-Key')).toMatch(UUID)
   })
 
-  it.fails('@id:companies-90-11 a retry after a failure sends the same idempotency key', async () => {
+  it('@id:companies-90-11 a retry after a failure sends the same idempotency key', async () => {
     let calls = 0
     const create = () =>
       ++calls === 1
@@ -202,7 +184,7 @@ describe('useNewCompanyPage', () => {
     expect(keys[1]).toBe(keys[0])
   })
 
-  it.fails('@id:companies-90-10 a slug taken meanwhile shows as not available', async () => {
+  it('@id:companies-90-10 a slug taken meanwhile shows as not available', async () => {
     const { result, onCreated } = await renderPage(
       api({ create: () => problem({ status: 409, code: 'companies.slug_taken' }) }),
     )
