@@ -152,7 +152,7 @@ async function expectProblem(
   expect(await response.json()).toMatchObject({ status, code, title })
 }
 
-it.fails('a malformed JSON body answers 400 problem+json with api.malformed_json', async () => {
+it('a malformed JSON body answers 400 problem+json with api.malformed_json', async () => {
   await expectProblem(await startCode({ body: '{"email":' }), {
     status: 400,
     code: 'api.malformed_json',
@@ -160,15 +160,19 @@ it.fails('a malformed JSON body answers 400 problem+json with api.malformed_json
   })
 })
 
-it.fails('an unknown /api path answers 404 problem+json with api.not_found for any method', async () => {
+it('an unknown /api path answers 404 problem+json with api.not_found for any method', async () => {
   for (const method of ['GET', 'POST']) {
-    const response = await exports.default.fetch('https://app.test/api/nothing-here', { method })
+    // Same-origin, as the clients send it: csrf() refuses a POST without Origin before routing.
+    const response = await exports.default.fetch('https://app.test/api/nothing-here', {
+      method,
+      headers: { Origin: 'https://app.test' },
+    })
 
     await expectProblem(response, { status: 404, code: 'api.not_found', title: 'Not Found' })
   }
 })
 
-it.fails('every problem+json carries the HTTP reason phrase as title', async () => {
+it('every problem+json carries the HTTP reason phrase as title', async () => {
   const unauthorized = await me(undefined)
   expect(unauthorized.status).toBe(401)
   expect(await unauthorized.json()).toMatchObject({ title: 'Unauthorized' })
@@ -181,7 +185,7 @@ it.fails('every problem+json carries the HTTP reason phrase as title', async () 
   })
 })
 
-it.fails('a 429 carries Retry-After in whole seconds within the rate-limit window', async () => {
+it('a 429 carries Retry-After in whole seconds within the rate-limit window', async () => {
   const bindings = Object.assign({}, env, { RATE_LIMIT_CODE_REQUESTS_PER_EMAIL: '1' })
   const email = newEmail()
   expect((await startCode({ email }, bindings)).status).toBe(202)
@@ -195,7 +199,7 @@ it.fails('a 429 carries Retry-After in whole seconds within the rate-limit windo
   expect(Number(retryAfter)).toBeLessThanOrEqual(Number(env.RATE_LIMIT_WINDOW_SECONDS))
 })
 
-it.fails('/api responses, success and error, carry no-store and nosniff', async () => {
+it('/api responses, success and error, carry no-store and nosniff', async () => {
   const responses = [await startCode(), await me(undefined)]
 
   expect(responses.map((response) => response.status)).toEqual([202, 401])
@@ -205,7 +209,7 @@ it.fails('/api responses, success and error, carry no-store and nosniff', async 
   }
 })
 
-it.fails('a JSON body over 100 KB answers 413 problem+json with api.body_too_large', async () => {
+it('a JSON body over 100 KB answers 413 problem+json with api.body_too_large', async () => {
   const body = JSON.stringify({ email: 'a'.repeat(100 * 1024) })
 
   await expectProblem(await startCode({ body }), {

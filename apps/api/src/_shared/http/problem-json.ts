@@ -12,9 +12,24 @@ export class ProblemError extends Error {
   }
 }
 
+const REASON_PHRASES: Record<number, string> = {
+  400: 'Bad Request',
+  401: 'Unauthorized',
+  403: 'Forbidden',
+  404: 'Not Found',
+  409: 'Conflict',
+  413: 'Payload Too Large',
+  422: 'Unprocessable Content',
+  429: 'Too Many Requests',
+  500: 'Internal Server Error',
+  503: 'Service Unavailable',
+}
+
 // RFC 9457 with the stable `code` the interface translates.
 export function problemJson({ code, status }: { code: ErrorCode; status: number }): Response {
-  return new Response(JSON.stringify({ type: 'about:blank', status, code }), {
+  const title = REASON_PHRASES[status]
+
+  return new Response(JSON.stringify({ type: 'about:blank', title, status, code }), {
     status,
     headers: { 'Content-Type': 'application/problem+json' },
   })

@@ -2,6 +2,12 @@ import { Hono } from 'hono'
 import { csrf } from 'hono/csrf'
 import { parsedEnv } from './_shared/env'
 import { errorTracking } from './_shared/error-tracking/sentry-error-tracking'
+import {
+  apiBodyLimit,
+  apiNotFound,
+  apiOnError,
+  apiResponseHeaders,
+} from './_shared/http/api-behaviour'
 import type { AppEnv } from './_shared/http/app-env'
 import { appVersionHeader } from './_shared/http/app-version-header'
 import { clientVersionLog } from './_shared/http/client-version-log'
@@ -20,6 +26,10 @@ app.use(appVersionHeader)
 // content types. DELETE, PUT and JSON bodies need a preflight our API never grants.
 app.on('POST', '/api/*', csrf())
 app.use('/api/*', parsedEnv)
+app.use('/api/*', apiResponseHeaders)
+app.use('/api/*', apiBodyLimit)
+app.notFound(apiNotFound)
+app.onError(apiOnError)
 mountProviderPages(app)
 
 const api = app.route('/api', accessRouter).route('/api', companiesRouter)

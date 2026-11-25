@@ -9,6 +9,7 @@ describe('problemJson', () => {
     expect(response.headers.get('Content-Type')).toBe('application/problem+json')
     expect(await response.json()).toEqual({
       type: 'about:blank',
+      title: 'Too Many Requests',
       status: 429,
       code: 'access.too_many_attempts',
     })
@@ -32,7 +33,7 @@ describe('toProblem', () => {
 })
 
 describe('problemJson title', () => {
-  it.fails('carries the HTTP reason phrase as title', async () => {
+  it('carries the HTTP reason phrase as title', async () => {
     const cases = [
       [400, 'Bad Request'],
       [404, 'Not Found'],
