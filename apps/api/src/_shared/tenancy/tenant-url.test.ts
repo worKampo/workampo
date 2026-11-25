@@ -1,51 +1,41 @@
 import { describe, expect, it } from 'vitest'
+import { tenantUrl as buildTenantUrl } from './tenant-url'
 
-// tenant-url.ts arrives with the tenancy seam task; a non-literal path keeps typecheck green until
-// then. Once it exists, import it statically.
-const TENANT_URL: string = './tenant-url'
-type Options = {
-  mode: 'path' | 'subdomain'
-  publicBaseUrl: string
-  hostSuffix?: string | undefined
-}
-// biome-ignore lint/complexity/useMaxParams: the signature .work/plan.md gives tenantUrl.
-type TenantUrl = (slug: string, path: string, options: Options) => string
+type Options = Parameters<typeof buildTenantUrl>[2]
 
-async function tenantUrl([slug, path]: [string, string], options: Options) {
-  const module: { tenantUrl: TenantUrl } = await import(TENANT_URL)
-
-  return module.tenantUrl(slug, path, options)
+function tenantUrl([slug, path]: [string, string], options: Options) {
+  return buildTenantUrl(slug, path, options)
 }
 
 describe('tenantUrl in path mode', () => {
-  it.fails('@id:companies-90-1 builds <base>/c/<slug><path> with and without slashes at the joins', async () => {
+  it('@id:companies-90-1 builds <base>/c/<slug><path> with and without slashes at the joins', () => {
     for (const publicBaseUrl of ['https://app.workampo.test', 'https://app.workampo.test/']) {
       const options = { mode: 'path', publicBaseUrl } as const
 
-      expect(await tenantUrl(['northwind', '/'], options), publicBaseUrl).toBe(
+      expect(tenantUrl(['northwind', '/'], options), publicBaseUrl).toBe(
         'https://app.workampo.test/c/northwind/',
       )
-      expect(await tenantUrl(['northwind', '/team'], options), publicBaseUrl).toBe(
+      expect(tenantUrl(['northwind', '/team'], options), publicBaseUrl).toBe(
         'https://app.workampo.test/c/northwind/team',
       )
-      expect(await tenantUrl(['northwind', 'team'], options), publicBaseUrl).toBe(
+      expect(tenantUrl(['northwind', 'team'], options), publicBaseUrl).toBe(
         'https://app.workampo.test/c/northwind/team',
       )
     }
   })
 
-  it.fails('@id:companies-90-1 keeps the port of a local base URL', async () => {
+  it('@id:companies-90-1 keeps the port of a local base URL', () => {
     expect(
-      await tenantUrl(['northwind-logistics', '/'], {
+      tenantUrl(['northwind-logistics', '/'], {
         mode: 'path',
         publicBaseUrl: 'https://localhost:8789',
       }),
     ).toBe('https://localhost:8789/c/northwind-logistics/')
   })
 
-  it.fails('@id:companies-90-1 ignores the host suffix in path mode', async () => {
+  it('@id:companies-90-1 ignores the host suffix in path mode', () => {
     expect(
-      await tenantUrl(['sol', '/'], {
+      tenantUrl(['sol', '/'], {
         mode: 'path',
         publicBaseUrl: 'https://app.workampo.test',
         hostSuffix: '.workampo.test',
@@ -55,24 +45,24 @@ describe('tenantUrl in path mode', () => {
 })
 
 describe('tenantUrl in subdomain mode', () => {
-  it.fails('@id:companies-90-1 builds <protocol>//<slug><suffix>/app<path> for staging and production', async () => {
+  it('@id:companies-90-1 builds <protocol>//<slug><suffix>/app<path> for staging and production', () => {
     for (const publicBaseUrl of ['https://workampo.test', 'https://workampo.test/']) {
       expect(
-        await tenantUrl(['northwind', '/'], {
+        tenantUrl(['northwind', '/'], {
           mode: 'subdomain',
           publicBaseUrl,
           hostSuffix: '-stg.workampo.test',
         }),
       ).toBe('https://northwind-stg.workampo.test/app/')
       expect(
-        await tenantUrl(['northwind', 'team'], {
+        tenantUrl(['northwind', 'team'], {
           mode: 'subdomain',
           publicBaseUrl,
           hostSuffix: '.workampo.test',
         }),
       ).toBe('https://northwind.workampo.test/app/team')
       expect(
-        await tenantUrl(['northwind', '/team'], {
+        tenantUrl(['northwind', '/team'], {
           mode: 'subdomain',
           publicBaseUrl,
           hostSuffix: '.workampo.test',
@@ -81,9 +71,9 @@ describe('tenantUrl in subdomain mode', () => {
     }
   })
 
-  it.fails('@id:companies-90-1 takes the protocol from the base URL', async () => {
+  it('@id:companies-90-1 takes the protocol from the base URL', () => {
     expect(
-      await tenantUrl(['sol', '/'], {
+      tenantUrl(['sol', '/'], {
         mode: 'subdomain',
         publicBaseUrl: 'http://workampo.test',
         hostSuffix: '.workampo.test',

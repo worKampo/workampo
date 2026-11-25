@@ -13,7 +13,8 @@ Each line is `- ` followed by one glob in backticks, then a dash and the reason.
 - `apps/*/src/_shared/rate-limit/**` - limits on sign-in codes and attempts.
 - `apps/api/src/_shared/tenancy/**` - tenant resolution and the shard client, the base of isolation.
 - `apps/api/src/companies/require-member.middleware.ts` - the membership check on every company route (isolation).
-- `packages/domain/src/companies/**` - slug and company creation rules.
+- `packages/domain/src/companies/**` - company creation rules.
+- `packages/domain/src/_shared/slug.ts` - tenant slug rules, which tenancy validates with.
 - `apps/api/src/access/**` - tenant isolation, permissions and the session (the web's screens are not critical; the person, 2026-11-23).
 - `apps/*/src/billing/**` - billing.
 - `scripts/github/app-token.mjs` - mints the agents' App token.

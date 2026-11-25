@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { slugSchema } from './slug'
+import { slugSchema } from '../../_shared/slug'
 
 // C0/C1 controls plus the bidi marks and isolates that can reorder rendered text.
 const FORBIDDEN_CHARS = /[\p{Cc}؜‎‏‪-‮⁦-⁩]/u
