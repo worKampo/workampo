@@ -1,8 +1,24 @@
-import type { ComponentProps, ReactNode } from 'react'
+import { type ComponentProps, type ReactNode, useEffect, useRef } from 'react'
+
+const FIELDS =
+  'input:not([type=hidden]):not(:disabled), select:not(:disabled), textarea:not(:disabled)'
 
 // Our own validation (Zod) shows the messages, so the browser's is off; fields stack 16 px apart.
-export function Form(props: Omit<ComponentProps<'form'>, 'className' | 'noValidate'>) {
-  return <form {...props} noValidate className="flex flex-col gap-4" />
+// A form is the page's task, so its first field takes the focus (components.md, Forms); a form
+// that is not, such as a list's filters, passes focusFirstField={false}.
+export function Form({
+  focusFirstField = true,
+  ...props
+}: Omit<ComponentProps<'form'>, 'className' | 'noValidate' | 'ref'> & {
+  focusFirstField?: boolean
+}) {
+  const ref = useRef<HTMLFormElement>(null)
+
+  useEffect(() => {
+    if (focusFirstField) ref.current?.querySelector<HTMLElement>(FIELDS)?.focus()
+  }, [focusFirstField])
+
+  return <form {...props} ref={ref} noValidate className="flex flex-col gap-4" />
 }
 
 // The form's buttons, right-aligned in reading order (secondary, then primary); they wrap on a narrow screen.

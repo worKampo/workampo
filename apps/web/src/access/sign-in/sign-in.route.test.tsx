@@ -207,6 +207,14 @@ async function signInWithCode() {
 const pathOf = (router: ReturnType<typeof renderApp>['router']) =>
   `${router.state.location.pathname}${router.state.location.searchStr}`
 
+it('the email field has the focus when /login opens', async () => {
+  renderApp({ path: '/login', answer: signInApi })
+
+  const email = await screen.findByRole('textbox')
+
+  await waitFor(() => expect(document.activeElement).toBe(email))
+})
+
 describe('/login with a session', () => {
   it('@id:access-91-1 goes straight to a safe returnTo instead of asking again', async () => {
     const { router } = renderApp({
