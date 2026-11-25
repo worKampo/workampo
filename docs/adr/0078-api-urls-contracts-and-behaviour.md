@@ -12,7 +12,7 @@ The only rules were "plural, kebab-case" ([ADR-0053](0053-code-conventions.md)),
 
 ## Decision
 
-Decided by the person on 2026-11-25 (spike #164): offset pages by default, with cursors kept for very large tables; `version` and 409 for concurrent edits; 404 for what the caller cannot see and 403 for what they see but may not do; the caller's companies at `GET /api/companies`.
+Decided by the person on 2026-11-25 (spike #164): offset pages by default, with cursors kept for very large tables, and `page` and `size` in the web's own URLs; `version` and 409 for concurrent edits; 404 for what the caller cannot see and 403 for what they see but may not do; the caller's companies at `GET /api/companies`.
 
 ### 1. URLs
 
@@ -73,6 +73,7 @@ Decided by the person on 2026-11-25 (spike #164): offset pages by default, with 
 4. Filters are plain query fields named like the response field (`?status=active&unitId=…`); `q` is the free-text search over the normalised column (ADR-0053).
 5. `sort=field` or `sort=-field`, only on allowlisted fields, with a stable default order and `id` as the tie-breaker.
 6. No filter expression language (Google AIP-160) until a real need.
+7. **The web's own URL speaks of pages** (the person, 2026-11-25): what the person sees and shares is `/c/northwind/members?page=2&size=50`, with `page` from 1 and `size` one of the sizes the pager offers; the client turns it into `limit=size` and `offset=(page - 1) × size` for the API. The API keeps `limit` and `offset`, which every guide that pages by offset uses and which a cursor endpoint shares (`limit`).
 
 ### 6. Errors
 

@@ -74,7 +74,7 @@ Why and the guides behind each rule: [ADR-0078](../adr/0078-api-urls-contracts-a
 | Errors | Every `/api` 4xx and 5xx is problem+json with `type`, `title`, `status`, `code` | — | check |
 | Bodies | JSON objects, camelCase, every field present (`null`, `[]`); built field by field; strict requests | `{ "logoUrl": null }` | review |
 | Types | UUIDv7 ids; `…At` ISO UTC; `…On` `YYYY-MM-DD`; `amountCents` and `currency`; snake_case enums | `createdAt` | review |
-| Lists | Offset: `limit` (50, at most 100) and `offset` → `{ items, total }`; a very large table may take a cursor → `{ items, nextCursor }` by an ADR Update; filters by field name, `q`, `sort=-field` | `GET /t/:slug/members?limit=50&offset=0` | review |
+| Lists | Offset: `limit` (50, at most 100) and `offset` → `{ items, total }`; the web's own URL uses `page` (from 1) and `size`, which app-core turns into `limit` and `offset`; a very large table may take a cursor → `{ items, nextCursor }` by an ADR Update; filters by field name, `q`, `sort=-field` | API `GET /api/t/:slug/members?limit=50&offset=50`; web `/c/:slug/members?page=2&size=50` | review |
 | Edits | PATCH with `version`; a mismatch is 409 `<domain>.stale_version` | — | review |
 | Bulk and long work | `{ items }` up to 50, all or nothing; long work 202 with `Location: …/jobs/:id` | `POST /t/:slug/invitations` | review |
 | Headers | `Cache-Control: no-store`, `nosniff`; the request id is `cf-ray`; no personal data in logs | — | check (headers) |
@@ -85,7 +85,8 @@ Why and the guides behind each rule: [ADR-0078](../adr/0078-api-urls-contracts-a
 `main.tsx` → `_shared/providers/app-providers.tsx` → `_shared/router/` → `route-tree.ts` → `<domain>/<domain>.route.ts` → `<feature>/<feature>.route.ts` → pages.
 
 1. A feature's route file declares its URLs, validates search params and points to its pages with a lazy `import()`; nothing visual. The domain's route file only gathers its features' routes; `route-tree.ts` gathers the domains.
-2. A page is imported only by its own feature's route file, always lazily; nothing else imports it (it would land in the importer's chunk), and a page does not know its URL. dependency-cruiser enforces it.
+2. A paged list keeps `page` (from 1) and `size` in its search params, validated by the route; app-core turns them into the API's `limit` and `offset` (ADR-0078, the person, 2026-11-25).
+3. A page is imported only by its own feature's route file, always lazily; nothing else imports it (it would land in the importer's chunk), and a page does not know its URL. dependency-cruiser enforces it.
 
 ### Pages, hooks and data in the clients (the person, 2026-11-24)
 
