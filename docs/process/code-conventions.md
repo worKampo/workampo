@@ -71,7 +71,7 @@ Why and the guides behind each rule: [ADR-0078](../adr/0078-api-urls-contracts-a
 | Create | 201 with the resource; `Idempotency-Key` (UUID) required | `POST /api/companies` | check (key), review |
 | Not yours, not allowed | 404 with the same body for what you cannot see; 403 `<domain>.forbidden` for what you see but may not do | another company → 404 | check (tenant routes), review |
 | Invalid, conflict, limit | 400 `<domain>.<reason>` with optional `errors[{pointer, code}]`; 409 for state, last owner or stale `version`; 422 only for a reused key with another body; 429 with `Retry-After` | `companies.slug_taken` | check (status map), review |
-| Errors | Every `/api` 4xx and 5xx is problem+json with `type`, `title`, `status`, `code` | — | check (the routes' 400, 401 and 404), review |
+| Errors | Every `/api` 4xx and 5xx is problem+json with `type`, `title`, `status`, `code`; an unexpected error is 500 `api.unexpected` with no detail | — | check (the routes' 400, 401, 404 and the 500 of `apiOnError`) |
 | Bodies | JSON objects, camelCase, every field present (`null`, `[]`); built field by field; strict requests | `{ "logoUrl": null }` | review |
 | Types | UUIDv7 ids; `…At` ISO UTC; `…On` `YYYY-MM-DD`; `amountCents` and `currency`; snake_case enums | `createdAt` | review |
 | Lists | `page` (from 1) and `pageSize` (50, at most 100) → `{ items, total }`, the same names in the web's URL and the API; only the repo turns them into `offset`; a very large table may take a cursor (`pageSize` and `cursor` in the web's URL and the API, sorted by immutable fields) → `{ items, nextCursor }` by an ADR Update; filters by field name, `q`, `sort=-field` | API `GET /api/t/:slug/members?page=2&pageSize=50`; web `/c/:slug/members?page=2&pageSize=50` | review |

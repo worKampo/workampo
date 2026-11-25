@@ -3,6 +3,7 @@
     "_screen": "Error messages for requests the API rejects before any feature handles them (unreadable body, unknown address, oversized body). Short, say what happened; never blame the person.",
     "malformed_json": "The request body could not be parsed; asking to try again is enough.",
     "not_found": "The API address does not exist.",
-    "body_too_large": "The request body is over the size limit; do not give the limit."
+    "body_too_large": "The request body is over the size limit; do not give the limit.",
+    "unexpected": "An unexpected server error; no detail, only that it can be retried."
   }
 }

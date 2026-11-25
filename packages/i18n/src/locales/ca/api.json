@@ -2,6 +2,7 @@
   "errors": {
     "malformed_json": "No s'ha pogut llegir la sol·licitud. Torna-ho a provar.",
     "not_found": "No trobem el que busques.",
-    "body_too_large": "Les dades enviades són massa grans."
+    "body_too_large": "Les dades enviades són massa grans.",
+    "unexpected": "Alguna cosa ha fallat. Torna-ho a provar d'aquí a un moment."
   }
 }

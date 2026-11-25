@@ -3,4 +3,5 @@ export const API_ERROR_CODES = [
   'api.malformed_json',
   'api.not_found',
   'api.body_too_large',
+  'api.unexpected',
 ] as const
