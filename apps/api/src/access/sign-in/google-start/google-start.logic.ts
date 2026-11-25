@@ -3,6 +3,8 @@ import { randomToken } from '../../../_shared/crypto/random-token'
 import type { IdentityProvider } from '../../../_shared/identity/identity-provider'
 
 const GOOGLE_CALLBACK_PATH = '/api/sessions/google/callback'
+// The cookie stores returnTo URL-encoded; non-ASCII triples in size and browsers drop cookies over 4 KB.
+const RETURN_TO_MAX_ENCODED_LENGTH = 3000
 
 // A Workers extension of SubtleCrypto; spelled out so the web, which type-checks this file for hc
 // with the DOM types, accepts it too.
@@ -27,7 +29,10 @@ export function startGoogleSignIn({
     redirectUri: `${origin}${GOOGLE_CALLBACK_PATH}`,
   })
 
-  return { state, url, returnTo: safeReturnTo(returnTo) }
+  const safe = safeReturnTo(returnTo)
+  const fits = safe !== undefined && encodeURIComponent(safe).length <= RETURN_TO_MAX_ENCODED_LENGTH
+
+  return { state, url, returnTo: fits ? safe : undefined }
 }
 
 // Constant time, so the comparison leaks nothing about the expected state.

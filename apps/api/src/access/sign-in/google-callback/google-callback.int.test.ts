@@ -124,6 +124,17 @@ it('@id:access-91-3 an unsafe returnTo is dropped at the start: a bare state coo
   expect(pathOf(back)).toBe('/')
 })
 
+it('@id:access-91-3 a returnTo too long for the cookie once encoded is dropped: a bare state cookie and back to /', async () => {
+  // 1024 characters, the longest safe returnTo, but 9 bytes each once URL-encoded.
+  const { response, state, location } = await startGoogle(withReturnTo(`/${'中'.repeat(1023)}`))
+
+  const back = await callback({ url: await throughConsent(location), stateCookie: state })
+
+  expect(response.status).toBe(302)
+  expect(state).toBe(providerState(location))
+  expect(pathOf(back)).toBe('/')
+})
+
 it('@id:access-91-3 a state my browser did not generate gives invalid_state, never the returnTo', async () => {
   const { state, location } = await startGoogle(withReturnTo(SETTINGS))
   const forged = new URL(location)
