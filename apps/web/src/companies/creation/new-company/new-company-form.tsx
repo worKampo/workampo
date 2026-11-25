@@ -15,7 +15,7 @@ const SLUG_MESSAGES = {
 } as const
 
 export function NewCompanyForm() {
-  const { t, i18n } = useTranslation(['companies', 'access', 'common'])
+  const { t, i18n } = useTranslation(['companies', 'access', 'api', 'common'])
   const navigate = useNavigate()
   const page = useNewCompanyPage({
     language: i18n.resolvedLanguage,
