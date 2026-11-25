@@ -49,7 +49,7 @@ shadcn `Input`, `Select`, `Textarea`, `InputGroup`, `Label`.
 | Select | Chevron at the right, padding-right 32 |
 | Input group | One bordered box with a prefix (`--text-2`, e.g. a URL base) and the input; the focus ring goes on the group (`:focus-within`) |
 | Search | Input with a 16 px icon at left 12, padding-left 36, background `--chrome-control`; label visually hidden |
-| Form | `Form` stacks its fields and actions 16 px apart and turns off the browser's validation; our messages show the errors |
+| Form | `Form` stacks its fields and actions 16 px apart and turns off the browser's validation; our messages show the errors. `FormActions` holds its buttons right-aligned, secondary then primary, 8 px apart, wrapping on a narrow screen |
 
 ### Choice controls
 

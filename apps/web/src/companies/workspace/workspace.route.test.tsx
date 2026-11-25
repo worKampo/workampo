@@ -1,4 +1,5 @@
-import { cleanup, configure, screen } from '@testing-library/react'
+import { cleanup, configure, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { initI18n } from '../../_shared/i18n/i18n'
 import { problem, renderApp } from '../../_shared/testing/render-app'
@@ -59,6 +60,14 @@ describe('the company home', () => {
     expect(asked).toEqual(expect.arrayContaining(['/api/t/sol-bakery/', '/api/t/missing-company/']))
     expect(foreignText).not.toContain('Bienvenido')
     expect(foreignText).toBe(missingText)
+  })
+
+  it('@id:companies-90-12 the not-found state leads back to the start', async () => {
+    const { router } = renderApp({ path: '/c/sol-bakery', answer: workspaceApi({}) })
+
+    await userEvent.click(await screen.findByRole('link', { name: 'Volver al inicio' }))
+
+    await waitFor(() => expect(router.state.location.pathname).toBe('/'))
   })
 
   it('@id:companies-90-13 without a session a company page leads to /login', async () => {

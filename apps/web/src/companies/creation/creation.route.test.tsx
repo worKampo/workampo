@@ -59,6 +59,9 @@ function companiesApi({
 
 const nameField = () => screen.findByLabelText('Nombre de la empresa')
 const slugField = () => screen.getByLabelText(/URL/)
+// The text a field links to its control: its help or its error.
+const messageOf = (control: HTMLElement) =>
+  document.getElementById(control.getAttribute('aria-describedby') ?? '')?.textContent
 const createButton = () => screen.getByRole('button', { name: 'Crear empresa' })
 
 async function typeSlug(slug: string) {
@@ -113,6 +116,17 @@ describe('creating a company', () => {
     expect(await screen.findByText(/^No disponible/)).toBeTruthy()
     await userEvent.click(createButton())
     expect(created).toEqual([])
+  })
+
+  it('@id:companies-90-3 sending a URL another company has moves focus to it', async () => {
+    renderApp({ path: '/companies/new', answer: companiesApi({ taken: ['clinica-norte'] }) })
+
+    await userEvent.type(await nameField(), 'Clínica Norte')
+    await userEvent.type(screen.getByLabelText('Tu nombre'), 'Ana')
+    await screen.findByText(/^No disponible/)
+    await userEvent.click(createButton())
+
+    await waitFor(() => expect(document.activeElement).toBe(slugField()))
   })
 
   it('@id:companies-90-4 a reserved URL says so and nothing is sent', async () => {
@@ -195,6 +209,37 @@ describe('creating a company', () => {
     await userEvent.click(createButton())
 
     expect(await screen.findByText(/^No disponible/)).toBeTruthy()
+  })
+
+  it('@id:companies-90-8 missing names show at their own field', async () => {
+    const created: Created[] = []
+    renderApp({ path: '/companies/new', answer: companiesApi({ name: null, created }) })
+
+    await nameField()
+    await userEvent.click(createButton())
+
+    const companyName = await nameField()
+    const yourName = screen.getByLabelText('Tu nombre')
+    await waitFor(() => expect(companyName.getAttribute('aria-invalid')).toBe('true'))
+    expect(messageOf(companyName)).toBe('Escribe el nombre de la empresa.')
+    expect(yourName.getAttribute('aria-invalid')).toBe('true')
+    expect(messageOf(yourName)).toBe('Escribe tu nombre.')
+    expect(screen.queryByRole('alert')).toBeNull()
+    expect(created).toEqual([])
+  })
+
+  it('@id:companies-90-1 cancel leads back to the start without creating anything', async () => {
+    const created: Created[] = []
+    const { router } = renderApp({
+      path: '/companies/new',
+      answer: companiesApi({ name: 'Ana', created }),
+    })
+
+    await userEvent.type(await nameField(), 'Northwind Logistics')
+    await userEvent.click(screen.getByRole('link', { name: 'Cancelar' }))
+
+    await waitFor(() => expect(router.state.location.pathname).toBe('/'))
+    expect(created).toEqual([])
   })
 
   it('@id:companies-90-13 without a session the creation screen leads to /login', async () => {

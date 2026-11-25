@@ -1,4 +1,5 @@
 import { type ReactNode, useId } from 'react'
+import { cx } from '../_shared/cx'
 
 type ControlProps = { id: string; 'aria-invalid'?: true; 'aria-describedby'?: string }
 
@@ -28,14 +29,19 @@ export function Field({
         ...(error ? { 'aria-invalid': true } : {}),
         ...(message ? { 'aria-describedby': messageId } : {}),
       })}
-      {message && (
-        <p
-          id={messageId}
-          className={error ? 'text-xs leading-4 text-neg' : 'text-xs leading-4 text-text-2'}
-        >
-          {message}
-        </p>
-      )}
+      {/* Always rendered: a live region added together with its text is often not announced. */}
+      <p
+        id={messageId}
+        aria-live="polite"
+        className={cx(
+          'text-xs leading-4',
+          error ? 'text-neg' : 'text-text-2',
+          // Empty, it must not add the column gap under the control.
+          !message && '-mt-1.5',
+        )}
+      >
+        {message}
+      </p>
     </div>
   )
 }

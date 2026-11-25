@@ -49,7 +49,10 @@ export function useNewCompanyPage({
   const submit = form.handleSubmit(({ userName, ...company }) => {
     // The schema already refused an invalid or reserved slug; one still being checked goes on,
     // and the API answers slug_taken if it is.
-    if (status === 'taken') return
+    if (status === 'taken') {
+      form.setFocus('slug')
+      return
+    }
 
     create.mutate(
       { input: askUserName && userName ? { ...company, userName } : company, idempotencyKey },
@@ -68,7 +71,18 @@ export function useNewCompanyPage({
     isPending: create.isPending,
     slugStatus: status,
     askUserName,
+    fieldErrorKeys: fieldErrorKeys(),
     messageKey: messageKey(),
+  }
+
+  function fieldErrorKeys() {
+    const { errors } = form.formState
+
+    return {
+      name: errors.name && ('companies:new_company.name_required' as const),
+      defaultLanguage: errors.defaultLanguage && errorKey('companies.invalid_request'),
+      userName: errors.userName && errorKey('companies.user_name_required'),
+    }
   }
 
   function slugStatus(): SlugStatus {
@@ -83,10 +97,8 @@ export function useNewCompanyPage({
     return check.isError ? undefined : 'checking'
   }
 
+  // Server answers only; the form's own errors show at their field.
   function messageKey() {
-    const { errors } = form.formState
-    if (errors.userName) return errorKey('companies.user_name_required')
-    if (errors.name || errors.defaultLanguage) return errorKey('companies.invalid_request')
     if (create.error && !isSlugTaken(create.error)) return errorKeyOf(create.error)
     if (check.error) return errorKeyOf(check.error)
 

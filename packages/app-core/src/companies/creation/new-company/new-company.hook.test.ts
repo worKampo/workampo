@@ -101,6 +101,17 @@ describe('useNewCompanyPage', () => {
     expect(posts(sent)).toEqual([])
   })
 
+  it('@id:companies-90-3 sending a taken slug moves focus to it', async () => {
+    const { result } = await renderPage(api({ available: false }))
+    const setFocus = vi.spyOn(result.current.form, 'setFocus')
+    fill(result, { name: 'Clínica Norte', userName: 'Ana' })
+    await waitFor(() => expect(result.current.slugStatus).toBe('taken'))
+
+    await act(() => result.current.submit())
+
+    expect(setFocus).toHaveBeenCalledWith('slug')
+  })
+
   it('@id:companies-90-4 a reserved slug says so without asking the API, and is not created', async () => {
     const { result, sent } = await renderPage()
     fill(result, { name: 'Reservada', slug: 'api', userName: 'Ana' })
@@ -195,5 +206,21 @@ describe('useNewCompanyPage', () => {
 
     await waitFor(() => expect(result.current.slugStatus).toBe('taken'))
     expect(onCreated).not.toHaveBeenCalled()
+  })
+
+  it('@id:companies-90-8 a missing name shows at its own field, not as a screen message', async () => {
+    const { result, sent } = await renderPage(api({ name: null }))
+    await waitFor(() => expect(result.current.askUserName).toBe(true))
+    fill(result, { name: '   ', slug: 'sol', userName: '' })
+
+    await act(() => result.current.submit())
+
+    expect(result.current.fieldErrorKeys).toEqual({
+      name: 'companies:new_company.name_required',
+      defaultLanguage: undefined,
+      userName: 'companies:errors.user_name_required',
+    })
+    expect(result.current.messageKey).toBeUndefined()
+    expect(posts(sent)).toEqual([])
   })
 })

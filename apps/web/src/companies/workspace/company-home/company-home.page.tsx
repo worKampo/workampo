@@ -1,5 +1,6 @@
-import { getRouteApi } from '@tanstack/react-router'
+import { getRouteApi, Link } from '@tanstack/react-router'
 import { useCompanyContext } from '@workampo/app-core/companies/workspace/read-context'
+import { buttonClassName } from '@workampo/ui/actions'
 import { Text } from '@workampo/ui/content'
 import { CardScreen } from '@workampo/ui/layout'
 import { useTranslation } from 'react-i18next'
@@ -24,6 +25,9 @@ export function CompanyNotFoundPage() {
   return (
     <CardScreen title={t('not_found.title')}>
       <Text tone="muted">{t('not_found.body')}</Text>
+      <Link to="/" className={buttonClassName({ variant: 'secondary' })}>
+        {t('not_found.back')}
+      </Link>
     </CardScreen>
   )
 }

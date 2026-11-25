@@ -1,6 +1,7 @@
 {
   "new_company": {
     "_screen": "The create-company screen (/companies/new): name, the company URL (proposed from the name, checked live), default language, the person's own name when they have none, and Create / Cancel.",
+    "name_required": "Shown under the company name when it is empty or not valid; tells what to write.",
     "url": "Label of the slug field; the text must contain 'URL'.",
     "available": "Shown under the URL when it is free; the app may append the full address after it.",
     "unavailable": "Shown under the URL when another company has it. Do not say which.",
@@ -16,7 +17,8 @@
   "not_found": {
     "_screen": "Shown when the company address does not exist or the person is not a member. Must not reveal which of the two it is.",
     "title": "Heading of the not-found state.",
-    "body": "One sentence; covers both cases without saying which."
+    "body": "One sentence; covers both cases without saying which.",
+    "back": "The one action of the not-found state: a link to the start screen."
   },
   "errors": {
     "_screen": "Error messages of creating a company and of opening one, shown under the field or on the screen. One per error code the API returns. Short, say what happened and what to do next; never blame the person.",

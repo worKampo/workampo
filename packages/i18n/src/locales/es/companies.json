@@ -2,6 +2,7 @@
   "new_company": {
     "title": "Crear empresa",
     "name": "Nombre de la empresa",
+    "name_required": "Escribe el nombre de la empresa.",
     "url": "URL de la empresa",
     "available": "Disponible",
     "unavailable": "No disponible. Prueba con otra.",
@@ -18,7 +19,8 @@
   },
   "not_found": {
     "title": "No encontramos esta empresa",
-    "body": "Puede que la dirección esté mal escrita o que no tengas acceso."
+    "body": "Puede que la dirección esté mal escrita o que no tengas acceso.",
+    "back": "Volver al inicio"
   },
   "errors": {
     "invalid_request": "No se ha podido crear la empresa. Revisa los datos e inténtalo de nuevo.",

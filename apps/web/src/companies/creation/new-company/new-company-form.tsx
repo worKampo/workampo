@@ -1,9 +1,9 @@
-import { useNavigate } from '@tanstack/react-router'
+import { Link, useNavigate } from '@tanstack/react-router'
 import { useNewCompanyPage } from '@workampo/app-core/companies/creation/new-company'
 import { LANGUAGES } from '@workampo/i18n'
-import { Button } from '@workampo/ui/actions'
+import { Button, buttonClassName } from '@workampo/ui/actions'
 import { Text } from '@workampo/ui/content'
-import { Field, Form, Input, Select } from '@workampo/ui/forms'
+import { Field, Form, FormActions, Input, Select } from '@workampo/ui/forms'
 import { useTranslation } from 'react-i18next'
 
 const SLUG_MESSAGES = {
@@ -28,12 +28,18 @@ export function NewCompanyForm() {
   })
   const slugMessage = SLUG_MESSAGES[page.slugStatus ?? 'checking']
   const languageNames = new Intl.DisplayNames(i18n.resolvedLanguage, { type: 'language' })
+  const errors = page.fieldErrorKeys
 
   return (
     <Form onSubmit={page.submit}>
-      <Field label={t('new_company.name')}>
+      <Field label={t('new_company.name')} error={errors.name && t(errors.name)}>
         {(control) => (
-          <Input autoComplete="organization" {...control} {...page.form.register('name')} />
+          <Input
+            autoComplete="organization"
+            maxLength={80}
+            {...control}
+            {...page.form.register('name')}
+          />
         )}
       </Field>
       <Field
@@ -43,7 +49,11 @@ export function NewCompanyForm() {
       >
         {(control) => <Input autoComplete="off" {...control} {...page.form.register('slug')} />}
       </Field>
-      <Field label={t('new_company.language')} help={t('new_company.language_hint')}>
+      <Field
+        label={t('new_company.language')}
+        help={t('new_company.language_hint')}
+        error={errors.defaultLanguage && t(errors.defaultLanguage)}
+      >
         {(control) => (
           <Select {...control} {...page.form.register('defaultLanguage')}>
             {LANGUAGES.map((language) => (
@@ -55,15 +65,25 @@ export function NewCompanyForm() {
         )}
       </Field>
       {page.askUserName && (
-        <Field label={t('new_company.your_name')}>
+        <Field label={t('new_company.your_name')} error={errors.userName && t(errors.userName)}>
           {(control) => (
-            <Input autoComplete="name" {...control} {...page.form.register('userName')} />
+            <Input
+              autoComplete="name"
+              maxLength={80}
+              {...control}
+              {...page.form.register('userName')}
+            />
           )}
         </Field>
       )}
-      <Button type="submit" disabled={page.isPending}>
-        {t('new_company.submit')}
-      </Button>
+      <FormActions>
+        <Link to="/" className={buttonClassName({ variant: 'quiet' })}>
+          {t('new_company.cancel')}
+        </Link>
+        <Button type="submit" disabled={page.isPending}>
+          {t('new_company.submit')}
+        </Button>
+      </FormActions>
       {page.messageKey && (
         <Text role="alert" tone="negative">
           {t(page.messageKey)}
