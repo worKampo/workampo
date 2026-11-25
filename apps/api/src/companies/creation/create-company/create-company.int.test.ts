@@ -98,7 +98,7 @@ function context(token: string, slug: string) {
 }
 
 describe('POST /api/companies', () => {
-  it.fails('@id:companies-90-1 creates an active company on shard-1 with me as active member and main contact', async () => {
+  it('@id:companies-90-1 creates an active company on shard-1 with me as active member and main contact', async () => {
     const { token, userId } = await newSession()
     const slug = newSlug()
 
@@ -130,7 +130,7 @@ describe('POST /api/companies', () => {
     ).toMatchObject({ results: [{ topic: 'main', user_id: userId }] })
   })
 
-  it.fails('@id:companies-90-1 writes the root unit, keyed by the company id, and my owner assignment on it', async () => {
+  it('@id:companies-90-1 writes the root unit, keyed by the company id, and my owner assignment on it', async () => {
     const { token } = await newSession()
     const slug = newSlug()
 
@@ -173,7 +173,7 @@ describe('POST /api/companies', () => {
     })
   })
 
-  it.fails('@id:companies-90-7 keeps the chosen default language in the company profile', async () => {
+  it('@id:companies-90-7 keeps the chosen default language in the company profile', async () => {
     const { token } = await newSession()
 
     const company = await (
@@ -189,7 +189,7 @@ describe('POST /api/companies', () => {
     ).toEqual({ default_language: 'es' })
   })
 
-  it.fails('@id:companies-90-1 keeps a long unicode name as sent, in NFC', async () => {
+  it('@id:companies-90-1 keeps a long unicode name as sent, in NFC', async () => {
     const { token } = await newSession()
     const name = `Coöperativa Ñandú 日本 ${'é'.repeat(60)}`.slice(0, 80)
 
@@ -202,7 +202,7 @@ describe('POST /api/companies', () => {
     expect(company.name).toBe(name.normalize('NFC'))
   })
 
-  it.fails('@id:companies-90-8 an account without a name keeps the one sent', async () => {
+  it('@id:companies-90-8 an account without a name keeps the one sent', async () => {
     const { token } = await newSession()
     expect(await (await me(token)).json()).toMatchObject({ name: null })
 
@@ -211,7 +211,7 @@ describe('POST /api/companies', () => {
     expect(await (await me(token)).json()).toMatchObject({ name: 'Ana' })
   })
 
-  it.fails('@id:companies-90-8 an account without a name cannot create a company without sending one', async () => {
+  it('@id:companies-90-8 an account without a name cannot create a company without sending one', async () => {
     const { token, userId } = await newSession()
     const slug = newSlug()
     const { userName: _, ...withoutName } = valid
@@ -224,7 +224,7 @@ describe('POST /api/companies', () => {
     expect(await companiesOf(userId)).toBe(0)
   })
 
-  it.fails('@id:companies-90-9 an account that has a name keeps it, whatever is sent', async () => {
+  it('@id:companies-90-9 an account that has a name keeps it, whatever is sent', async () => {
     const { token, userId } = await newSession()
     await env.DB_GLOBAL.prepare("UPDATE users SET name = 'Ana' WHERE id = ?").bind(userId).run()
 
@@ -237,7 +237,7 @@ describe('POST /api/companies', () => {
     expect(await (await me(token)).json()).toMatchObject({ name: 'Ana' })
   })
 
-  it.fails('@id:companies-90-3 a slug another company has answers 409 and writes nothing', async () => {
+  it('@id:companies-90-3 a slug another company has answers 409 and writes nothing', async () => {
     const slug = newSlug('clinica-norte')
     await post((await newSession()).token, { body: { ...valid, slug } })
     const { token, userId } = await newSession()
@@ -250,7 +250,7 @@ describe('POST /api/companies', () => {
     expect(await companiesOf(userId)).toBe(0)
   })
 
-  it.fails('@id:companies-90-3 the slug of a company being deleted stays taken', async () => {
+  it('@id:companies-90-3 the slug of a company being deleted stays taken', async () => {
     const slug = newSlug()
     await post((await newSession()).token, { body: { ...valid, slug } })
     await env.DB_GLOBAL.prepare("UPDATE companies SET status = 'deleting' WHERE slug = ?")
@@ -263,7 +263,7 @@ describe('POST /api/companies', () => {
     })
   })
 
-  it.fails('@id:companies-90-4 a reserved slug answers 400 reserved_slug and writes nothing', async () => {
+  it('@id:companies-90-4 a reserved slug answers 400 reserved_slug and writes nothing', async () => {
     const { token, userId } = await newSession()
 
     await expectProblem(await post(token, { body: { ...valid, slug: 'api' } }), {
@@ -273,7 +273,7 @@ describe('POST /api/companies', () => {
     expect(await companiesOf(userId)).toBe(0)
   })
 
-  it.fails('@id:companies-90-5 an invalid slug answers 400 invalid_slug and writes nothing', async () => {
+  it('@id:companies-90-5 an invalid slug answers 400 invalid_slug and writes nothing', async () => {
     const { token, userId } = await newSession()
 
     for (const slug of ['ab', 'mi--empresa', '-norte', 'norte-stg', 'Norte', 'a'.repeat(41)])
@@ -284,7 +284,7 @@ describe('POST /api/companies', () => {
     expect(await companiesOf(userId)).toBe(0)
   })
 
-  it.fails('@id:companies-90-1 refuses fields the client may not set, a bad name or language, and writes nothing', async () => {
+  it('@id:companies-90-1 refuses fields the client may not set, a bad name or language, and writes nothing', async () => {
     const { token, userId } = await newSession()
     const slug = newSlug()
 
@@ -311,7 +311,7 @@ describe('POST /api/companies', () => {
     expect(await companiesOf(userId)).toBe(0)
   })
 
-  it.fails('@id:companies-90-11 a missing or malformed Idempotency-Key answers 400 and writes nothing', async () => {
+  it('@id:companies-90-11 a missing or malformed Idempotency-Key answers 400 and writes nothing', async () => {
     const { token, userId } = await newSession()
     const slug = newSlug()
 
@@ -343,7 +343,7 @@ describe('POST /api/companies', () => {
     expect(await companiesWithSlug(slug)).toBe(0)
   })
 
-  it.fails('@id:companies-90-1 accepts only a JSON body', async () => {
+  it('@id:companies-90-1 accepts only a JSON body', async () => {
     const { token } = await newSession()
     const slug = newSlug()
 
@@ -356,7 +356,7 @@ describe('POST /api/companies', () => {
     expect(await companiesWithSlug(slug)).toBe(0)
   })
 
-  it.fails('@id:companies-90-12 without a session answers 401 and writes nothing', async () => {
+  it('@id:companies-90-12 without a session answers 401 and writes nothing', async () => {
     const slug = newSlug()
 
     await expectProblem(await post(undefined, { body: { ...valid, slug } }), {
@@ -366,7 +366,7 @@ describe('POST /api/companies', () => {
     expect(await companiesWithSlug(slug)).toBe(0)
   })
 
-  it.fails('@id:companies-90-1 logs neither the request body nor the names', async () => {
+  it('@id:companies-90-1 logs neither the request body nor the names', async () => {
     const logs = [
       vi.spyOn(console, 'log').mockImplementation(() => {}),
       vi.spyOn(console, 'info').mockImplementation(() => {}),
@@ -393,7 +393,7 @@ describe('POST /api/companies', () => {
 })
 
 describe('POST /api/companies when the same slug or request arrives twice', () => {
-  it.fails('@id:companies-90-10 two people sending the same slug at once leave one company, one member and one contact', async () => {
+  it('@id:companies-90-10 two people sending the same slug at once leave one company, one member and one contact', async () => {
     const [ana, bea] = await Promise.all([newSession(), newSession()])
     const slug = newSlug('sol')
 
@@ -413,7 +413,7 @@ describe('POST /api/companies when the same slug or request arrives twice', () =
     expect(await count('company_contacts', ['tenant_id', company?.id])).toBe(1)
   })
 
-  it.fails('@id:companies-90-11 a half-created company is completed once by the same request', async () => {
+  it('@id:companies-90-11 a half-created company is completed once by the same request', async () => {
     const { token } = await newSession()
     const key = crypto.randomUUID()
     const body = { ...valid, slug: newSlug() }
@@ -435,7 +435,7 @@ describe('POST /api/companies when the same slug or request arrives twice', () =
     expect(await (await context(token, body.slug)).json()).toMatchObject({ role: 'owner' })
   })
 
-  it.fails('@id:companies-90-11 replaying a complete request returns the same company and writes nothing more', async () => {
+  it('@id:companies-90-11 replaying a complete request returns the same company and writes nothing more', async () => {
     const { token, userId } = await newSession()
     const key = crypto.randomUUID()
     const body = { ...valid, slug: newSlug() }
@@ -449,7 +449,7 @@ describe('POST /api/companies when the same slug or request arrives twice', () =
     expect(await companiesOf(userId)).toBe(1)
   })
 
-  it.fails('@id:companies-90-11 the same request sent twice at once creates one company and answers it to both', async () => {
+  it('@id:companies-90-11 the same request sent twice at once creates one company and answers it to both', async () => {
     const { token, userId } = await newSession()
     const key = crypto.randomUUID()
     const body = { ...valid, slug: newSlug() }
@@ -466,7 +466,7 @@ describe('POST /api/companies when the same slug or request arrives twice', () =
     expect(await shardRows(a?.id ?? '')).toEqual({ units: 1, assignments: 1, profiles: 1 })
   })
 
-  it.fails('@id:companies-90-11 the same key with another body answers 422 and writes nothing', async () => {
+  it('@id:companies-90-11 the same key with another body answers 422 and writes nothing', async () => {
     const { token, userId } = await newSession()
     const key = crypto.randomUUID()
     await post(token, { body: { ...valid, slug: newSlug() }, key })
@@ -480,7 +480,7 @@ describe('POST /api/companies when the same slug or request arrives twice', () =
     expect(await companiesOf(userId)).toBe(1)
   })
 
-  it.fails("@id:companies-90-11 another person's key never returns their company", async () => {
+  it("@id:companies-90-11 another person's key never returns their company", async () => {
     const ana = await newSession()
     const key = crypto.randomUUID()
     const body = { ...valid, slug: newSlug() }
@@ -498,7 +498,7 @@ describe('POST /api/companies when the same slug or request arrives twice', () =
 })
 
 describe('POST /api/companies over the rate limit', () => {
-  it.fails('@id:companies-90-1 over the per-user threshold answers 429 and writes nothing', async () => {
+  it('@id:companies-90-1 over the per-user threshold answers 429 and writes nothing', async () => {
     const { token, userId } = await newSession()
     const bindings = Object.assign({}, env, { [USER_LIMIT]: '1', [IP_LIMIT]: '1000' })
     const slug = newSlug()
@@ -511,7 +511,7 @@ describe('POST /api/companies over the rate limit', () => {
     expect(await companiesOf(userId)).toBe(1)
   })
 
-  it.fails('@id:companies-90-1 over the per-IP threshold answers 429 to anyone from that IP', async () => {
+  it('@id:companies-90-1 over the per-IP threshold answers 429 to anyone from that IP', async () => {
     const ip = newIp()
     const bindings = Object.assign({}, env, { [USER_LIMIT]: '1000', [IP_LIMIT]: '1' })
     const slug = newSlug()
@@ -533,7 +533,7 @@ describe('POST /api/companies over the rate limit', () => {
     expect(await companiesOf(bea.userId)).toBe(0)
   })
 
-  it.fails('@id:companies-90-11 a replay that returns the existing company does not count', async () => {
+  it('@id:companies-90-11 a replay that returns the existing company does not count', async () => {
     const { token } = await newSession()
     const bindings = Object.assign({}, env, { [USER_LIMIT]: '1', [IP_LIMIT]: '1000' })
     const key = crypto.randomUUID()

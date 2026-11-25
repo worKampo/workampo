@@ -27,6 +27,7 @@
     "user_name_required": "Enter your name.",
     "slug_taken": "This URL is already in use. Try another one.",
     "idempotency_mismatch": "The company could not be created. Try again.",
-    "not_found": "We could not find this company."
+    "not_found": "We could not find this company.",
+    "too_many_creations": "You have created too many companies in a row. Wait a while before creating another one."
   }
 }

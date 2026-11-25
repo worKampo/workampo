@@ -11,6 +11,7 @@ const COMPANIES_ERROR_STATUS: Record<CompaniesErrorCode, number> = {
   'companies.slug_taken': 409,
   'companies.idempotency_mismatch': 422,
   'companies.not_found': 404,
+  'companies.too_many_creations': 429,
 }
 
 // The one error class of the companies domain: the code tells the cases apart.

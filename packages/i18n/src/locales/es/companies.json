@@ -27,6 +27,7 @@
     "user_name_required": "Escribe tu nombre.",
     "slug_taken": "Esta URL ya está en uso. Prueba con otra.",
     "idempotency_mismatch": "No se ha podido crear la empresa. Vuelve a intentarlo.",
-    "not_found": "No encontramos esta empresa."
+    "not_found": "No encontramos esta empresa.",
+    "too_many_creations": "Has creado demasiadas empresas seguidas. Espera un poco antes de crear otra."
   }
 }

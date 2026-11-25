@@ -47,7 +47,7 @@ describe('GET /api/companies/availability?slug=', () => {
     expect(await response.json()).toEqual({ available: true })
   })
 
-  it.fails('@id:companies-90-3 a taken slug is not available and the answer says nothing else', async () => {
+  it('@id:companies-90-3 a taken slug is not available and the answer says nothing else', async () => {
     const slug = newSlug('clinica-norte')
     await createCompany(slug)
 
@@ -59,7 +59,7 @@ describe('GET /api/companies/availability?slug=', () => {
     expect(text).not.toContain('Secret Company Name')
   })
 
-  it.fails('@id:companies-90-3 the slug of a company being deleted is not available', async () => {
+  it('@id:companies-90-3 the slug of a company being deleted is not available', async () => {
     const slug = newSlug('borrando')
     await createCompany(slug)
     await env.DB_GLOBAL.prepare("UPDATE companies SET status = 'deleting' WHERE slug = ?")

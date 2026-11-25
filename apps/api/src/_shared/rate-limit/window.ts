@@ -1,5 +1,5 @@
-export type RateLimitPurpose = 'code_request' | 'code_attempt'
-export type RateLimitSubjectKind = 'email' | 'ip'
+export type RateLimitPurpose = 'code_request' | 'code_attempt' | 'company_create'
+export type RateLimitSubjectKind = 'email' | 'ip' | 'user'
 
 export function windowStart(now: Date, windowSeconds: number): Date {
   const windowMs = windowSeconds * 1000

@@ -66,7 +66,7 @@ async function addChildUnit(company: Company) {
 }
 
 describe('GET /api/t/:slug/', () => {
-  it.fails('@id:companies-90-1 gives the owner the name, the slug and the owner role, nothing else', async () => {
+  it('@id:companies-90-1 gives the owner the name, the slug and the owner role, nothing else', async () => {
     const { token } = await newSession()
     const company = await createCompany(token)
 
@@ -80,7 +80,7 @@ describe('GET /api/t/:slug/', () => {
     })
   })
 
-  it.fails('@id:companies-90-1 gives a long unicode name back exactly', async () => {
+  it('@id:companies-90-1 gives a long unicode name back exactly', async () => {
     const { token } = await newSession()
     const name = 'Cooperativa Agrícola Ñandú <b>Ελλάδα</b> 日本 — Sociedad Limitada Unipersonal'
     const company = await createCompany(token, name)
@@ -88,7 +88,7 @@ describe('GET /api/t/:slug/', () => {
     expect(await (await context(token, company.slug)).json()).toMatchObject({ name })
   })
 
-  it.fails('@id:companies-90-1 gives the strongest role the member holds on the root', async () => {
+  it('@id:companies-90-1 gives the strongest role the member holds on the root', async () => {
     const { token } = await newSession()
     const company = await createCompany(token)
     const child = await addChildUnit(company)
@@ -113,7 +113,7 @@ describe('GET /api/t/:slug/', () => {
     })
   })
 
-  it.fails('@id:companies-90-12 a member without an assignment on the root gets 404, never owner', async () => {
+  it('@id:companies-90-12 a member without an assignment on the root gets 404, never owner', async () => {
     const { token } = await newSession()
     const company = await createCompany(token)
     const child = await addChildUnit(company)
@@ -130,7 +130,7 @@ describe('GET /api/t/:slug/', () => {
     }
   })
 
-  it.fails('@id:companies-90-12 a member of another company gets the same 404 as for a missing one', async () => {
+  it('@id:companies-90-12 a member of another company gets the same 404 as for a missing one', async () => {
     const ana = await newSession()
     const anaCompany = await createCompany(ana.token)
     const bea = await newSession()

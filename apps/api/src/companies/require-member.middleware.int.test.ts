@@ -91,7 +91,7 @@ async function snapshot(response: Response) {
 }
 
 describe('requireMember', () => {
-  it.fails('@id:companies-90-1 lets an active member of an active company through with the company', async () => {
+  it('@id:companies-90-1 lets an active member of an active company through with the company', async () => {
     const { token, userId } = await newSession()
     const company = await createCompany(token)
     const member = await env.DB_GLOBAL.prepare(
@@ -112,7 +112,7 @@ describe('requireMember', () => {
     })
   })
 
-  it.fails('@id:companies-90-1 lets a member of a trialing company through', async () => {
+  it('@id:companies-90-1 lets a member of a trialing company through', async () => {
     const { token } = await newSession()
     const company = await createCompany(token)
     await setCompanyStatus(company, 'trialing')
@@ -120,7 +120,7 @@ describe('requireMember', () => {
     expect((await probe(company.slug, { token })).status).toBe(200)
   })
 
-  it.fails('@id:companies-90-12 answers the same 404 for an invalid slug, a missing, inactive or foreign company and a suspended or leaving member', async () => {
+  it('@id:companies-90-12 answers the same 404 for an invalid slug, a missing, inactive or foreign company and a suspended or leaving member', async () => {
     const ana = await newSession()
     const own = await createCompany(ana.token)
     const foreign = await createCompany((await newSession()).token)
@@ -151,7 +151,7 @@ describe('requireMember', () => {
     expect((await probe(own.slug, { token: ana.token })).status).toBe(200)
   })
 
-  it.fails('@id:companies-90-12 never takes the company from a header or the query', async () => {
+  it('@id:companies-90-12 never takes the company from a header or the query', async () => {
     const ana = await newSession()
     const own = await createCompany(ana.token)
     const foreign = await createCompany((await newSession()).token)
@@ -169,7 +169,7 @@ describe('requireMember', () => {
     expect(response.status).toBe(404)
   })
 
-  it.fails('@id:companies-90-12 without a session answers 401 before looking at the company', async () => {
+  it('@id:companies-90-12 without a session answers 401 before looking at the company', async () => {
     const company = await createCompany((await newSession()).token)
 
     const answers = await Promise.all(

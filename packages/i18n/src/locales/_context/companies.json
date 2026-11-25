@@ -21,6 +21,7 @@
   "errors": {
     "_screen": "Error messages of creating a company and of opening one, shown under the field or on the screen. One per error code the API returns. Short, say what happened and what to do next; never blame the person.",
     "invalid_request": "Generic failure of the creation request.",
-    "idempotency_mismatch": "The same attempt was reused with other data; asking to try again is enough."
+    "idempotency_mismatch": "The same attempt was reused with other data; asking to try again is enough.",
+    "too_many_creations": "Rate limit on creating companies; do not give the limit or the wait time."
   }
 }
