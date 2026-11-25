@@ -7,7 +7,7 @@ El ciclo de vida de la empresa y todo lo que la compone: slug, ajustes, miembros
 ## Rules
 
 ```gherkin
-@wip(#90)
+@issue(#90)
 Rule: Quien tiene sesión crea una empresa y entra en ella como propietario y contacto principal
 
   @id:companies-90-1
@@ -18,7 +18,7 @@ Rule: Quien tiene sesión crea una empresa y entra en ella como propietario y co
     And soy su propietario y su contacto principal
     And llego a /c/northwind-logistics y veo "Bienvenido a Northwind Logistics"
 
-@wip(#90)
+@issue(#90)
 Rule: La URL de la empresa se propone desde el nombre y tiene que ser válida, no reservada y libre
 
   @id:companies-90-2
@@ -55,7 +55,7 @@ Rule: La URL de la empresa se propone desde el nombre y tiene que ser válida, n
       | -norte      |
       | norte-stg   |
 
-@wip(#90)
+@issue(#90)
 Rule: El formulario pide solo el nombre, la URL, el idioma por defecto y, si falta, el nombre de la persona
 
   @id:companies-90-6
@@ -82,7 +82,7 @@ Rule: El formulario pide solo el nombre, la URL, el idioma por defecto y, si fal
     When abro el formulario de crear empresa
     Then no veo el campo "Tu nombre"
 
-@wip(#90)
+@issue(#90)
 Rule: Una empresa se crea una sola vez, aunque se envíe a la vez o se repita la petición
 
   @id:companies-90-10
@@ -98,7 +98,7 @@ Rule: Una empresa se crea una sola vez, aunque se envíe a la vez o se repita la
     Then la empresa queda completa una sola vez
     And entro en ella como propietario
 
-@wip(#90)
+@issue(#90)
 Rule: Solo sus miembros entran en una empresa, y para el resto es como si no existiera
 
   @id:companies-90-12
