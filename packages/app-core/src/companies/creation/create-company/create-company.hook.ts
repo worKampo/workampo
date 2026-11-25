@@ -15,7 +15,11 @@ export function useCreateCompany() {
   return useMutation({
     mutationFn: ({ input, idempotencyKey }: CreateCompanyVariables) =>
       createCompany(client, input, idempotencyKey),
-    // A create may have named the account; the cached me would still say it has no name.
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: meQueryOptions(client).queryKey }),
+    // A create may have named the account, and the new company must show in my list.
+    onSuccess: () =>
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: meQueryOptions(client).queryKey }),
+        queryClient.invalidateQueries({ queryKey: ['companies', 'mine'] }),
+      ]),
   })
 }

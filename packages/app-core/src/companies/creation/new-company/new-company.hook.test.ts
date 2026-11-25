@@ -172,7 +172,7 @@ describe('useNewCompanyPage', () => {
     expect(posts(sent)[0]?.headers.get('Idempotency-Key')).toMatch(UUID)
   })
 
-  it.fails('@id:companies-91-7 creating a company marks my cached companies stale, so / sees the new one', async () => {
+  it('@id:companies-91-7 creating a company marks my cached companies stale, so / sees the new one', async () => {
     const { result, onCreated, queryClient } = await renderPage(api({ name: 'Ana' }))
     const mine = ['companies', 'mine', 1, 100]
     queryClient.setQueryData(mine, { items: [], total: 0 })

@@ -3,17 +3,9 @@ import { describe, expect, it } from 'vitest'
 import { problem, type Sent } from '../../../_shared/testing/fake-api'
 import { hookWrapper } from '../../../_shared/testing/hook-wrapper'
 import { replaceSession } from '../../../access/me.hook'
+import { useCompanyPicker } from './company-picker.hook'
 
-// company-picker.hook.ts arrives with the app-core task; a non-literal path keeps typecheck green
-// until then. Once it exists, import it statically.
-const COMPANY_PICKER: string = './company-picker.hook'
 type Item = { name: string; slug: string; url: string }
-type CompanyPicker = { companies: Item[] | undefined; total: number | undefined }
-type UseCompanyPicker = (language: string) => CompanyPicker
-const load = async (): Promise<UseCompanyPicker> => {
-  const module: { useCompanyPicker: UseCompanyPicker } = await import(COMPANY_PICKER)
-  return module.useCompanyPicker
-}
 
 const item = (name: string, slug: string): Item => ({
   name,
@@ -39,7 +31,6 @@ function myCompaniesApi(items: Item[] = RAW_ORDER, total = items.length) {
 }
 
 async function renderPicker(answer = myCompaniesApi(), language = 'es') {
-  const useCompanyPicker = await load()
   const { wrapper, sent, queryClient } = hookWrapper(answer)
   const { result } = renderHook(() => useCompanyPicker(language), { wrapper })
 
@@ -49,7 +40,7 @@ async function renderPicker(answer = myCompaniesApi(), language = 'es') {
 const names = (companies: Item[] | undefined) => companies?.map((company) => company.name)
 
 describe('useCompanyPicker', () => {
-  it.fails('@id:companies-91-2 asks for my companies in one page of 100', async () => {
+  it('@id:companies-91-2 asks for my companies in one page of 100', async () => {
     const { result, sent } = await renderPicker()
 
     await waitFor(() => expect(result.current.companies).toBeDefined())
@@ -62,7 +53,7 @@ describe('useCompanyPicker', () => {
     })
   })
 
-  it.fails('@id:companies-91-2 orders the companies with Intl for the language, accents and case included', async () => {
+  it('@id:companies-91-2 orders the companies with Intl for the language, accents and case included', async () => {
     const { result } = await renderPicker()
 
     await waitFor(() =>
@@ -77,7 +68,7 @@ describe('useCompanyPicker', () => {
     )
   })
 
-  it.fails('@id:companies-91-2 orders by the given language', async () => {
+  it('@id:companies-91-2 orders by the given language', async () => {
     // Swedish sorts ä after z; Spanish sorts it with a.
     const items = [item('Zeta', 'zeta'), item('Äpple', 'apple'), item('Alfa', 'alfa')]
     const spanish = await renderPicker(myCompaniesApi(items), 'es')
@@ -91,7 +82,7 @@ describe('useCompanyPicker', () => {
     )
   })
 
-  it.fails('@id:companies-91-2 keeps each company as the API gives it: name, slug and url', async () => {
+  it('@id:companies-91-2 keeps each company as the API gives it: name, slug and url', async () => {
     const { result } = await renderPicker()
 
     await waitFor(() => expect(result.current.companies).toHaveLength(RAW_ORDER.length))
@@ -99,14 +90,14 @@ describe('useCompanyPicker', () => {
     expect(result.current.total).toBe(RAW_ORDER.length)
   })
 
-  it.fails('@id:companies-91-3 with no company the list is empty, not missing', async () => {
+  it('@id:companies-91-3 with no company the list is empty, not missing', async () => {
     const { result } = await renderPicker(myCompaniesApi([]))
 
     await waitFor(() => expect(result.current.companies).toEqual([]))
     expect(result.current.total).toBe(0)
   })
 
-  it.fails('@id:companies-91-2 the list of one person never reaches the next one on the device', async () => {
+  it('@id:companies-91-2 the list of one person never reaches the next one on the device', async () => {
     const { result, queryClient } = await renderPicker()
     await waitFor(() => expect(result.current.companies).toHaveLength(RAW_ORDER.length))
     const cached = () =>

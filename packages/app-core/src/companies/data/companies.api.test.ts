@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { fakeApi, problem } from '../../_shared/testing/fake-api'
-import { checkSlug, createCompany, getCompanyContext } from './companies.api'
+import { checkSlug, createCompany, getCompanyContext, listMyCompanies } from './companies.api'
 
 const company = {
   id: '01940000-0000-7000-8000-000000000201',
@@ -80,27 +80,13 @@ describe('companies api', () => {
   })
 })
 
-// listMyCompanies arrives with the app-core task; a non-literal path keeps typecheck green until
-// then. Once it exists, import it with the others above.
-const COMPANIES_API: string = './companies.api'
-type MyCompanies = { items: { name: string; slug: string; url: string }[]; total: number }
-type ListMyCompanies = (
-  client: ReturnType<typeof fakeApi>['client'],
-  query: { page: number; pageSize: number },
-) => Promise<MyCompanies>
-const loadList = async (): Promise<ListMyCompanies> => {
-  const module: { listMyCompanies: ListMyCompanies } = await import(COMPANIES_API)
-  return module.listMyCompanies
-}
-
 describe('my companies api', () => {
-  it.fails('@id:companies-91-2 asks for one page of my companies and gives items and total', async () => {
-    const answer: MyCompanies = {
+  it('@id:companies-91-2 asks for one page of my companies and gives items and total', async () => {
+    const answer = {
       items: [{ name: 'Northwind', slug: 'northwind', url: 'https://app.test/c/northwind/' }],
       total: 1,
     }
     const { client, sent } = fakeApi(() => Response.json(answer))
-    const listMyCompanies = await loadList()
 
     expect(await listMyCompanies(client, { page: 1, pageSize: 100 })).toEqual(answer)
     expect(sent).toHaveLength(1)
@@ -110,9 +96,8 @@ describe('my companies api', () => {
     expect(Object.fromEntries(url.searchParams)).toEqual({ page: '1', pageSize: '100' })
   })
 
-  it.fails('@id:companies-91-2 without a session it fails with the unauthenticated code', async () => {
+  it('@id:companies-91-2 without a session it fails with the unauthenticated code', async () => {
     const { client } = fakeApi(() => problem({ status: 401, code: 'access.unauthenticated' }))
-    const listMyCompanies = await loadList()
 
     await expect(listMyCompanies(client, { page: 1, pageSize: 100 })).rejects.toMatchObject({
       status: 401,
