@@ -45,8 +45,8 @@ const companyHomeRoute = createRoute({ getParentRoute: () => companyRoute, path:
 // index route outranks this splat for the company home itself.
 const companySubpageRoute = createRoute({ getParentRoute: () => companyRoute, path: '$' }).lazy(
   () =>
-    import('./company-home/company-home.page').then(({ CompanyNotFoundPage }) =>
-      createLazyRoute('/c/$slug/$')({ component: CompanyNotFoundPage }),
+    import('./company-home/company-home.page').then(({ CompanyPageNotFoundPage }) =>
+      createLazyRoute('/c/$slug/$')({ component: CompanyPageNotFoundPage }),
     ),
 )
 

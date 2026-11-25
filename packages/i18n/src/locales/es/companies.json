@@ -20,7 +20,12 @@
   "not_found": {
     "title": "No encontramos esta empresa",
     "body": "Puede que la dirección esté mal escrita o que no tengas acceso.",
-    "back": "Volver al inicio"
+    "back": "Volver a mis empresas"
+  },
+  "page_not_found": {
+    "title": "No encontramos esta página",
+    "body": "La dirección puede estar mal escrita o la página se ha movido.",
+    "back": "Volver a {{name}}"
   },
   "errors": {
     "invalid_request": "No se ha podido crear la empresa. Revisa los datos e inténtalo de nuevo.",

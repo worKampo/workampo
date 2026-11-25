@@ -31,3 +31,19 @@ export function CompanyNotFoundPage() {
     </CardScreen>
   )
 }
+
+// Inside a company the person belongs to: the loader already cached its context.
+export function CompanyPageNotFoundPage() {
+  const { t } = useTranslation('companies')
+  const { slug } = workspaceRoute.useParams()
+  const { data } = useCompanyContext(slug)
+
+  return (
+    <CardScreen title={t('page_not_found.title')}>
+      <Text tone="muted">{t('page_not_found.body')}</Text>
+      <Link to="/c/$slug" params={{ slug }} className={buttonClassName({ variant: 'secondary' })}>
+        {t('page_not_found.back', { name: data?.name })}
+      </Link>
+    </CardScreen>
+  )
+}

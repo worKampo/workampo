@@ -19,7 +19,13 @@
     "_screen": "Shown when the company address does not exist or the person is not a member. Must not reveal which of the two it is.",
     "title": "Heading of the not-found state.",
     "body": "One sentence; covers both cases without saying which.",
-    "back": "The one action of the not-found state: a link to the start screen."
+    "back": "The one action of the not-found state: a link to /, which leads to the company picker or to the person's only company."
+  },
+  "page_not_found": {
+    "_screen": "Shown to a member inside a company when the address under the company does not match any page.",
+    "title": "Heading of the page-not-found state.",
+    "body": "One sentence: the address may be wrong or the page moved.",
+    "back": "The one action: a link to the company home; {{name}} is the company name, rendered as plain text."
   },
   "errors": {
     "_screen": "Error messages of creating a company and of opening one, shown under the field or on the screen. One per error code the API returns. Short, say what happened and what to do next; never blame the person.",

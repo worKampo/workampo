@@ -65,7 +65,7 @@ describe('the company home', () => {
   it('@id:companies-90-12 the not-found state leads back to the start', async () => {
     const { router } = renderApp({ path: '/c/sol-bakery', answer: workspaceApi({}) })
 
-    await userEvent.click(await screen.findByRole('link', { name: 'Volver al inicio' }))
+    await userEvent.click(await screen.findByRole('link', { name: 'Volver a mis empresas' }))
 
     await waitFor(() => expect(router.state.location.pathname).toBe('/'))
   })
@@ -105,16 +105,25 @@ describe('the company home', () => {
     }
   })
 
-  it('@id:access-91-1 a company subpage that does not exist yet shows the company not-found state', async () => {
+  it('@id:access-91-1 a company subpage that does not exist yet shows a page not-found state that leads back to the company', async () => {
     const asked: string[] = []
     const { router } = renderApp({
       path: '/c/northwind/settings',
       answer: workspaceApi({ northwind: 'Northwind Logistics' }, asked),
     })
 
-    expect(await screen.findByText('No encontramos esta empresa')).toBeTruthy()
+    expect(await screen.findByRole('heading', { name: 'No encontramos esta página' })).toBeTruthy()
+    expect(
+      screen.getByText('La dirección puede estar mal escrita o la página se ha movido.'),
+    ).toBeTruthy()
+    expect(screen.queryByText('No encontramos esta empresa')).toBeNull()
     expect(router.state.location.pathname).toBe('/c/northwind/settings')
     expect(asked).toContain('/api/me')
+
+    await userEvent.click(screen.getByRole('link', { name: 'Volver a Northwind Logistics' }))
+
+    expect(await screen.findByText('Bienvenido a Northwind Logistics')).toBeTruthy()
+    expect(router.state.location.pathname).toMatch(/^\/c\/northwind\/?$/)
   })
 
   it('@id:companies-90-13 a session that expired while me was cached leads to /login carrying the way back', async () => {
