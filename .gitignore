@@ -13,3 +13,6 @@ test-results/
 !.env.example
 
 .claude/settings.local.json
+
+# Editor folders (Obsidian vaults opened on docs/)
+.obsidian/
