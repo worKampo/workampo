@@ -9,7 +9,8 @@
     "./access/session/me": "./src/access/session/me/me.hook.ts",
     "./access/session/sign-out": "./src/access/session/sign-out/sign-out.hook.ts",
     "./access/sign-in/code": "./src/access/sign-in/code/code.hook.ts",
-    "./access/sign-in/login": "./src/access/sign-in/login/login.hook.ts"
+    "./access/sign-in/login": "./src/access/sign-in/login/login.hook.ts",
+    "./companies/workspace/read-context": "./src/companies/workspace/read-context/read-context.hook.ts"
   },
   "scripts": {
     "typecheck": "tsc",

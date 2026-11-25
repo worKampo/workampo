@@ -44,7 +44,7 @@ function api({
   return ({ method, url }: Sent) => {
     const { pathname } = new URL(url)
     if (pathname === '/api/me') return Response.json({ id: 'u1', email: 'ana@example.com', name })
-    if (pathname.startsWith('/api/company-slugs/')) return Response.json({ available })
+    if (pathname === '/api/companies/availability') return Response.json({ available })
     if (pathname === '/api/companies' && method === 'POST') return create()
 
     return new Response(null, { status: 404 })
@@ -53,7 +53,8 @@ function api({
 
 const posts = (sent: Sent[]) =>
   sent.filter((s) => s.method === 'POST' && s.url.endsWith('/api/companies'))
-const checks = (sent: Sent[]) => sent.filter((s) => s.url.includes('/api/company-slugs/'))
+const checks = (sent: Sent[]) =>
+  sent.filter((s) => s.url.includes('/api/companies/availability?slug='))
 
 async function renderPage(answer = api(), onCreated = vi.fn()) {
   const useNewCompanyPage = await load()
@@ -78,7 +79,9 @@ describe('useNewCompanyPage', () => {
 
     await waitFor(() => expect(result.current.form.getValues('slug')).toBe('clinica-norte'))
     await waitFor(() => expect(result.current.slugStatus).toBe('available'))
-    expect(checks(sent).at(-1)?.url).toBe('https://app.test/api/company-slugs/clinica-norte')
+    expect(checks(sent).at(-1)?.url).toBe(
+      'https://app.test/api/companies/availability?slug=clinica-norte',
+    )
   })
 
   it.fails('@id:companies-90-2 stops proposing once the slug is edited', async () => {
@@ -101,7 +104,9 @@ describe('useNewCompanyPage', () => {
     fill(result, { slug: 'sol-abc' })
 
     await waitFor(() => expect(result.current.slugStatus).toBe('available'))
-    expect(checks(sent).map((s) => s.url)).toEqual(['https://app.test/api/company-slugs/sol-abc'])
+    expect(checks(sent).map((s) => s.url)).toEqual([
+      'https://app.test/api/companies/availability?slug=sol-abc',
+    ])
   })
 
   it.fails('@id:companies-90-3 a taken slug is not available and the company is not created', async () => {

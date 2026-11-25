@@ -1,9 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import type { ApiClient } from '../../_shared/api-client'
 import { fakeApi, problem } from '../../_shared/testing/fake-api'
+import { getCompanyContext } from './companies.api'
 
-// companies.api.ts arrives with the app-core tasks of ticket 90; a non-literal path keeps
-// typecheck green until then. Once it exists, import it statically.
+// createCompany and checkSlug arrive with the creation task; a non-literal path keeps typecheck
+// green until then. Once they exist, import them statically.
 const COMPANIES_API: string = './companies.api'
 type CreateCompanyInput = { name: string; slug: string; defaultLanguage: string; userName?: string }
 type Company = { id: string; slug: string; name: string; url: string }
@@ -14,10 +15,6 @@ type CompaniesApi = {
     idempotencyKey: string,
   ) => Promise<Company>
   checkSlug: (client: ApiClient, slug: string) => Promise<{ available: boolean }>
-  getCompanyContext: (
-    client: ApiClient,
-    slug: string,
-  ) => Promise<{ name: string; slug: string; role: string }>
 }
 const load = (): Promise<CompaniesApi> => import(COMPANIES_API)
 
@@ -65,7 +62,7 @@ describe('companies api', () => {
     expect(answer).toEqual({ available: true })
     expect(sent[0]).toMatchObject({
       method: 'GET',
-      url: 'https://app.test/api/company-slugs/clinica-norte',
+      url: 'https://app.test/api/companies/availability?slug=clinica-norte',
     })
   })
 
@@ -86,8 +83,7 @@ describe('companies api', () => {
     })
   })
 
-  it.fails('@id:companies-90-1 reads the context of a company by its slug', async () => {
-    const { getCompanyContext } = await load()
+  it('@id:companies-90-1 reads the context of a company by its slug', async () => {
     const context = { name: 'Northwind Logistics', slug: 'northwind', role: 'owner' }
     const { client, sent } = fakeApi(() => Response.json(context))
 
@@ -95,8 +91,7 @@ describe('companies api', () => {
     expect(sent[0]).toMatchObject({ method: 'GET', url: 'https://app.test/api/t/northwind/' })
   })
 
-  it.fails('@id:companies-90-12 a company I cannot enter fails with status 404', async () => {
-    const { getCompanyContext } = await load()
+  it('@id:companies-90-12 a company I cannot enter fails with status 404', async () => {
     const { client } = fakeApi(() => problem({ status: 404, code: 'companies.not_found' }))
 
     await expect(getCompanyContext(client, 'sol-bakery')).rejects.toMatchObject({
