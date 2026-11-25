@@ -227,8 +227,10 @@ it('the answer of csrf() also carries no-store and nosniff', async () => {
 const ORIGIN = 'https://app.test'
 const METHODS = ['GET', 'POST', 'PATCH', 'DELETE']
 const BINARY_SINGLETONS = ['logo', 'avatar']
-// Non-plural last segments that name a thing; any other one is an action, POST only.
+// Last segments that name a thing rather than a collection: singletons, aliases, collection checks.
 const SINGLETONS_AND_ALIASES = ['me', 'current', 'availability', ...BINARY_SINGLETONS]
+// Action verbs (ADR-0078 rule 2.7), POST only; listed, since a verb may end in s (enable-writes).
+const ACTIONS = ['resend', 'move', 'deactivate', 'enable-writes', 'accept']
 const PARAM_EXCEPTIONS = [':slug', ':token', ':provider']
 const SEGMENT = /^([a-z0-9]+(-[a-z0-9]+)*|:[a-z][a-zA-Z]*)$/
 
@@ -285,8 +287,8 @@ function brokenRules(route: string): string[] {
     .split('/')
     .filter(Boolean)
   const last = segments.at(-1) ?? ''
-  const lastIsName = !last.startsWith(':') && !isPlural(last) && segments.length > 0
-  const params = segments.filter((segment) => segment.startsWith(':'))
+  const lastIsAction = ACTIONS.includes(last)
+  const lastIsName = lastIsAction || SINGLETONS_AND_ALIASES.includes(last)
   const broken: string[] = []
 
   if (!(METHODS.includes(method) || (method === 'PUT' && BINARY_SINGLETONS.includes(last))))
@@ -299,15 +301,20 @@ function brokenRules(route: string): string[] {
     return !segment.startsWith(':') && isPlural(segment)
   })
   if (!alternates) broken.push('collection and :param alternate; a non-plural literal only last')
-  if (lastIsName && !SINGLETONS_AND_ALIASES.includes(last) && method !== 'POST')
-    broken.push('an action only with POST')
+  if (lastIsAction && method !== 'POST') broken.push('an action only with POST')
+  const params = segments.filter((segment) => segment.startsWith(':'))
   if (tenant && params.length > 2) broken.push('at most two params after /api/t/:slug')
-  const paramsNamed = params.every(
-    (param, index) =>
-      PARAM_EXCEPTIONS.includes(param) ||
-      (index === params.length - 1 ? param === ':id' : /^:[a-z][a-zA-Z]*Id$/.test(param)),
-  )
-  if (!paramsNamed) broken.push('the last param :id, earlier ones :<x>Id')
+  // By position in the path: a param that ends the path or comes before an action or singleton
+  // names the item (:id); one followed by a child collection names a parent (:<x>Id).
+  const paramsNamed = segments.every((segment, index) => {
+    if (!segment.startsWith(':') || PARAM_EXCEPTIONS.includes(segment)) return true
+    const next = segments[index + 1]
+    const namesItem =
+      next === undefined || ACTIONS.includes(next) || SINGLETONS_AND_ALIASES.includes(next)
+
+    return namesItem ? segment === ':id' : /^:[a-z][a-zA-Z]*Id$/.test(segment)
+  })
+  if (!paramsNamed) broken.push('an item param :id, a parent param :<x>Id')
   if (!tenant && segments[0] === 'companies' && segments[1]?.startsWith(':'))
     broken.push('no /api/companies/:x on the app Worker')
   if (!tenant && segments.includes(':slug')) broken.push(':slug only in /api/t/:slug')
@@ -470,4 +477,22 @@ describe('every domain error status', () => {
 
     expect(misused).toEqual([])
   })
+})
+
+it('the route check itself tells nested collections and actions apart', () => {
+  for (const ok of [
+    'GET /api/t/:slug/units/:id',
+    'GET /api/t/:slug/units/:unitId/members',
+    'GET /api/t/:slug/units/:unitId/members/:id',
+    'POST /api/t/:slug/units/:id/enable-writes',
+    'GET /api/t/:slug/permissions',
+  ])
+    expect(brokenRules(ok), ok).toEqual([])
+
+  expect(brokenRules('GET /api/t/:slug/units/:id/enable-writes')).toContain(
+    'an action only with POST',
+  )
+  expect(brokenRules('GET /api/t/:slug/units/:id/members')).toContain(
+    'an item param :id, a parent param :<x>Id',
+  )
 })
