@@ -1,5 +1,5 @@
 import { type APIRequestContext, expect, request, test } from '@playwright/test'
-import { FAKE_VALID_CODE, newEmail } from './support'
+import { FAKE_VALID_CODE, newEmail } from '../../../../e2e/support/acceptance-support'
 
 // Relative to apps/api, where Playwright runs: the local database the suite's wrangler dev serves.
 const PERSIST = '.wrangler/e2e'

@@ -1,5 +1,5 @@
 import { type APIRequestContext, expect, request, test } from '@playwright/test'
-import { FAKE_VALID_CODE, newEmail } from './support'
+import { FAKE_VALID_CODE, newEmail } from '../../../../e2e/support/acceptance-support'
 
 // Seed (packages/db/seed): linked@example.com is in Clínica Norte, Northwind and Sol Bakery;
 // renamed@example.com signs in as the user whose Sol Bakery membership is suspended.

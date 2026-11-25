@@ -1,5 +1,5 @@
 import { type APIRequestContext, expect, request, test } from '@playwright/test'
-import { SESSION_COOKIE } from './support'
+import { SESSION_COOKIE } from '../../../../e2e/support/acceptance-support'
 
 // The fake provider's consent page stands in for Google (apps/api/src/_shared/identity/fake-consent.ts).
 const SETTINGS = '/c/northwind/settings'

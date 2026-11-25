@@ -1,5 +1,5 @@
 import { type APIRequestContext, expect, request, test } from '@playwright/test'
-import { FAKE_VALID_CODE, newEmail } from './support'
+import { FAKE_VALID_CODE, newEmail } from '../../../../e2e/support/acceptance-support'
 
 // The app's module reads this define of wrangler.jsonc when it loads; outside the bundle it is unset.
 Object.assign(globalThis, { __ALLOW_FAKE_IDENTITY__: false })

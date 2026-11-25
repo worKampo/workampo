@@ -6,7 +6,7 @@ import {
   sessionToken,
   signInWithCode,
   validCode,
-} from './support'
+} from '../../../../e2e/support/acceptance-support'
 
 test.use({ locale: 'es-ES' })
 
