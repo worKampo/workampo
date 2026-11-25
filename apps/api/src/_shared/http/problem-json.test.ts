@@ -30,3 +30,20 @@ describe('toProblem', () => {
     expect(toProblem('not an error')).toBeNull()
   })
 })
+
+describe('problemJson title', () => {
+  it.fails('carries the HTTP reason phrase as title', async () => {
+    const cases = [
+      [400, 'Bad Request'],
+      [404, 'Not Found'],
+      [413, 'Payload Too Large'],
+      [429, 'Too Many Requests'],
+    ] as const
+
+    for (const [status, title] of cases) {
+      const response = problemJson({ code: 'access.too_many_attempts', status })
+
+      expect(await response.json()).toMatchObject({ title })
+    }
+  })
+})
