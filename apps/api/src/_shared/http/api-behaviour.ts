@@ -41,8 +41,11 @@ export function apiOnError(error: Error, c: Context<AppEnv>): Response {
       ? problemJson({ code: 'api.malformed_json', status: 400 })
       : error.getResponse()
   }
-  // The default Hono handler; Sentry reads c.error, so tracking is unaffected.
+  // Sentry reads c.error, so tracking is unaffected; the answer carries no detail.
   console.error(error)
+  const { pathname } = new URL(c.req.url)
 
-  return c.text('Internal Server Error', 500)
+  return pathname === '/api' || pathname.startsWith('/api/')
+    ? problemJson({ code: 'api.unexpected', status: 500 })
+    : c.text('Internal Server Error', 500)
 }
