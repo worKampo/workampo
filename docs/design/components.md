@@ -118,6 +118,7 @@ shadcn `Table` on desktop; a card list on touch with the same rows.
 | Actions column | 56 wide, a quiet small icon button `aria-label="Actions for {name}"` opening a menu; header text visually hidden |
 | Selection | First column with checkboxes and "Select all" |
 | Card list (touch) | `<ul>`, `--surface`, radius 12; each `<li>` padding 12: checkbox, avatar + name line, then badges and meta, row actions as a `…` icon button |
+| Row link | `CardList` + `ListRowLink` (content family; `createLink(ListRowLink)` for routes): the whole row is the link, for lists that only open a record (the company picker). Flex, gap 12, min height 56, padding 12, hover `--surface-hover`, inset focus outline; leading slot (avatar), title (weight 500 `--text`), secondary line (12/16 `--text-2`, `aria-hidden`, so the link name is the title), decorative chevron `--text-3`. Rows divided by `--muted` |
 
 ### Bulk bar
 
