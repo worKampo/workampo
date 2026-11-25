@@ -80,13 +80,16 @@ export async function commitGlobalCreation(env: Env, writes: GlobalCreation) {
     .catch(rethrowUniqueViolation)
 }
 
-// Every insert ignores a row already there, so a retry completes a half-created company once.
+// Only a half-created company: the batch is atomic, so a root means all three rows, and a replay
+// must not bring back rows removed since. Inserts ignore conflicts for two retries at once.
 export async function commitShardCreation(env: Env, writes: ShardCreation) {
   const { shardId, tenantId, userId, at } = writes
   const db = await shardClient(env, shardId)
+  const units = await unitRepo(env, shardId)
+  if (await units.hasRoot(tenantId)) return
 
   await db.batch([
-    (await unitRepo(env, shardId)).createRoot({ tenantId, at, by: userId }),
+    units.createRoot({ tenantId, at, by: userId }),
     db
       .insert(assignments)
       .values({

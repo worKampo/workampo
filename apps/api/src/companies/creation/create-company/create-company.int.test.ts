@@ -449,6 +449,20 @@ describe('POST /api/companies when the same slug or request arrives twice', () =
     expect(await companiesOf(userId)).toBe(1)
   })
 
+  it('@id:companies-90-11 a replay never brings back shard rows removed since', async () => {
+    const { token } = await newSession()
+    const key = crypto.randomUUID()
+    const body = { ...valid, slug: newSlug() }
+    const first = await (await post(token, { body: body, key })).json<Company>()
+    await env.DB_SHARD_1.prepare('DELETE FROM assignments WHERE tenant_id = ?').bind(first.id).run()
+
+    const again = await post(token, { body: body, key })
+
+    expect(again.status).toBe(201)
+    expect(await again.json()).toEqual(first)
+    expect(await shardRows(first.id)).toEqual({ units: 1, assignments: 0, profiles: 1 })
+  })
+
   it('@id:companies-90-11 the same request sent twice at once creates one company and answers it to both', async () => {
     const { token, userId } = await newSession()
     const key = crypto.randomUUID()
