@@ -12,7 +12,8 @@
     "language_hint": "És l'idioma que veuran per defecte les persones de la teva empresa.",
     "your_name": "El teu nom",
     "submit": "Crear empresa",
-    "cancel": "Cancel·lar"
+    "cancel": "Cancel·lar",
+    "back_to_companies": "Torna a les meves empreses"
   },
   "company_home": {
     "welcome": "Et donem la benvinguda a {{name}}"
@@ -31,5 +32,10 @@
     "idempotency_mismatch": "No s'ha pogut crear l'empresa. Torna-ho a provar.",
     "not_found": "No trobem aquesta empresa.",
     "too_many_creations": "Has creat massa empreses seguides. Espera una mica abans de crear-ne una altra."
+  },
+  "company_picker": {
+    "title": "Tria una empresa",
+    "signed_in_as": "Has entrat com a {{email}}",
+    "create": "Crear una empresa nova"
   }
 }

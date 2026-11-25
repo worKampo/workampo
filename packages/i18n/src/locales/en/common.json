@@ -4,5 +4,6 @@
   },
   "errors": {
     "unexpected": "Something went wrong. Try again."
-  }
+  },
+  "sign_out": "Sign out"
 }

@@ -4,5 +4,6 @@
   },
   "errors": {
     "unexpected": "Alguna cosa ha fallat. Torna-ho a provar."
-  }
+  },
+  "sign_out": "Tanca la sessió"
 }

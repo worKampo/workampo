@@ -4,5 +4,6 @@
   },
   "errors": {
     "unexpected": "Algo ha fallado. Vuelve a intentarlo."
-  }
+  },
+  "sign_out": "Cerrar sesión"
 }
