@@ -1,11 +1,11 @@
 import { Link, useNavigate } from '@tanstack/react-router'
-import { useNewCompanyPage } from '@workampo/app-core/companies/creation/new-company'
 import { LANGUAGES } from '@workampo/i18n'
 import { Button, buttonClassName } from '@workampo/ui/actions'
 import { Text } from '@workampo/ui/content'
 import { Field, Form, FormActions, Input, Select } from '@workampo/ui/forms'
 import { useTranslation } from 'react-i18next'
 import { inAppPath } from '../../../_shared/router/in-app-path'
+import { useNewCompanyPage } from './new-company.hook'
 
 const SLUG_MESSAGES = {
   available: { help: 'new_company.available', error: undefined },

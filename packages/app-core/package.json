@@ -5,14 +5,18 @@
   "exports": {
     "./api-client": "./src/_shared/api-client.ts",
     "./api-client-context": "./src/_shared/api-client-context.ts",
+    "./api-error": "./src/_shared/api-error.ts",
     "./errors": "./src/_shared/error-key.ts",
     "./session-expiry": "./src/_shared/session-expiry.ts",
     "./access/me": "./src/access/me.hook.ts",
     "./access/session/sign-out": "./src/access/session/sign-out/sign-out.hook.ts",
-    "./access/sign-in/code": "./src/access/sign-in/code/code.hook.ts",
-    "./access/sign-in/login": "./src/access/sign-in/login/login.hook.ts",
-    "./companies/creation/new-company": "./src/companies/creation/new-company/new-company.hook.ts",
-    "./companies/selection/company-picker": "./src/companies/selection/company-picker/company-picker.hook.ts",
+    "./access/sign-in/start-code": "./src/access/sign-in/start-code/start-code.hook.ts",
+    "./access/sign-in/start-code/form": "./src/access/sign-in/start-code/start-code.form.ts",
+    "./access/sign-in/verify-code": "./src/access/sign-in/verify-code/verify-code.hook.ts",
+    "./access/sign-in/verify-code/form": "./src/access/sign-in/verify-code/verify-code.form.ts",
+    "./companies/creation/check-slug": "./src/companies/creation/check-slug/check-slug.hook.ts",
+    "./companies/creation/create-company": "./src/companies/creation/create-company/create-company.hook.ts",
+    "./companies/creation/create-company/form": "./src/companies/creation/create-company/create-company.form.ts",
     "./companies/selection/list-my-companies": "./src/companies/selection/list-my-companies/list-my-companies.hook.ts",
     "./companies/workspace/read-context": "./src/companies/workspace/read-context/read-context.hook.ts"
   },
@@ -29,9 +33,7 @@
   "peerDependencies": {
     "@workampo/api": "workspace:*",
     "@tanstack/react-query": "^5.108.0",
-    "react": "^19.1.10",
-    "@hookform/resolvers": "^7.0.7",
-    "react-hook-form": "^7.92.0"
+    "react": "^19.1.10"
   },
   "devDependencies": {
     "@biomejs/biome": "2.6.7",
@@ -44,8 +46,6 @@
     "react": "19.1.10",
     "react-dom": "19.1.10",
     "typescript": "6.0.3",
-    "vitest": "5.1.0",
-    "@hookform/resolvers": "7.0.7",
-    "react-hook-form": "7.92.0"
+    "vitest": "5.1.0"
   }
 }

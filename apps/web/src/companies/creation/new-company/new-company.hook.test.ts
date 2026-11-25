@@ -1,7 +1,6 @@
 import { act, renderHook, waitFor } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
-import { problem, type Sent } from '../../../_shared/testing/fake-api'
-import { hookWrapper } from '../../../_shared/testing/hook-wrapper'
+import { hookWrapper, problem, type Sent } from '../../../_shared/testing/hook-wrapper'
 import { useNewCompanyPage } from './new-company.hook'
 
 type Field = 'name' | 'slug' | 'defaultLanguage' | 'userName'

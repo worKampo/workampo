@@ -1,7 +1,6 @@
 import { Link, useNavigate } from '@tanstack/react-router'
 import { useMe } from '@workampo/app-core/access/me'
 import { useSignOut } from '@workampo/app-core/access/session/sign-out'
-import { useCompanyPicker } from '@workampo/app-core/companies/selection/company-picker'
 import { buttonClassName } from '@workampo/ui/actions'
 import { Avatar, CardList, ListRowLink, Text } from '@workampo/ui/content'
 import { CardScreen } from '@workampo/ui/layout'
@@ -9,6 +8,7 @@ import { useTranslation } from 'react-i18next'
 import { SignOutButton } from '../../../_shared/components/sign-out-button'
 import { inAppPath } from '../../../_shared/router/in-app-path'
 import { RouterListRowLink } from '../../../_shared/router/router-list-row-link'
+import { useCompanyPicker } from './company-picker.hook'
 
 export function CompanyPickerPage() {
   const { t, i18n } = useTranslation('companies')
