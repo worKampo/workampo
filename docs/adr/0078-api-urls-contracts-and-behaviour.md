@@ -149,3 +149,4 @@ The comparison table is in issue 164.
 ## Updates
 
 - 2026-11-25 (issue 171): the gaps named in Consequences are closed: problem+json with `title` for malformed JSON, unknown `/api` paths and bodies over 100 KB, `Retry-After` on 429, and `no-store` and `nosniff` on every `/api` response.
+- 2026-11-25 (issue 172): the test over `app.routes` in `apps/api/src/index.int.test.ts` now asserts every row marked "check" in code conventions: methods, path shape and depth, parameter names with listed exceptions, 401 without a session, 404 to a non-member under `/api/t/:slug`, `no-store` and `nosniff`, `Idempotency-Key` on creating POSTs and the allowed error statuses; the "check (#172)" marks of rule 12.2 are now plain "check".

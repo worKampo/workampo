@@ -57,27 +57,27 @@ Entry, logic and data are apart at a glance; the role goes after a dot, as in `.
 
 ### API URLs and contracts (ADR-0078)
 
-Why and the guides behind each rule: [ADR-0078](../adr/0078-api-urls-contracts-and-behaviour.md). "Check" is tested over `app.routes` in `apps/api/src/index.int.test.ts`, which today covers the shape of the paths; "check (#172)" waits for issue 172 and is reviewed by hand until then; "review" is in [review](review.md).
+Why and the guides behind each rule: [ADR-0078](../adr/0078-api-urls-contracts-and-behaviour.md). "Check" is tested over `app.routes` in `apps/api/src/index.int.test.ts`: the paths and methods, and each route's answer without a session, from a non-member and without `Idempotency-Key`, and the statuses of the domain errors; "review" is in [review](review.md).
 
 | Topic | Rule | Example | Checked by |
 |---|---|---|---|
-| Company space | Only `/api/t/:slug/…`, behind session and membership | `GET /api/t/:slug/members` | check (path), check (#172) (membership) |
+| Company space | Only `/api/t/:slug/…`, behind session and membership | `GET /api/t/:slug/members` | check |
 | Outside a company | `/api/<plural>`; never `/api/companies/:x/…` on the app Worker | `POST /api/companies` | check |
 | Segments | kebab-case nouns, plural collections; path params `:id`, `:<x>Id`; query params camelCase like the JSON fields | `/units/:unitId/…?pageSize=50` | check (path), review (query) |
-| Depth | At most two ids after the tenant; a child of two parents is flat with a query filter | `/assignments?memberId=` | check (#172) (depth), review |
+| Depth | At most two ids after the tenant; a child of two parents is flat with a query filter | `/assignments?memberId=` | check (depth), review |
 | Singletons and aliases | No id: GET and PATCH, PUT for a binary one; an alias (`me` my item, `current` my session) takes the methods of its item | `/api/me`, `DELETE /t/:slug/members/me` | review |
-| Actions | A state change with its own rule, permission, log or conflict is `POST …/:id/<verb>`, the last segment only | `POST /t/:slug/units/:id/move` | check (#172) (last segment), review |
-| Methods | GET, POST, PATCH (merge), DELETE; PUT only for a binary singleton | `PUT /t/:slug/logo` | check (#172) |
-| Create | 201 with the resource; `Idempotency-Key` (UUID) required | `POST /api/companies` | check (#172) (key), review |
-| Not yours, not allowed | 404 with the same body for what you cannot see; 403 `<domain>.forbidden` for what you see but may not do | another company → 404 | check (#172) (tenant routes), review |
-| Invalid, conflict, limit | 400 `<domain>.<reason>` with optional `errors[{pointer, code}]`; 409 for state, last owner or stale `version`; 422 only for a reused key with another body; 429 with `Retry-After` | `companies.slug_taken` | check (#172) (status map), review |
-| Errors | Every `/api` 4xx and 5xx is problem+json with `type`, `title`, `status`, `code` | — | check (#172) |
+| Actions | A state change with its own rule, permission, log or conflict is `POST …/:id/<verb>`, the last segment only | `POST /t/:slug/units/:id/move` | check (last segment), review |
+| Methods | GET, POST, PATCH (merge), DELETE; PUT only for a binary singleton | `PUT /t/:slug/logo` | check |
+| Create | 201 with the resource; `Idempotency-Key` (UUID) required | `POST /api/companies` | check (key), review |
+| Not yours, not allowed | 404 with the same body for what you cannot see; 403 `<domain>.forbidden` for what you see but may not do | another company → 404 | check (tenant routes), review |
+| Invalid, conflict, limit | 400 `<domain>.<reason>` with optional `errors[{pointer, code}]`; 409 for state, last owner or stale `version`; 422 only for a reused key with another body; 429 with `Retry-After` | `companies.slug_taken` | check (status map), review |
+| Errors | Every `/api` 4xx and 5xx is problem+json with `type`, `title`, `status`, `code` | — | check (the routes' 400, 401 and 404), review |
 | Bodies | JSON objects, camelCase, every field present (`null`, `[]`); built field by field; strict requests | `{ "logoUrl": null }` | review |
 | Types | UUIDv7 ids; `…At` ISO UTC; `…On` `YYYY-MM-DD`; `amountCents` and `currency`; snake_case enums | `createdAt` | review |
 | Lists | `page` (from 1) and `pageSize` (50, at most 100) → `{ items, total }`, the same names in the web's URL and the API; only the repo turns them into `offset`; a very large table may take a cursor (`pageSize` and `cursor` in the web's URL and the API, sorted by immutable fields) → `{ items, nextCursor }` by an ADR Update; filters by field name, `q`, `sort=-field` | API `GET /api/t/:slug/members?page=2&pageSize=50`; web `/c/:slug/members?page=2&pageSize=50` | review |
 | Edits | PATCH with `version`; a mismatch is 409 `<domain>.stale_version` | — | review |
 | Bulk and long work | `{ items }` up to 50, all or nothing; long work 202 with `Location: …/jobs/:id` | `POST /t/:slug/invitations` | review |
-| Headers | `Cache-Control: no-store`, `nosniff`; the request id is `cf-ray`; no personal data in logs | — | check (#172) (headers) |
+| Headers | `Cache-Control: no-store`, `nosniff`; the request id is `cf-ray`; no personal data in logs | — | check (headers), review (logs) |
 | Evolution | Only add; deprecate with `Deprecation` and `Sunset`; no version in the URL | — | review |
 
 ### Web routing (the person, 2026-11-22)
