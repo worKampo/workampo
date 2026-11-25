@@ -99,3 +99,29 @@ it('throws on /__debug/error with ENABLE_DEBUG_ERROR', async () => {
 
   expect(response.status).toBe(500)
 })
+
+// docs/process/code-conventions.md, "API URLs".
+it('every API route follows the URL rules', () => {
+  const segment = /^([a-z0-9]+(-[a-z0-9]+)*|:[a-z][a-zA-Z]*)$/
+  const broken = app.routes
+    // Middleware such as csrf() registers wildcard paths; only endpoints name a resource.
+    .filter((route) => route.method !== 'ALL' && !route.path.includes('*'))
+    .map((route) => route.path)
+    .filter((path) => path.startsWith('/api/'))
+    .filter((path) => {
+      const [first, ...rest] = path.slice('/api/'.length).replace(/\/$/, '').split('/')
+      const isTenant = first === 't' && rest[0] === ':slug'
+      const isCollection = first === 'me' || first?.endsWith('s')
+      const opensCompanyItem = first === 'companies' && rest[0]?.startsWith(':')
+      const segments = [first, ...rest]
+
+      return (
+        !segments.every((part) => part !== undefined && segment.test(part)) ||
+        !(isTenant || isCollection) ||
+        opensCompanyItem ||
+        (!isTenant && segments.some((part) => part === ':slug'))
+      )
+    })
+
+  expect(broken).toEqual([])
+})

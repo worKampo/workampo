@@ -55,6 +55,15 @@ Entry, logic and data are apart at a glance; the role goes after a dot, as in `.
 - **Data** `<table>.<provider>.repo.ts`, one per table, all in `<domain>/data/`: only Drizzle, no rules; the only files that touch the database (dependency-cruiser). A repo may also hold an atomic write across the domain's tables (`sign-in.d1.repo.ts`). A domain reads only its own tables: another domain asks its logic.
 - Inside a use case's folder every file carries the use case's name (`verify-code.route.ts`, `verify-code.logic.ts`, `verify-code.int.test.ts`). HTTP helpers of a feature also say their role: `session.cookie.ts`, `require-session.middleware.ts`.
 
+### API URLs (the person, 2026-11-25)
+
+Minimal rules until spike #164 settles the rest. A test in `apps/api/src/index.int.test.ts` checks them over `app.routes`.
+
+- **Inside a company:** only `/api/t/:slug/<resource>…`, always behind `requireMember` (ADR-0006).
+- **Outside a company:** `/api/<resource>`, plural and kebab-case (`POST /api/companies`). An operation on a collection is a sub-path or a query of the collection (`GET /api/companies/availability?slug=…`); never `/api/companies/:x/…`, which would open a second space per company beside `/api/t/:slug`.
+- **Actions:** a verb only as the last segment (`POST /api/t/:slug/invitations/:id/resend`).
+- `/api/me` is the one singular resource: the signed-in account.
+
 ### Web routing (the person, 2026-11-22)
 
 `main.tsx` → `_shared/providers/app-providers.tsx` → `_shared/router/` → `route-tree.ts` → `<domain>/<domain>.route.ts` → `<feature>/<feature>.route.ts` → pages.
@@ -101,7 +110,7 @@ A file is not named only by its kind when that name repeats in other folders: `s
 | Internal packages | `@workampo/…` | `@workampo/db` |
 | Tables, columns | plural, `snake_case` | `invitations`, `expires_at` |
 | Migrations | number + verb + object | `0007_create_invitations.sql` |
-| API routes | plural, kebab-case | `POST /api/t/:slug/invitations/:id/resend` |
+| API routes | plural, kebab-case ([API URLs](#api-urls-the-person-2026-11-25)) | `POST /api/t/:slug/invitations/:id/resend` |
 | Error codes | `domain.reason` | `companies.invitation_expired` |
 | i18n keys | `domain.screen.element` | `companies.members.invite_button` |
 | Analytics events | `object_action` | `member_invited` |
