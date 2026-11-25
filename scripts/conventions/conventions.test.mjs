@@ -38,9 +38,7 @@ test('a folder with more than 8 code files fails; tests do not count', () => {
   assert.deepEqual(rules.folderSizeErrors(folder('scripts/checks', 14, '.mjs')), [])
 })
 
-test('an app-core hook folder needs its API twin; hooks at the domain root are exempt', {
-  todo: true,
-}, () => {
+test('an app-core hook folder needs its API twin; hooks at the domain root are exempt', () => {
   const app = 'packages/app-core/src'
   const api = 'apps/api/src'
 
@@ -62,9 +60,7 @@ test('an app-core hook folder needs its API twin; hooks at the domain root are e
   )
 })
 
-test('repos live only in _repo/ and API clients only in _api/; _shared/ is out', {
-  todo: true,
-}, () => {
+test('repos live only in _repo/ and API clients only in _api/; _shared/ is out', () => {
   assert.equal(rules.layerFolderErrors(['apps/api/src/access/data/member.d1.repo.ts']).length, 1)
   assert.deepEqual(rules.layerFolderErrors(['apps/api/src/access/_repo/member.d1.repo.ts']), [])
   assert.equal(rules.layerFolderErrors(['packages/app-core/src/access/data/me.api.ts']).length, 1)

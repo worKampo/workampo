@@ -26,7 +26,7 @@ module.exports = {
         'packages/app-core is shared with the mobile app: no react-dom, nothing of apps/web (ADR-0057).',
       severity: 'error',
       from: { path: '^packages/app-core/', pathNot: '\\.test\\.ts$' },
-      // Nor the router: a page hook gets navigation as a callback, so the mobile app can reuse it.
+      // Nor the router: the mobile app has its own navigation.
       to: {
         path: [
           '(^|node_modules/)react-dom(/|$)',
