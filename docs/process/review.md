@@ -38,7 +38,7 @@ What the check over `app.routes` cannot see ([ADR-0078](../adr/0078-api-urls-con
 - The noun matches the [glossary](../glossary.md); nested or flat; an action or a PATCH.
 - 404 or 403 in the logic's branches; the status chosen inside the logic.
 - The response mapped field by field, every field present, `null` against `[]`.
-- A new list pages (offset by default); a cursor only through an ADR Update.
+- A new list pages with `page` and `size` (only the repo knows the offset); a cursor only through an ADR Update.
 - PATCH with merge semantics and `version`; bulk limits; long work sent to a Workflow.
 - Changes only add: no field, code or endpoint removed without `Deprecation`.
 

@@ -12,7 +12,7 @@ The only rules were "plural, kebab-case" ([ADR-0053](0053-code-conventions.md)),
 
 ## Decision
 
-Decided by the person on 2026-11-25 (spike #164): offset pages by default, with cursors kept for very large tables, and `page` and `size` in the web's own URLs; `version` and 409 for concurrent edits; 404 for what the caller cannot see and 403 for what they see but may not do; the caller's companies at `GET /api/companies`.
+Decided by the person on 2026-11-25 (spike #164): numbered pages by default, with `page` and `size` in the web and the API alike and cursors kept for very large tables; `version` and 409 for concurrent edits; 404 for what the caller cannot see and 403 for what they see but may not do; the caller's companies at `GET /api/companies`.
 
 ### 1. URLs
 
@@ -68,12 +68,11 @@ Decided by the person on 2026-11-25 (spike #164): offset pages by default, with 
 ### 5. Lists
 
 1. Every GET on a collection pages from its first version: adding pages later breaks clients (Google AIP-158).
-2. **Offset by default** (the person, 2026-11-25): `?limit=&offset=`, `limit` 50 by default and at most 100 (more is capped, not refused), and the answer `{ items, total }`. It feeds the numbered pager of the design system ("Showing 1–6 of 6").
-3. **Cursor for a very large table**, chosen per endpoint with a dated Update of this ADR: `?limit=&cursor=` and the answer `{ items, nextCursor }`, `nextCursor` a string or `null`, opaque and never built by the client, with no total. Zalando, Google and Stripe use it because it neither skips nor repeats rows when the list changes between pages and it stays fast on large tables.
+2. **Numbered pages by default** (the person, 2026-11-25): `?page=&size=`, `page` from 1, `size` 50 by default and at most 100 (more is capped, not refused), and the answer `{ items, total }`. The web's own URL uses the same names (`/c/northwind/members?page=2&size=50`), so one name goes end to end (ADR-0053); only the repo turns them into the engine's `offset = (page - 1) × size`. It feeds the numbered pager of the design system ("Showing 1–6 of 6"). Deviation from the guides that page by offset with `limit` and `offset` (Microsoft `top` and `skip`): no screen asks for an arbitrary row, and one vocabulary from the URL to the repo is worth more.
+3. **Cursor for a very large table**, chosen per endpoint with a dated Update of this ADR: `?size=&cursor=` and the answer `{ items, nextCursor }`, `nextCursor` a string or `null`, opaque and never built by the client, with no total. Zalando, Google and Stripe use it because it neither skips nor repeats rows when the list changes between pages and it stays fast on large tables.
 4. Filters are plain query fields named like the response field (`?status=active&unitId=…`); `q` is the free-text search over the normalised column (ADR-0053).
 5. `sort=field` or `sort=-field`, only on allowlisted fields, with a stable default order and `id` as the tie-breaker.
 6. No filter expression language (Google AIP-160) until a real need.
-7. **The web's own URL speaks of pages** (the person, 2026-11-25): what the person sees and shares is `/c/northwind/members?page=2&size=50`, with `page` from 1 and `size` one of the sizes the pager offers; the client turns it into `limit=size` and `offset=(page - 1) × size` for the API. The API keeps `limit` and `offset`, which every guide that pages by offset uses and which a cursor endpoint shares (`limit`).
 
 ### 6. Errors
 
