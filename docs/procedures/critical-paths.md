@@ -10,9 +10,13 @@ Each line is `- ` followed by one glob in backticks, then a dash and the reason.
 
 - `packages/db/migrations/**` - schema and data migrations ([ADR-0033](../adr/0033-expand-contract-migrations.md)).
 - `apps/*/src/_shared/identity/**` - identity providers and login (the session lives under `apps/api/src/access/**`).
-- `apps/*/src/_shared/rate-limit/**` - limits on sign-in codes and attempts.
+- `apps/*/src/_shared/rate-limit/**` - limits on sign-in codes and attempts and on company creation.
 - `apps/api/src/_shared/tenancy/**` - tenant resolution and the shard client, the base of isolation.
 - `apps/api/src/companies/require-member.middleware.ts` - the membership check on every company route (isolation).
+- `apps/api/src/companies/data/member.d1.repo.ts` - the one query that decides company access (isolation).
+- `apps/api/src/companies/workspace/workspace.router.ts` - mounts every company route behind the membership check (isolation).
+- `apps/api/src/_shared/db/d1-shard-db.ts` - the only reader of the shard bindings, fails closed on an unknown one (isolation).
+- `apps/api/e2e/acceptance/isolation.e2e.ts` - the suite that proves a foreign session gets 404 on every company route.
 - `packages/domain/src/companies/**` - company creation rules.
 - `packages/domain/src/_shared/slug.ts` - tenant slug rules, which tenancy validates with.
 - `apps/api/src/access/**` - tenant isolation, permissions and the session (the web's screens are not critical; the person, 2026-11-23).
