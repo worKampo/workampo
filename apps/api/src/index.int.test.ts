@@ -535,6 +535,8 @@ function failingApp() {
 }
 
 async function failWith(path: string, headers: Record<string, string> = {}) {
+  // Sentry caches one client per isolate under this key; an earlier test's has no DSN and would win.
+  Reflect.deleteProperty(globalThis, '__SENTRY_CLOUDFLARE_CLIENT__')
   const ctx = createExecutionContext()
   const response = await failingApp().request(
     `${ORIGIN}${path}`,
@@ -587,7 +589,7 @@ const failureLogs = (spy: { mock: { calls: unknown[][] } }) =>
     .filter((item) => !!item && typeof item === 'object' && 'reference' in item)
 
 describe('the error reference', () => {
-  it.fails('R4 a failing /api route keeps no-store, nosniff and problem+json, with its reference', async () => {
+  it('R4 a failing /api route keeps no-store, nosniff and problem+json, with its reference', async () => {
     vi.spyOn(console, 'error').mockImplementation(() => {})
     spySentry()
 
@@ -603,7 +605,7 @@ describe('the error reference', () => {
     })
   })
 
-  it.fails('R5 R6 the log and Sentry carry the body reference, and neither the query nor the message', async () => {
+  it('R5 R6 the log and Sentry carry the body reference, and neither the query nor the message', async () => {
     const error = vi.spyOn(console, 'error').mockImplementation(() => {})
     const envelopes = spySentry()
 
@@ -627,7 +629,7 @@ describe('the error reference', () => {
     expect(event?.request?.url ?? '').not.toContain('returnTo')
   })
 
-  it.fails('R5 a cf-ray that is not in the shape of Cloudflare is logged as null', async () => {
+  it('R5 a cf-ray that is not in the shape of Cloudflare is logged as null', async () => {
     const error = vi.spyOn(console, 'error').mockImplementation(() => {})
     spySentry()
 
@@ -643,7 +645,7 @@ describe('the error reference', () => {
     ])
   })
 
-  it.fails('R5 inside a company the log carries its id, never its slug', async () => {
+  it('R5 inside a company the log carries its id, never its slug', async () => {
     const owner = await newSession()
     const slug = await createCompany(owner)
     const error = vi.spyOn(console, 'error').mockImplementation(() => {})

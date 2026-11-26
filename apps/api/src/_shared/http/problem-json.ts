@@ -28,10 +28,18 @@ const REASON_PHRASES: Record<number, string> = {
 }
 
 // RFC 9457 with the stable `code` the interface translates.
-export function problemJson({ code, status }: { code: ErrorCode; status: number }): Response {
+export function problemJson({
+  code,
+  status,
+  reference,
+}: {
+  code: ErrorCode
+  status: number
+  reference?: string
+}): Response {
   const title = REASON_PHRASES[status]
 
-  return new Response(JSON.stringify({ type: 'about:blank', title, status, code }), {
+  return new Response(JSON.stringify({ type: 'about:blank', title, status, code, reference }), {
     status,
     headers: { 'Content-Type': 'application/problem+json' },
   })

@@ -3,26 +3,6 @@ import { expect, it, vi } from 'vitest'
 import { apiOnError } from './api-behaviour'
 import type { AppEnv } from './app-env'
 
-it('an unexpected error under /api answers 500 problem+json with no detail', async () => {
-  vi.spyOn(console, 'error').mockImplementation(() => {})
-  const app = new Hono<AppEnv>()
-    .get('/api/boom', () => {
-      throw new Error('secret detail')
-    })
-    .onError(apiOnError)
-
-  const response = await app.request('/api/boom')
-
-  expect(response.status).toBe(500)
-  expect(response.headers.get('Content-Type')).toContain('application/problem+json')
-  expect(await response.json()).toEqual({
-    type: 'about:blank',
-    title: 'Internal Server Error',
-    status: 500,
-    code: 'api.unexpected',
-  })
-})
-
 it('an unexpected error outside /api keeps the plain 500', async () => {
   vi.spyOn(console, 'error').mockImplementation(() => {})
   const app = new Hono<AppEnv>()
@@ -64,7 +44,7 @@ function failureLogs(spy: { mock: { calls: unknown[][] } }) {
   })
 }
 
-it.fails('R3 the 500 under /api has exactly type, title, status, code and reference, and no detail', async () => {
+it('R3 the 500 under /api has exactly type, title, status, code and reference, and no detail', async () => {
   const error = vi.spyOn(console, 'error').mockImplementation(() => {})
 
   const response = await failingApp().request('/api/boom')
@@ -86,7 +66,7 @@ it.fails('R3 the 500 under /api has exactly type, title, status, code and refere
   expect(error).toHaveBeenCalled()
 })
 
-it.fails('R1 two identical failures get different references', async () => {
+it('R1 two identical failures get different references', async () => {
   vi.spyOn(console, 'error').mockImplementation(() => {})
   const app = failingApp()
 
@@ -98,7 +78,7 @@ it.fails('R1 two identical failures get different references', async () => {
   expect(first.reference).not.toBe(second.reference)
 })
 
-it.fails('R6 the body and the log carry the same reference, once per failure', async () => {
+it('R6 the body and the log carry the same reference, once per failure', async () => {
   const error = vi.spyOn(console, 'error').mockImplementation(() => {})
 
   const body = await (await failingApp().request('/api/boom')).json<{ reference: string }>()
@@ -108,7 +88,7 @@ it.fails('R6 the body and the log carry the same reference, once per failure', a
   expect(logs[0]).toMatchObject({ reference: body.reference })
 })
 
-it.fails('W2 a 500 outside /api stays generic text/plain, and its reference is still logged', async () => {
+it('W2 a 500 outside /api stays generic text/plain, and its reference is still logged', async () => {
   const error = vi.spyOn(console, 'error').mockImplementation(() => {})
 
   const response = await failingApp().request('/auth/boom?returnTo=/c/northwind')
