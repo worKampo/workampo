@@ -1,16 +1,11 @@
 import { cleanup, renderHook } from '@testing-library/react'
 import type { ReactNode } from 'react'
 import { afterEach, expect, it } from 'vitest'
-
-// A specifier Vite does not resolve ahead, so the file loads before T6 creates the module; turn it
-// into a static import when the it.fails marks go.
-const MODULE = './document-title'
-const load = () => import(/* @vite-ignore */ MODULE)
+import { DocumentTitleProvider, useDocumentTitle } from './document-title'
 
 afterEach(cleanup)
 
-it.fails('@id:companies-92-10 inside a company the title names the page, the company and the app', async () => {
-  const { DocumentTitleProvider, useDocumentTitle } = await load()
+it('@id:companies-92-10 inside a company the title names the page, the company and the app', () => {
   const wrapper = ({ children }: { children: ReactNode }) => (
     <DocumentTitleProvider company="Northwind Logistics">{children}</DocumentTitleProvider>
   )
@@ -20,16 +15,13 @@ it.fails('@id:companies-92-10 inside a company the title names the page, the com
   expect(document.title).toBe('Inicio · Northwind Logistics · worKampo')
 })
 
-it.fails('@id:companies-92-10 outside a company the title names the page and the app', async () => {
-  const { useDocumentTitle } = await load()
-
+it('@id:companies-92-10 outside a company the title names the page and the app', () => {
   renderHook(() => useDocumentTitle('Elige una empresa'))
 
   expect(document.title).toBe('Elige una empresa · worKampo')
 })
 
-it.fails('@id:companies-92-10 the title follows the page', async () => {
-  const { useDocumentTitle } = await load()
+it('@id:companies-92-10 the title follows the page', () => {
   const { rerender } = renderHook(({ page }) => useDocumentTitle(page), {
     initialProps: { page: 'Inicio' },
   })
