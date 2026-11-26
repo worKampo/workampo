@@ -69,7 +69,8 @@ shadcn `Input`, `Select`, `Textarea`, `InputGroup`, `Label`.
 
 shadcn `Card`.
 
-- Card: `--surface`, 1 px `--border`, radius 12. Padding 20 (16 on phone); with a header: head 16 16 8, body 0 16 16.
+- Card: `--surface`, 1 px `--border`, radius 12. Padding 20 (16 on phone); with a header: head 16 16 8, body 0 16 16. `heading` titles a card inside a page with an `h2` (weight 600 `--text`) 12 above its content.
+- Description list: `DescriptionList` (content family), a `<dl>` of term (`--text-2`) and details (`--text`) side by side, 13 px, gap 12, wrapping on a narrow screen; `dir` fixes the details' direction (`ltr` for an address).
 - Stat (KPI): card with padding 16, label in meta, value 24/32 weight 600. When the KPI filters the list below, it is a `<button>` with `aria-pressed`; pressed shows a `--text` border + 1 px ring. The group has `aria-label="Summary, click to filter"`. A KPI that does not filter is a plain card.
 - KPI grid: 4 columns on desktop, 2 on touch, gap 16 / 12.
 
@@ -190,7 +191,11 @@ Ink background (`--text`) with `--bg` text, so they read as system feedback in b
 
 ## Layout
 
-Shell, sidebar, topbar and page head are not catalogued yet.
+Shell, sidebar and topbar are not catalogued yet.
+
+### Page
+
+Custom (`Page` in `packages/ui/src/layout/`). A page inside the app shell: its `h1` (20 px weight 600 `--text`, `dir="auto"`, breaking long names anywhere) and its content stacked 24 apart; `align="start"` keeps the content at its own width (a lone action).
 
 ### Card screen
 

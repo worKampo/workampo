@@ -1,4 +1,5 @@
 export { Avatar } from './avatar'
 export { Card } from './card'
+export { DescriptionList } from './description-list'
 export { CardList, ListRowLink } from './list-row'
 export { Text } from './text'

@@ -15,7 +15,6 @@
     "back_to_companies": "Back to my companies"
   },
   "company_home": {
-    "welcome": "Welcome to {{name}}",
     "title": "Welcome to {{name}}",
     "addresses": "Your addresses",
     "app_address": "App"

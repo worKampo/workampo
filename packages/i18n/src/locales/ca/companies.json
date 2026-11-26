@@ -15,7 +15,6 @@
     "back_to_companies": "Torna a les meves empreses"
   },
   "company_home": {
-    "welcome": "Et donem la benvinguda a {{name}}",
     "title": "Et donem la benvinguda a {{name}}",
     "addresses": "Les teves adreces",
     "app_address": "App"

@@ -13,7 +13,6 @@
   },
   "company_home": {
     "_screen": "The first screen inside a company: a welcome with the company name.",
-    "welcome": "{{name}} is the company name, rendered as plain text.",
     "title": "Heading of the company home; {{name}} is the full company name, rendered as plain text.",
     "addresses": "Heading of the card listing the addresses where the company is reached.",
     "app_address": "Label of the row with the address of the app; a product word, usually left as is."
