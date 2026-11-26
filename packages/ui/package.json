@@ -8,7 +8,9 @@
     "./forms": "./src/forms/forms.ts",
     "./content": "./src/content/content.ts",
     "./brand": "./src/brand/brand.ts",
-    "./layout": "./src/layout/layout.ts"
+    "./layout": "./src/layout/layout.ts",
+    "./overlays": "./src/overlays/overlays.ts",
+    "./feedback": "./src/feedback/feedback.ts"
   },
   "scripts": {
     "typecheck": "tsc",
@@ -16,8 +18,10 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@workampo/domain": "workspace:*",
-    "@fontsource/ibm-plex-sans": "5.3.0"
+    "@fontsource/ibm-plex-sans": "5.3.0",
+    "@radix-ui/react-dropdown-menu": "2.2.1",
+    "@radix-ui/react-tooltip": "1.4.1",
+    "@workampo/domain": "workspace:*"
   },
   "peerDependencies": {
     "react": "^19.1.10"

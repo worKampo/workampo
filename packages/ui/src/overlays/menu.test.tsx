@@ -1,13 +1,9 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { expect, it, vi } from 'vitest'
 
-// A specifier Vite does not resolve ahead, so the file loads before T2 creates the module; turn it
-// into a static import when the it.fails marks go.
-const MODULE = './menu'
-const load = () => import(/* @vite-ignore */ MODULE)
+import { Menu, MenuContent, MenuHeader, MenuItem, MenuSeparator, MenuTrigger } from './menu'
 
 async function renderAccountMenu({ onSignOut = () => {}, busy = false } = {}) {
-  const { Menu, MenuContent, MenuHeader, MenuItem, MenuSeparator, MenuTrigger } = await load()
   render(
     <Menu>
       <MenuTrigger aria-label="Cuenta: Ana">Ana</MenuTrigger>
@@ -25,7 +21,7 @@ async function renderAccountMenu({ onSignOut = () => {}, busy = false } = {}) {
   return screen.getByRole('button', { name: 'Cuenta: Ana' })
 }
 
-it.fails('@id:companies-92-5 Enter opens the menu on its first item and Esc closes it back on the trigger', async () => {
+it('@id:companies-92-5 Enter opens the menu on its first item and Esc closes it back on the trigger', async () => {
   const trigger = await renderAccountMenu()
   trigger.focus()
 
@@ -40,7 +36,7 @@ it.fails('@id:companies-92-5 Enter opens the menu on its first item and Esc clos
   expect(document.activeElement).toBe(trigger)
 })
 
-it.fails('@id:companies-92-5 ArrowUp opens the menu on its last item', async () => {
+it('@id:companies-92-5 ArrowUp opens the menu on its last item', async () => {
   const trigger = await renderAccountMenu()
   trigger.focus()
 
@@ -51,7 +47,7 @@ it.fails('@id:companies-92-5 ArrowUp opens the menu on its last item', async () 
   )
 })
 
-it.fails('@id:companies-92-5 the header is not an item and the separator divides it from the items', async () => {
+it('@id:companies-92-5 the header is not an item and the separator divides it from the items', async () => {
   const trigger = await renderAccountMenu()
 
   fireEvent.keyDown(trigger, { key: 'Enter' })
@@ -65,7 +61,7 @@ it.fails('@id:companies-92-5 the header is not an item and the separator divides
   expect(screen.getByRole('separator')).toBeTruthy()
 })
 
-it.fails('@id:companies-92-5 a busy item is aria-disabled, keeps the menu open and does not run again', async () => {
+it('@id:companies-92-5 a busy item is aria-disabled, keeps the menu open and does not run again', async () => {
   const onSignOut = vi.fn()
   const trigger = await renderAccountMenu({ onSignOut, busy: true })
   fireEvent.keyDown(trigger, { key: 'Enter' })
