@@ -26,7 +26,7 @@ shadcn `Button`. Height 36 / 44, small 32 / 40, padding 0 16 (small 0 12), radiu
 | Subtle | Transparent, 1 px transparent border; hover 1 px `--border-hard` like Secondary; on touch (no hover) always a soft 1 px `--border` | new `subtle` | Icon-only actions inside content, like copying the error reference |
 | Danger | `--neg` fill, `--on-neg` text | `destructive` | Final confirm of a destructive action |
 | Danger outline | `--neg-border` border, `--neg` text; hover fills `--neg` | new `destructive-outline` | Opens a destructive flow (Remove member…) |
-| Icon-only | Square 36 / 44 (small 32 / 40), any variant | `size="icon"` | Secondary page actions and row menus |
+| Icon-only | Square 32 / 44, any variant | `size="icon"` | Secondary page actions and row menus |
 
 - Icon-only buttons always have `aria-label` and a tooltip with the same text.
 - One primary per view. Discard (drop unsaved edits) is not Cancel (close without acting).
@@ -174,6 +174,7 @@ Custom (`ErrorReference` in `packages/ui`, feedback family). The [error referenc
 - **E2 copy failed.** The reference is selected and a line «No se ha podido copiar. Selecciona la referencia y cópiala.» appears under it with `role="alert"`.
 - **E3 long reference.** It breaks, and the button moves to the next line.
 - Only a reference that matches the format `XXXX-XXXX` (Crockford base32) reaches it: the caller drops anything else.
+- The web's 500 loads it lazily, so its tooltip stays out of the entry bundle: a reference only exists when the API answered, so the app's code was loading. Until it loads, or if it fails to, the line shows as plain selectable text without the button (ticket 93).
 
 ## Overlays
 
