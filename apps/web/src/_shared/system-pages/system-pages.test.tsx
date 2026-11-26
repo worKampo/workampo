@@ -1,8 +1,11 @@
-import { cleanup, configure, screen, waitFor } from '@testing-library/react'
+import { createRoute } from '@tanstack/react-router'
+import { cleanup, configure, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { initI18n } from '../i18n/i18n'
+import { rootRoute } from '../router/root-route'
 import { problem, renderApp } from '../testing/render-app'
+import { PlainReference } from './system-pages'
 
 // Ticket 93: the root's 404 and 500 (docs/design/components.md, "System page" and "Error reference").
 configure({ asyncUtilTimeout: 5000 })
@@ -12,6 +15,26 @@ beforeAll(async () => {
 })
 
 afterEach(cleanup)
+
+// Test-only routes that fail outside the API client. addChildren replaces the root's children in
+// place, so renderApp's routeTree (the root itself) gets them too.
+rootRoute.addChildren([
+  ...(rootRoute.children as never[]),
+  createRoute({
+    getParentRoute: () => rootRoute,
+    path: '/boom-loader',
+    loader: () => {
+      throw new Error('internal-detail')
+    },
+  }),
+  createRoute({
+    getParentRoute: () => rootRoute,
+    path: '/boom-render',
+    component: () => {
+      throw new Error('internal-detail')
+    },
+  }),
+])
 
 // A made-up reference (ADR-0043).
 const REFERENCE = '7F3K-92QD'
@@ -136,6 +159,21 @@ describe('the root 500', () => {
     expect(screen.getByRole('button', { name: 'Reintentar' })).toBeTruthy()
   }, 15_000)
 
+  it.each([
+    ['a route loader', '/boom-loader'],
+    ['a component while rendering', '/boom-render'],
+  ])('W1 an error thrown by %s shows no message, no stack and no reference', async (_, path) => {
+    renderApp({ path, answer: me })
+
+    await screen.findByRole('heading', FAILED)
+
+    const text = document.body.textContent ?? ''
+    expect(text).not.toContain('internal-detail')
+    expect(text).not.toContain('at ')
+    expect(text).not.toContain('Referencia')
+    expect(screen.queryByRole('button', { name: 'Copiar la referencia' })).toBeNull()
+  })
+
   it('decision 2: an unexpected 4xx shows the 500 with no reference, even if it brings one', async () => {
     renderApp({
       path: '/c/northwind',
@@ -152,4 +190,10 @@ describe('the root 500', () => {
     expect(document.body.textContent).not.toContain(REFERENCE)
     expect(document.body.textContent).not.toContain('Referencia')
   })
+})
+
+it('PlainReference shows the reference after the line when a translation lacks it', () => {
+  render(<PlainReference reference={REFERENCE} labels={{ line: 'Referencia:' }} />)
+
+  expect(screen.getByText(REFERENCE).parentElement?.textContent).toBe(`Referencia: ${REFERENCE}`)
 })

@@ -1,7 +1,6 @@
+import { ERROR_REFERENCE } from '@workampo/domain/_shared/api-errors'
 import { afterEach, expect, it, vi } from 'vitest'
 import { newErrorReference } from './error-reference'
-
-const ERROR_REFERENCE = /^[0-9A-HJKMNP-TV-Z]{4}-[0-9A-HJKMNP-TV-Z]{4}$/
 
 afterEach(() => {
   vi.restoreAllMocks()

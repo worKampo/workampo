@@ -6,12 +6,15 @@ export function Tooltip({
   content,
   side = 'bottom',
   disabled = false,
+  forceOpen = false,
   children,
 }: {
   content: ReactNode
   side?: TooltipPrimitive.TooltipContentProps['side']
   // Keeps the trigger mounted while the tooltip may not open, so a focused trigger keeps its focus.
   disabled?: boolean
+  // Holds it open whatever the trigger does, e.g. to confirm a click that Radix would close it on.
+  forceOpen?: boolean
   children: ReactNode
 }) {
   // Controlled, so a tooltip re-enabled while hovered does not pop up without a new interaction.
@@ -21,7 +24,7 @@ export function Tooltip({
   return (
     <TooltipPrimitive.Provider delayDuration={300}>
       <TooltipPrimitive.Root
-        open={!disabled && open}
+        open={!disabled && (forceOpen || open)}
         onOpenChange={(next) => setOpen(!disabled && next)}
       >
         <TooltipPrimitive.Trigger asChild>{children}</TooltipPrimitive.Trigger>

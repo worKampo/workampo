@@ -30,7 +30,7 @@ export function CardScreen({
           <h1
             ref={heading}
             tabIndex={focusTitle ? -1 : undefined}
-            className="text-xl font-semibold text-text"
+            className={`text-xl font-semibold text-text${focusTitle ? ' outline-none' : ''}`}
           >
             {title}
           </h1>

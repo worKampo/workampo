@@ -92,6 +92,23 @@ describe('ErrorReference', () => {
     )
   })
 
+  it('E1 F1 the tooltip stays open with «Copiada» after the click, without a new focus', async () => {
+    stubClipboard(async () => {})
+    const button = await renderReference()
+    fireEvent.focus(button)
+    await screen.findByRole('tooltip')
+
+    await copy(button)
+
+    await waitFor(() => expect(screen.getByRole('tooltip').textContent).toBe('Copiada'))
+  })
+
+  it('shows the reference after the line when a translation lacks it', () => {
+    render(<ErrorReference reference={REFERENCE} labels={{ ...LABELS, line: 'Referencia:' }} />)
+
+    expect(screen.getByText(REFERENCE).parentElement?.textContent).toBe(`Referencia: ${REFERENCE}`)
+  })
+
   it('E2 a failed copy selects the reference and says so in an alert, with the focus kept', async () => {
     stubClipboard(async () => {
       throw new Error('denied')

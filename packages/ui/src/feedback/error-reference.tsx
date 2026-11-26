@@ -41,7 +41,7 @@ export function ErrorReference({ reference, labels }: { reference: string; label
 
   return (
     <div className="flex flex-col gap-1">
-      <div className="flex flex-wrap items-center gap-1">
+      <div className="flex flex-wrap items-center gap-2">
         <Text size="xs" tone="muted" className="min-w-0">
           {before}
           <code ref={code} dir="ltr" translate="no" className="select-all break-all">
@@ -49,7 +49,7 @@ export function ErrorReference({ reference, labels }: { reference: string; label
           </code>
           {after}
         </Text>
-        <Tooltip content={copied ? labels.copied : labels.copy}>
+        <Tooltip content={copied ? labels.copied : labels.copy} forceOpen={copied}>
           <Button variant="subtle" size="icon" aria-label={labels.copy} onClick={copy}>
             {copied ? <CheckIcon /> : <CopyIcon />}
           </Button>
@@ -67,6 +67,7 @@ export function ErrorReference({ reference, labels }: { reference: string; label
   )
 }
 
+// A translation that lost the reference still shows it, after the line.
 function splitAround(line: string, reference: string): [string, string] {
   const at = line.indexOf(reference)
   if (at === -1) return [`${line} `, '']
