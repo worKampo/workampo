@@ -86,7 +86,7 @@ shadcn `Card`.
 
 ### Avatars
 
-`Avatar` in `packages/ui` (content family). The company logo in the shell is the `company` avatar, with the initials palette (E5), as in the company picker. Initials and colour come from `packages/domain/src/_shared/avatar.ts`, so web, mobile and emails agree.
+`Avatar` in `packages/ui` (content family). The company logo in the shell is the `company` avatar, with the initials palette, as in the company picker. Initials and colour come from `packages/domain/src/_shared/avatar.ts`, so web, mobile and emails agree.
 
 ```tsx
 <Avatar kind="person" name={user.name ?? user.email} />
@@ -159,7 +159,7 @@ shadcn `Progress`. Progress 8 high radius 4; compact usage bar (sidebar "Members
 
 ### App loader
 
-Custom (`AppLoader` in `packages/ui`, feedback family). The logo mark in ink, 48 px, centred on `--bg`, with a bead cut into the arc that slides along it and back (1.6 s, ease-in-out). Only while there is no layout to draw yet: the first load, after sign-in and when switching company; it appears after about 300 ms. Inside a screen, a skeleton. `role="status"` with `aria-label="Loading"`. With `prefers-reduced-motion` the bead stays still at the top of the arc. `apps/web/index.html` has a static copy of its markup in `#root`, shown before the bundle runs; its styles are the `app-loader` classes in `styles.css`, not inline, because of the CSP ([patterns](patterns.md#app-shell)).
+Custom (`AppLoader` in `packages/ui`, feedback family). The logo mark in ink, 48 px, centred on `--bg`, with a bead cut into the arc that slides along it and back (1.6 s, ease-in-out). Only while there is no layout to draw yet: the first load, after sign-in and when switching company; it appears after about 300 ms. Inside a screen, a skeleton. `role="status"` with `aria-label="Loading"`. With `prefers-reduced-motion` the bead stays still at the top of the arc. `apps/web/index.html` has a static copy of its markup in `#root`, shown before the bundle runs; its styles are the `app-loader` classes in `styles.css`, not inline, because of the CSP ([patterns](patterns.md#app-shell)). Only that copy waits 300 ms in CSS (`app-loader-delayed`), also with reduced motion; the React one is delayed by `pendingMs`. The static copy's `aria-label` is "worKampo", because static HTML cannot be translated.
 
 ## Overlays
 
