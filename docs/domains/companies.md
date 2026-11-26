@@ -80,8 +80,8 @@ Rule: El formulario de crear empresa explica qué es una empresa, guía la URL y
     Then el botón conserva el foco y anuncia "Creando…" hasta que termina
 
   @id:companies-166-5
-  Example: Un rechazo del servidor sale en un aviso negativo encima del formulario
-    Given el servidor rechaza la creación
+  Example: Un fallo general del servidor sale en un aviso negativo encima del formulario
+    Given el servidor rechaza la creación por un fallo general, no porque la URL esté ocupada
     Then el error se muestra en un aviso negativo encima del formulario, con role alert
 
 @issue(#90)
