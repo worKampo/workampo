@@ -5,3 +5,47 @@
 @import "./tokens.css";
 
 @source "../";
+
+/* App loader: plain classes, not utilities, so the static markup in index.html can use them. The bead rides
+   the arc (centre 512 1290, radius 663) from end to end. */
+.app-loader {
+  display: grid;
+  place-items: center;
+  min-height: 100dvh;
+  background: var(--bg);
+  color: var(--text);
+}
+
+/* Only the static copy waits 300 ms: the router already delays its own copy with pendingMs. The wait is
+   not motion, so it stays with reduced motion. */
+.app-loader-delayed {
+  animation: app-loader-wait 300ms;
+}
+
+.app-loader-bead {
+  transform-box: view-box;
+  transform-origin: 512px 1290px;
+  animation: app-loader-bead 800ms ease-in-out infinite alternate;
+}
+
+@keyframes app-loader-wait {
+  from,
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes app-loader-bead {
+  from {
+    transform: rotate(-25.7deg);
+  }
+  to {
+    transform: rotate(25.7deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-loader-bead {
+    animation: none;
+  }
+}

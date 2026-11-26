@@ -1,6 +1,6 @@
-import { cleanup, configure, screen, waitFor } from '@testing-library/react'
+import { cleanup, configure, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { afterEach, beforeAll, describe, expect, it } from 'vitest'
+import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import { initI18n } from '../../_shared/i18n/i18n'
 import { problem, renderApp, sessionEndsAfterFirstMe } from '../../_shared/testing/render-app'
 
@@ -155,5 +155,246 @@ describe('the company home', () => {
 
     expect(await screen.findByRole('button', { name: 'Continuar' })).toBeTruthy()
     expect(router.state.location.pathname).toBe('/login')
+  })
+})
+
+// The shell's API: me (with or without a name), the context of `northwind`, and a sign-out that
+// answers with `signOut`. `context` overrides the context's answer.
+function shellApi({
+  name = 'Ana',
+  signOut = () => new Response(null, { status: 204 }),
+  context,
+  asked = [],
+}: Partial<{
+  name: string | null
+  signOut: () => Response | Promise<Response>
+  context: () => Response | Promise<Response>
+  asked: string[]
+}> = {}) {
+  const companies = workspaceApi({ northwind: 'Northwind Logistics' })
+  return (request: Request) => {
+    const { pathname } = new URL(request.url)
+    asked.push(`${request.method} ${pathname}`)
+    if (request.method === 'DELETE') return signOut()
+    if (pathname === '/api/me')
+      return Response.json({ id: 'u1', email: 'ana@example.com', ...(name ? { name } : {}) })
+    if (pathname === '/api/t/northwind/' && context) return context()
+
+    return companies(request)
+  }
+}
+
+const HOME = 'Bienvenido a Northwind Logistics'
+const SIDEBAR_KEY = 'workampo:sidebar'
+const NORTHWIND = { name: 'Northwind Logistics', slug: 'northwind', role: 'owner' }
+
+async function openHome(answer = shellApi()) {
+  const rendered = renderApp({ path: '/c/northwind', answer })
+  await screen.findByText(HOME)
+  return rendered
+}
+
+// The account button; below 1024 px the topbar repeats it, so the sidebar's is the first.
+async function openAccountMenu(name: RegExp) {
+  const [account] = await screen.findAllByRole('button', { name })
+  if (!account) throw new Error(`no account button named ${name}`)
+  account.focus()
+  await userEvent.keyboard('{Enter}')
+  return { account, menu: await screen.findByRole('menu') }
+}
+
+describe('the company shell', () => {
+  afterEach(() => {
+    vi.restoreAllMocks()
+    localStorage.clear()
+  })
+
+  it('@id:companies-92-1 shows the company, my role and «Inicio» as the current page', async () => {
+    await openHome()
+
+    const companyLinks = screen.getAllByRole('link', { name: /Northwind Logistics/ })
+    expect(companyLinks.some((link) => link.textContent?.includes('Propietario'))).toBe(true)
+    const current = screen
+      .getAllByRole('link')
+      .filter((link) => link.getAttribute('aria-current') === 'page')
+    expect(current.length).toBeGreaterThan(0)
+    for (const link of current) expect(link.textContent).toContain('Inicio')
+  })
+
+  it('@id:companies-92-2 renders nothing that does not exist yet', async () => {
+    await openHome()
+
+    expect(screen.getAllByRole('navigation').length).toBeGreaterThan(0)
+    expect(screen.queryByRole('searchbox')).toBeNull()
+    for (const text of [/notificaciones/i, /página pública/i, /ajustes/i, /ayuda/i, /mi cuenta/i])
+      expect(screen.queryAllByText(text)).toHaveLength(0)
+    expect(screen.queryAllByText(/\bplan\b|prueba/i)).toHaveLength(0)
+  })
+
+  it('@id:companies-92-3 «Tus direcciones» shows the app address only', async () => {
+    await openHome()
+
+    expect(screen.getByRole('heading', { name: 'Tus direcciones' })).toBeTruthy()
+    expect(screen.getByText('App')).toBeTruthy()
+    expect(screen.getByText(`${window.location.host}/c/northwind`)).toBeTruthy()
+    const main = screen.getByRole('main').textContent ?? ''
+    expect(main.split(window.location.host)).toHaveLength(2)
+  })
+
+  it('@id:companies-92-4 the company button links to the company picker', async () => {
+    await openHome()
+
+    const companyLinks = screen.getAllByRole('link', { name: /Northwind Logistics/ })
+
+    expect(companyLinks.some((link) => link.getAttribute('href') === '/companies')).toBe(true)
+  })
+
+  it('@id:companies-92-5 the user menu shows my name and email, not as items, and signs me out to /login', async () => {
+    const asked: string[] = []
+    const { router } = await openHome(shellApi({ asked }))
+
+    const { menu } = await openAccountMenu(/Ana/)
+    expect(within(menu).getByText('Ana')).toBeTruthy()
+    expect(within(menu).getByText('ana@example.com')).toBeTruthy()
+    expect(
+      within(menu)
+        .getAllByRole('menuitem')
+        .map((item) => item.textContent),
+    ).toEqual(['Cerrar sesión'])
+    await userEvent.click(within(menu).getByRole('menuitem', { name: 'Cerrar sesión' }))
+
+    await waitFor(() => expect(router.state.location.pathname).toBe('/login'))
+    expect(asked.some((call) => call.startsWith('DELETE '))).toBe(true)
+  })
+
+  it('@id:companies-92-5 while signing out the menu stays open, the item disabled and the button busy', async () => {
+    await openHome(shellApi({ signOut: () => new Promise<Response>(() => {}) }))
+
+    const { account, menu } = await openAccountMenu(/Ana/)
+    const item = within(menu).getByRole('menuitem', { name: 'Cerrar sesión' })
+    await userEvent.click(item)
+
+    await waitFor(() => expect(item.getAttribute('aria-disabled')).toBe('true'))
+    expect(account.getAttribute('aria-busy')).toBe('true')
+    expect(screen.getByRole('menu')).toBeTruthy()
+  })
+
+  it('@id:companies-92-5 a sign-out that fails says so inside the menu and can be tried again', async () => {
+    let calls = 0
+    const { router } = await openHome(
+      shellApi({
+        signOut: () =>
+          calls++ === 0
+            ? new Response('down', { status: 503 })
+            : new Response(null, { status: 204 }),
+      }),
+    )
+
+    const { menu } = await openAccountMenu(/Ana/)
+    await userEvent.click(within(menu).getByRole('menuitem', { name: 'Cerrar sesión' }))
+
+    expect((await within(menu).findByRole('alert')).textContent).toBe(
+      'Algo ha fallado. Vuelve a intentarlo.',
+    )
+    const item = within(menu).getByRole('menuitem', { name: 'Cerrar sesión' })
+    expect(item.getAttribute('aria-disabled')).not.toBe('true')
+    await userEvent.click(item)
+    await waitFor(() => expect(router.state.location.pathname).toBe('/login'))
+  })
+
+  it('@id:companies-92-8 an account without a name shows its email, once, in place of the name', async () => {
+    await openHome(shellApi({ name: null }))
+
+    const { menu } = await openAccountMenu(/ana@example\.com/)
+
+    expect(within(menu).getAllByText('ana@example.com')).toHaveLength(1)
+  })
+
+  it('@id:companies-92-7 the rail starts unfolded and is kept for the next visit', async () => {
+    await openHome()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Plegar menú' }))
+    expect(await screen.findByRole('button', { name: 'Desplegar menú' })).toBeTruthy()
+    expect(localStorage.getItem(SIDEBAR_KEY)).not.toBeNull()
+    cleanup()
+    await openHome()
+
+    expect(screen.getByRole('button', { name: 'Desplegar menú' })).toBeTruthy()
+  })
+
+  it('@id:companies-92-7 a browser that refuses storage still shows and folds the menu', async () => {
+    const refuse = () => {
+      throw new DOMException('denied', 'SecurityError')
+    }
+    vi.spyOn(Storage.prototype, 'getItem').mockImplementation(refuse)
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(refuse)
+    await openHome()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Plegar menú' }))
+
+    expect(await screen.findByRole('button', { name: 'Desplegar menú' })).toBeTruthy()
+  })
+
+  it('@id:companies-92-10 the first focus is «Saltar al contenido», which leads to the main content', async () => {
+    await openHome()
+
+    await userEvent.tab()
+
+    const skip = screen.getByRole('link', { name: 'Saltar al contenido' })
+    expect(document.activeElement).toBe(skip)
+    expect(skip.getAttribute('href')).toBe('#content')
+    expect(screen.getByRole('main').id).toBe('content')
+  })
+
+  it('@id:companies-92-10 the tab is titled with the page, the company and the app', async () => {
+    await openHome()
+
+    await waitFor(() => expect(document.title).toBe('Inicio · Northwind Logistics · worKampo'))
+  })
+
+  it('@id:companies-92-10 a subpage that does not exist is inside the shell, with nothing current and its own title', async () => {
+    renderApp({ path: '/c/northwind/settings', answer: shellApi() })
+
+    expect(await screen.findByRole('heading', { name: 'No encontramos esta página' })).toBeTruthy()
+    expect(screen.getAllByRole('navigation').length).toBeGreaterThan(0)
+    expect(
+      screen.getAllByRole('link').filter((link) => link.getAttribute('aria-current') === 'page'),
+    ).toHaveLength(0)
+    await waitFor(() =>
+      expect(document.title).toBe('No encontramos esta página · Northwind Logistics · worKampo'),
+    )
+  })
+
+  it('@id:companies-92-11 a company that takes long to load shows the app loader', async () => {
+    const slow = () =>
+      new Promise<Response>((resolve) => setTimeout(() => resolve(Response.json(NORTHWIND)), 1000))
+    renderApp({ path: '/c/northwind', answer: shellApi({ context: slow }) })
+
+    expect(await screen.findByRole('status', { name: 'Cargando' })).toBeTruthy()
+    expect(await screen.findByText(HOME)).toBeTruthy()
+  })
+
+  it('@id:companies-92-1 a company that cannot be loaded shows an error without the shell, and «Reintentar» opens it', async () => {
+    let failing = true
+    const context = () =>
+      failing ? problem({ status: 500, code: 'internal' }) : Response.json(NORTHWIND)
+    renderApp({ path: '/c/northwind', answer: shellApi({ context }) })
+
+    // The query retries a 500 three times (1 s, 2 s, 4 s) before the route gives up.
+    const title = { name: 'No hemos podido abrir la empresa' }
+    expect(await screen.findByRole('heading', title, { timeout: 10_000 })).toBeTruthy()
+    expect(screen.queryByRole('navigation')).toBeNull()
+    expect(screen.getByRole('link', { name: 'Volver a mis empresas' })).toBeTruthy()
+    failing = false
+    await userEvent.click(screen.getByRole('button', { name: 'Reintentar' }))
+
+    expect(await screen.findByText(HOME)).toBeTruthy()
+  }, 15_000)
+
+  it('@id:companies-90-12 a company I cannot open shows its not-found state without the shell', async () => {
+    renderApp({ path: '/c/sol-bakery', answer: shellApi() })
+
+    expect(await screen.findByRole('heading', { name: 'No encontramos esta empresa' })).toBeTruthy()
+    expect(screen.queryByRole('navigation')).toBeNull()
   })
 })

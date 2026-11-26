@@ -110,13 +110,14 @@
   --shadow-pop: 0 2px 4px -2px rgba(0, 0, 0, 0.1), 0 18px 40px -14px rgba(0, 0, 0, 0.32);
   --shadow-modal: 0 24px 60px -20px rgba(0, 0, 0, 0.45);
   --shadow-drawer: -16px 0 40px -16px rgba(0, 0, 0, 0.35);
+  --shadow-drawer-start: 16px 0 40px -16px rgba(0, 0, 0, 0.35);
   --shadow-float: 0 12px 28px -12px rgba(0, 0, 0, 0.4);
   --shadow-focus: 0 0 0 1px var(--ui), 0 0 0 4px var(--focus-halo);
   --scrim: rgba(0, 0, 0, 0.36);
 
   /* shadcn mapping */
   --radius: 0.5rem; /* 8px: rounded-lg = controls, rounded-xl = cards and overlays (12px) */
-  /* the app body sits on grey chrome; public pages set bg-bg themselves */
+  /* the body is grey chrome, the sidebar's; the shell's main column and public pages set bg-bg themselves */
   --background: var(--chrome);
   --foreground: var(--text);
   --card: var(--surface);

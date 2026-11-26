@@ -172,6 +172,86 @@ Rule: El inicio lleva a donde lleva entrar, y sin sesión a /login
     Given no tengo sesión
     When abro /
     Then llego a /login
+
+@issue(#92)
+Rule: Dentro de una empresa, el menú muestra la empresa, mi rol y solo lo que ya existe
+
+  @id:companies-92-1
+  Example: El inicio muestra el menú con la empresa, mi rol e «Inicio» como página actual
+    Given soy propietario de "Northwind Logistics" y uso un escritorio
+    When abro /c/northwind
+    Then veo el menú lateral con "Northwind Logistics", mi rol "Propietario" y la opción "Inicio" marcada como actual
+    And veo "Bienvenido a Northwind Logistics"
+
+  @id:companies-92-2
+  Example: El menú no muestra lo que aún no existe
+    Given abro el inicio de mi empresa
+    Then no veo notificaciones, búsqueda, "Página pública", "Ajustes", uso del plan, prueba ni "Ayuda"
+
+  @id:companies-92-3
+  Example: «Tus direcciones» muestra solo la dirección de la app
+    Given abro el inicio de mi empresa
+    Then la tarjeta "Tus direcciones" muestra la dirección de la app de la empresa
+    And no muestra la de la página pública
+
+@issue(#92)
+Rule: Desde el menú cambio de empresa y cierro sesión
+
+  @id:companies-92-4
+  Example: El botón de la empresa lleva a elegir otra
+    Given estoy en el inicio de "northwind"
+    When pulso el botón de la empresa y elijo "Sol Bakery"
+    Then llego a /c/sol-bakery
+
+  @id:companies-92-5
+  Example: Cerrar sesión desde el menú de usuario
+    Given estoy dentro de una empresa
+    When abro mi menú de usuario y pulso "Cerrar sesión"
+    Then mi sesión queda revocada y llego a /login
+
+@issue(#92)
+Rule: El menú se adapta al dispositivo y se maneja con teclado
+
+  @id:companies-92-6
+  Example: En el móvil el menú lateral se abre sobre la página y se cierra con Esc
+    Given uso un móvil
+    When pulso el botón de menú
+    Then el menú lateral se abre sobre la página
+    And al pulsar Esc se cierra y el foco vuelve al botón de menú
+
+  @id:companies-92-7
+  Example: En el escritorio el menú se pliega a una barra de iconos con tooltips
+    Given uso un escritorio
+    When pliego el menú lateral
+    Then queda una barra de iconos, cada uno con su tooltip
+
+@issue(#92)
+Rule: Los nombres del menú se leen siempre completos
+
+  @id:companies-92-8
+  Example: Una cuenta sin nombre se muestra con su email
+    Given mi cuenta no tiene nombre
+    Then el botón de usuario muestra mi email
+
+  @id:companies-92-9
+  Example: Un nombre de empresa largo se corta y se lee entero en un tooltip
+    Given el nombre de la empresa tiene 80 caracteres
+    Then el menú lo corta con puntos suspensivos y muestra el nombre completo en un tooltip
+
+@issue(#92)
+Rule: La app se puede usar con teclado y lector de pantalla desde que carga
+
+  @id:companies-92-10
+  Example: El primer foco salta al contenido y la pestaña nombra la página y la empresa
+    Given abro el inicio de mi empresa
+    Then el primer elemento con foco es "Saltar al contenido"
+    And el título de la pestaña es "Inicio · Northwind Logistics · worKampo"
+
+  @id:companies-92-11
+  Example: Una carga lenta muestra el cargador de la app, quieto con movimiento reducido
+    Given la app tarda más de 300 ms en tener el layout
+    Then veo el cargador de la app
+    And con movimiento reducido el cargador no se anima
 ```
 
 ## Terms

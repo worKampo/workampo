@@ -4,26 +4,38 @@ How components combine into screens. Component details are in [components.md](co
 
 ## App shell
 
+`AppShell` ([components](components.md#app-shell)) is the layout of `/c/$slug`: every company page renders inside it, "Page not found" too, with no item current.
+
 | Device | Layout |
 |---|---|
-| Desktop (≥ 1024) | Sidebar 256 px on `--chrome` + main column. The sidebar collapses to a **rail** of 64 px (icons only, tooltips on each item) with the collapse button in its foot. |
-| Tablet and phone (< 1024) | No sidebar. **Topbar** 56 px, sticky, on `--chrome`: menu button, company logo + name, spacer, search, notifications, avatar. The menu button opens the sidebar **off-canvas** (280 px from the left, `--shadow-drawer`, over the scrim). |
+| Desktop (≥ 1024) | Sidebar 256 px on `--chrome` + main column on `--bg`. The sidebar collapses to a **rail** of 64 px with the collapse button in its foot. |
+| Tablet and phone (< 1024) | No sidebar. **Topbar** 56 px, sticky, on `--chrome`: menu button, company logo + name, spacer, search and notifications (come with their PRD), avatar, which opens the user menu. The menu button opens the **side menu** (280 px from the start edge, `--shadow-drawer-start`, over the scrim). |
+
+**The shell shows only what exists.** An item whose PRD has not shipped is not rendered, not hidden by CSS. In the MVP: the company button, Home and the user button; search, notifications, Public page, Settings, plan usage, trial, Help and My account wait for their PRDs.
 
 Sidebar, top to bottom (company app):
 
-1. **Workspace button**: company logo, name and the user's role; opens the company picker. `aria-label="Switch company, current: {company}"`.
-2. **Search** (kbd Ctrl K) and **Notifications** (count).
-3. **Main nav** (`<nav aria-label="Main">`): exactly **Home**, **Public page**, **Settings**. Active item: `aria-current="page"`, `--nav-active` surface with a 1 px border, weight 600.
-4. **Foot**: plan usage bar ("Members 4 of 5"), trial row with Upgrade link, Help, **user button** (avatar, name, email), collapse button (desktop only).
+1. **Company button**: company logo (the [Avatar](components.md#avatars) initials palette), name and the user's role under it. A link to `/companies`, the company picker; the shell does not load the company list.
+2. **Search** (kbd Ctrl K) and **Notifications** (count): come with their PRD.
+3. **Main nav** (`<nav aria-label="Main">`): exactly **Home**, **Public page**, **Settings** (Public page and Settings come with their PRD). Active item: `aria-current="page"`, `--nav-active` surface with a 1 px border, weight 600.
+4. **Foot**: plan usage bar ("Members 4 of 5"), trial row with Upgrade link, Help (these three come with their PRD), **user button** (avatar, name, email), collapse button (desktop only).
 
-Backoffice: same shell and style. Workspace button shows the product with a STAFF tag; nav: Companies, System health, Audit log; no usage or trial rows.
+Backoffice: same shell and style. Company button shows the product with a STAFF tag; nav: Companies, System health, Audit log; no usage or trial rows.
 
-Main column: page content max 1280 px (editors 880 px), padding 24 and `clamp(16px, 3vw, 32px)` at the sides, 64 at the bottom, gap 24 between blocks. Phone: padding 16 12 48, gap 16.
+- **Rail**: labels are visually hidden, not removed, so each item keeps its accessible name; each item has a tooltip at its right. The choice is stored per browser in `localStorage` (`workampo:sidebar`) and the sidebar starts expanded. Per user arrives with My account (Post-MVP).
+- **Side menu**: a modal dialog with "Close menu". On open the focus goes to the company link and stays trapped inside; on close it returns to "Open menu". It closes with Esc, the scrim, the close button, choosing an item, or when the window reaches 1024 px.
+- **Long names**: one line with an ellipsis. In the open sidebar the tooltip of the company and user names appears only when the text is cut, on hover and on focus; in the rail it always shows; the accessible name is always the full one. Every name has `dir="auto"`.
+- **Accepted departures from the mockup**: the main column sits on `--bg`, not `--chrome`; the side menu has no user button, the account opens from the topbar avatar; no chevron on the company button and no icon on "Sign out".
+- **User menu (MVP)**: a non-interactive header with the name and email (the email alone when there is no name), a separator and "Sign out", which goes to `/login`. While signing out the menu stays open and the item is busy; a failure shows an inline error in the menu with `role="alert"`, and the user can retry.
+- **App loader**: only while there is no layout. A static copy lives in `#root` of `apps/web/index.html` (React replaces it on mount) and the [AppLoader](components.md#app-loader) is the `pendingComponent` (`pendingMs: 300`) of the root route and of `/c/$slug` only. The static copy's `aria-label` is "worKampo", because static HTML cannot be translated. Inside a page, a skeleton.
+- **Theme before first paint**: `apps/web/public/theme.js`, a classic synchronous script in `<head>`, sets `.dark` from `prefers-color-scheme` and follows its changes. It is a file and not inline because the CSP (`apps/web/public/_headers`) is `script-src 'self'`; for the same reason the static loader's styles live in `styles.css`.
+
+Main column: max 880 px, padding 24 and 32 at the sides, 64 at the bottom, gap 24 between blocks. Phone: padding 16 12 64, gap 16.
 
 Shell accessibility (lessons from the previous project's UI audit):
 
-- A **"Skip to content"** link is the first focusable element and jumps to `<main>`.
-- Every page sets a **unique `<title>`**: `{page} · {company} · worKampo` (public pages: `{page} · worKampo`).
+- A **"Skip to content"** link is the first focusable element and jumps to `<main id="content" tabindex="-1">`.
+- Every page sets a **unique `<title>`**: `{page} · {company} · worKampo` (public pages: `{page} · worKampo`). Each page gives its name with `useDocumentTitle(page)` (`apps/web/src/_shared/document-title/`) and the shell adds the company.
 - Controls revealed on hover (row actions, copy buttons) also appear on **`:focus-within`**, and are **always visible on touch** devices.
 - Sticky table columns and headers have an **opaque background**, so scrolled content never shows through.
 
@@ -31,7 +43,7 @@ Shell accessibility (lessons from the previous project's UI audit):
 
 - **Settings** opens its first page. Settings pages have a **subnav**: General, Members & roles, Billing. Desktop: a 200 px column left of the content (gap 32). Touch: a horizontal, scrollable row above the content. The sidebar keeps Settings as current on every settings page.
 - **Breadcrumb** only on second-level pages (`Settings / Members & roles`), above the `h1`. Never on top-level pages (Home, Public page).
-- **My account** (profile, language, theme, sessions) is reached from the **user button** (sidebar foot, topbar avatar) through a menu: My account, Sign out. It is not in the main nav.
+- **My account** (profile, language, theme, sessions) is reached from the **user button** (sidebar foot, topbar avatar) through a menu: My account, Sign out. It is not in the main nav. Until My account ships, the menu is the [MVP one](#app-shell).
 - **Notifications**: the sidebar item (topbar bell on touch) opens a panel; a popover on desktop, a full-height sheet on tablet and phone. Tabs Unread / All, "Mark all as read", each item links to the related page.
 - **Command palette** on every app and backoffice screen (see components).
 - Every navigation is a real link (`<a href>`): open in new tab and back/forward must work.

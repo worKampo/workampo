@@ -15,7 +15,9 @@
     "back_to_companies": "Volver a mis empresas"
   },
   "company_home": {
-    "welcome": "Bienvenido a {{name}}"
+    "title": "Bienvenido a {{name}}",
+    "addresses": "Tus direcciones",
+    "app_address": "App"
   },
   "not_found": {
     "title": "No encontramos esta empresa",
@@ -41,5 +43,27 @@
     "title": "Elige una empresa",
     "signed_in_as": "Has entrado como {{email}}",
     "create": "Crear una empresa nueva"
+  },
+  "shell": {
+    "skip_to_content": "Saltar al contenido",
+    "switch_company": "Cambiar de empresa",
+    "roles": {
+      "owner": "Propietario",
+      "admin": "Administrador",
+      "member": "Miembro",
+      "viewer": "Lector"
+    },
+    "main_nav": "Principal",
+    "home": "Inicio",
+    "account_menu": "Menú de tu cuenta",
+    "collapse": "Plegar menú",
+    "expand": "Desplegar menú",
+    "open_nav": "Abrir menú",
+    "close_nav": "Cerrar menú",
+    "nav_dialog": "Menú"
+  },
+  "company_error": {
+    "title": "No hemos podido abrir la empresa",
+    "retry": "Reintentar"
   }
 }

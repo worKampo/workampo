@@ -15,7 +15,9 @@
     "back_to_companies": "Torna a les meves empreses"
   },
   "company_home": {
-    "welcome": "Et donem la benvinguda a {{name}}"
+    "title": "Et donem la benvinguda a {{name}}",
+    "addresses": "Les teves adreces",
+    "app_address": "App"
   },
   "not_found": {
     "title": "No trobem aquesta empresa",
@@ -41,5 +43,27 @@
     "title": "Tria una empresa",
     "signed_in_as": "Has entrat com a {{email}}",
     "create": "Crear una empresa nova"
+  },
+  "shell": {
+    "skip_to_content": "Salta al contingut",
+    "switch_company": "Canvia d’empresa",
+    "roles": {
+      "owner": "Propietari",
+      "admin": "Administrador",
+      "member": "Membre",
+      "viewer": "Lector"
+    },
+    "main_nav": "Principal",
+    "home": "Inici",
+    "account_menu": "Menú del teu compte",
+    "collapse": "Plega el menú",
+    "expand": "Desplega el menú",
+    "open_nav": "Obre el menú",
+    "close_nav": "Tanca el menú",
+    "nav_dialog": "Menú"
+  },
+  "company_error": {
+    "title": "No hem pogut obrir l’empresa",
+    "retry": "Torna-ho a provar"
   }
 }
