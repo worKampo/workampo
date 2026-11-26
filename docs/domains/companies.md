@@ -55,7 +55,7 @@ Rule: La URL de la empresa se propone desde el nombre y tiene que ser válida, n
       | -norte      |
       | norte-stg   |
 
-@wip(#166)
+@issue(#166)
 Rule: El formulario de crear empresa explica qué es una empresa, guía la URL y anuncia lo que pasa
 
   @id:companies-166-1
