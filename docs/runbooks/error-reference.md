@@ -2,7 +2,7 @@
 
 Find the event behind a reference that a person gives support («Referencia: 7F3K-92QD» on the 500 page). Decisions: [ADR-0039](../adr/0039-operations-and-incidents.md), [ADR-0053](../adr/0053-code-conventions.md), [ADR-0078](../adr/0078-api-urls-contracts-and-behaviour.md) §6 and §8.3.
 
-The reference is random, one per unexpected error the API answers with a 500, in the format `XXXX-XXXX` (Crockford base32: no `I`, `L`, `O` or `U`). Read `0` for `O` and `1` for `I` or `L` if the person dictates it. A 4xx never has one. A 500 page without a reference was a failure in the browser (render, network or code load) or an unexpected 4xx: there is no server event to find.
+The reference is random, one per unexpected error the API answers with a 500, in the format `XXXX-XXXX` (Crockford base32: no `I`, `L`, `O` or `U`). Read `0` for `O` and `1` for `I` or `L` if the person dictates it. A 4xx never has one. A 500 page without a reference was a failure in the browser (render, network or code load) or an unexpected 4xx. That does not rule out a server event: the server may have failed and its response been lost on the way. Search Sentry by the approximate time and what the person was doing.
 
 ## Sentry
 
