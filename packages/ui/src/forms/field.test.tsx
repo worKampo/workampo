@@ -17,6 +17,19 @@ describe('Field', () => {
     expect(input.getAttribute('aria-describedby')).toBe(screen.getByText('We send you a code').id)
   })
 
+  it('a false or empty error or success leaves the help in place', () => {
+    render(
+      <Field label="Email" help="We send you a code" error="" success={false}>
+        {(props) => <Input {...props} />}
+      </Field>,
+    )
+
+    const input = screen.getByLabelText('Email')
+
+    expect(input.getAttribute('aria-invalid')).toBeNull()
+    expect(input.getAttribute('aria-describedby')).toBe(screen.getByText('We send you a code').id)
+  })
+
   it('marks the input invalid and links the error, which replaces the help', () => {
     render(
       <Field label="Code" help="Six digits" error="The code is not valid">

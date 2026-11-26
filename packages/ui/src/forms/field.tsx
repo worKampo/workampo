@@ -20,7 +20,8 @@ export function Field({
   children: (control: ControlProps) => ReactNode
 }) {
   const id = useId()
-  const message = error ?? success ?? help
+  // || and not ??: a false or empty error or success means none, so the help still shows.
+  const message = error || success || help
   const messageId = `${id}-message`
   const hintId = `${id}-hint`
   const describedBy = [message && messageId, hint && hintId].filter(Boolean).join(' ')
