@@ -5,5 +5,26 @@
   "errors": {
     "unexpected": "Alguna cosa ha fallat. Torna-ho a provar."
   },
-  "sign_out": "Tanca la sessió"
+  "sign_out": "Tanca la sessió",
+  "system_pages": {
+    "not_found": {
+      "title": "Pàgina no trobada",
+      "body": "És possible que l'adreça estigui mal escrita o que la pàgina s'hagi mogut.",
+      "code": "Error 404"
+    },
+    "error": {
+      "title": "Alguna cosa ha anat malament",
+      "body": "Ha fallat alguna cosa per part nostra. Torna-ho a provar d'aquí a uns minuts.",
+      "code": "Error 500",
+      "retry": "Torna-ho a provar"
+    },
+    "home": "Ves a l'inici",
+    "reference": {
+      "label": "Referència: {{reference}}",
+      "copy_label": "Copia la referència",
+      "copied": "Copiada",
+      "copied_status": "Referència copiada",
+      "copy_failed": "No s'ha pogut copiar. Selecciona la referència i copia-la."
+    }
+  }
 }

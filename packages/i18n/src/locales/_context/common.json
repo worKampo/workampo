@@ -7,5 +7,27 @@
   },
   "sign_out": {
     "_screen": "Button that ends the session; the same text wherever it appears."
+  },
+  "system_pages": {
+    "not_found": {
+      "title": "Heading of the 404 page; also the browser tab title before ' · worKampo'.",
+      "body": "One sentence under the 404 heading: the address may be wrong or the page moved.",
+      "code": "Meta line of the 404 page; keep the number 404."
+    },
+    "error": {
+      "title": "Heading of the 500 page; also the browser tab title before ' · worKampo'.",
+      "body": "One sentence under the 500 heading: the failure is ours, try again later. Do not promise that we already know about it.",
+      "code": "Meta line of the 500 page; keep the number 500.",
+      "retry": "Primary action of the 500 page: reloads the page."
+    },
+    "home": "Action on both pages: a link to /, which opens the person's entry destination. Not 'Back'.",
+    "reference": {
+      "label": "Shown on the 500 page when the server gave a reference; {{reference}} is a code like 7F3K-92QD, never translated.",
+      "copy_label": "Tooltip and accessible name of the icon-only button that copies the reference.",
+      "copied": "Tooltip of the copy button for 2 s after copying; agrees with 'reference' (feminine in es and ca).",
+      "copied_status": "Announced only to screen readers after the reference is copied.",
+      "copy_failed": "Shown under the reference when copying fails; the app selects the reference so the person can copy it by hand."
+    },
+    "_screen": "Full-screen system pages outside the shell: the 404 (an address that does not exist) and the 500 (a server failure or an error the app cannot recover from), with the error reference the person can give to support."
   }
 }

@@ -5,5 +5,26 @@
   "errors": {
     "unexpected": "Algo ha fallado. Vuelve a intentarlo."
   },
-  "sign_out": "Cerrar sesión"
+  "sign_out": "Cerrar sesión",
+  "system_pages": {
+    "not_found": {
+      "title": "Página no encontrada",
+      "body": "La dirección puede estar mal escrita o la página se ha movido.",
+      "code": "Error 404"
+    },
+    "error": {
+      "title": "Algo ha ido mal",
+      "body": "Ha fallado algo por nuestra parte. Vuelve a intentarlo en unos minutos.",
+      "code": "Error 500",
+      "retry": "Reintentar"
+    },
+    "home": "Ir al inicio",
+    "reference": {
+      "label": "Referencia: {{reference}}",
+      "copy_label": "Copiar la referencia",
+      "copied": "Copiada",
+      "copied_status": "Referencia copiada",
+      "copy_failed": "No se ha podido copiar. Selecciona la referencia y cópiala."
+    }
+  }
 }
