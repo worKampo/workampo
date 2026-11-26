@@ -139,6 +139,10 @@ test('@id:companies-92-7 on a desktop the folded menu is a bar of icons, each wi
     await item.hover()
     await expect(page.getByRole('tooltip')).toContainText(name.trim())
   }
+  await page.getByRole('link', { name: /Northwind Logistics/ }).hover()
+  await expect(page.getByRole('tooltip')).toContainText('Northwind Logistics')
+  await page.getByRole('button', { name: /E2E/ }).first().hover()
+  await expect(page.getByRole('tooltip')).toContainText('E2E')
 })
 
 test('@id:companies-92-8 an account without a name shows its email on the user button', async ({
