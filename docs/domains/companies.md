@@ -127,14 +127,16 @@ Rule: Una empresa se crea una sola vez, aunque se envíe a la vez o se repita la
     Then la empresa queda completa una sola vez
     And entro en ella como propietario
 
-@issue(#90)
+@issue(#93)
 Rule: Solo sus miembros entran en una empresa, y para el resto es como si no existiera
 
   @id:companies-90-12
-  Example: La empresa de otros responde igual que una que no existe
+  Example: La empresa de otros se ve igual que una que no existe
     Given soy miembro solo de "northwind"
-    When abro /c/sol-bakery o llamo a /api/t/sol-bakery/
-    Then recibo 404, lo mismo que para una empresa que no existe
+    When abro /c/sol-bakery
+    Then veo la página "Página no encontrada" con «Ir al inicio», la misma que para una empresa que no existe
+    And no veo el nombre ni la dirección de "sol-bakery"
+    And /api/t/sol-bakery/ me responde 404, lo mismo que para una empresa que no existe
 
   @id:companies-90-13
   Example: Sin sesión, la página de una empresa lleva a entrar

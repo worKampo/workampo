@@ -48,3 +48,31 @@ it('@id:companies-92-9 a tooltip disabled while open does not come back by itsel
   await new Promise((resolve) => setTimeout(resolve, 400))
   expect(screen.queryByRole('tooltip')).toBeNull()
 })
+
+it('forceOpen holds the tooltip open after a click, and it closes when released', async () => {
+  const tooltip = (forceOpen: boolean) => (
+    <Tooltip content="Copiada" forceOpen={forceOpen}>
+      <button type="button">C</button>
+    </Tooltip>
+  )
+  const { rerender } = render(tooltip(true))
+  const trigger = screen.getByRole('button', { name: 'C' })
+
+  fireEvent.pointerDown(trigger)
+  fireEvent.click(trigger)
+  expect((await screen.findByRole('tooltip')).textContent).toBe('Copiada')
+
+  rerender(tooltip(false))
+  await waitFor(() => expect(screen.queryByRole('tooltip')).toBeNull())
+})
+
+it('a disabled tooltip stays closed even when forced open', async () => {
+  render(
+    <Tooltip content="Copiada" forceOpen disabled>
+      <button type="button">C</button>
+    </Tooltip>,
+  )
+
+  await new Promise((resolve) => setTimeout(resolve, 50))
+  expect(screen.queryByRole('tooltip')).toBeNull()
+})

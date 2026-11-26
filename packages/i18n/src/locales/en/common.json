@@ -5,5 +5,26 @@
   "errors": {
     "unexpected": "Something went wrong. Try again."
   },
-  "sign_out": "Sign out"
+  "sign_out": "Sign out",
+  "system_pages": {
+    "not_found": {
+      "title": "Page not found",
+      "body": "The address may be mistyped or the page may have moved.",
+      "code": "Error 404"
+    },
+    "error": {
+      "title": "Something's gone wrong",
+      "body": "Something failed on our side. Try again in a few minutes.",
+      "code": "Error 500",
+      "retry": "Try again"
+    },
+    "home": "Go to home",
+    "reference": {
+      "label": "Reference: {{reference}}",
+      "copy_label": "Copy the reference",
+      "copied": "Copied",
+      "copied_status": "Reference copied",
+      "copy_failed": "Couldn't copy. Select the reference and copy it."
+    }
+  }
 }

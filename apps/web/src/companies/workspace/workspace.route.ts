@@ -32,16 +32,8 @@ const companyRoute = createRoute({
     }
   },
 }).lazy(() =>
-  Promise.all([
-    import('./company-home/company-home.page'),
-    import('./company-shell/company-shell.page'),
-    import('./company-error/company-error.page'),
-  ]).then(([{ CompanyNotFoundPage }, { CompanyShell }, { CompanyErrorPage }]) =>
-    createLazyRoute('/c/$slug')({
-      component: CompanyShell,
-      errorComponent: CompanyErrorPage,
-      notFoundComponent: CompanyNotFoundPage,
-    }),
+  import('./company-shell/company-shell.page').then(({ CompanyShell }) =>
+    createLazyRoute('/c/$slug')({ component: CompanyShell }),
   ),
 )
 

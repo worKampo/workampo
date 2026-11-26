@@ -2,7 +2,7 @@ import { getRouteApi, Link, useLocation } from '@tanstack/react-router'
 import { useCompanyContext } from '@workampo/app-core/companies/workspace/read-context'
 import { buttonClassName } from '@workampo/ui/actions'
 import { Card, DescriptionList, Text } from '@workampo/ui/content'
-import { CardScreen, Page } from '@workampo/ui/layout'
+import { Page } from '@workampo/ui/layout'
 import { useTranslation } from 'react-i18next'
 import { useDocumentTitle } from '../../../_shared/document-title/document-title'
 
@@ -36,20 +36,6 @@ export function CompanyHomePage() {
         />
       </Card>
     </Page>
-  )
-}
-
-// A company the person does not belong to and one that does not exist look the same (@id:companies-90-12).
-export function CompanyNotFoundPage() {
-  const { t } = useTranslation('companies')
-
-  return (
-    <CardScreen title={t('not_found.title')}>
-      <Text tone="muted">{t('not_found.body')}</Text>
-      <Link to="/" className={buttonClassName({ variant: 'secondary' })}>
-        {t('not_found.back')}
-      </Link>
-    </CardScreen>
   )
 }
 

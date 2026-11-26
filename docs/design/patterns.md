@@ -113,7 +113,7 @@ Every screen specifies these states (D31 Specify):
 | No access | Explain that the user's role cannot see it and who can grant access; never a blank page |
 | Long data / unicode | Names truncate with ellipsis and full text in a tooltip or the detail; RTL and long words do not break the layout |
 
-**System pages** (centred card on `--chrome`, same layout as auth pages, with a link home; the logo mark in ink above the title, the code as a meta line "Error 404" under the text): 404 Page not found, 403 No access, 500 Something went wrong, Maintenance (with expected end time when known). The 500 page shows the error reference id.
+**System pages** (centred card on `--chrome`, same layout as auth pages, with a link home; no logo in the card, the header already has the colour logo; the code as a meta line "Error 404" under the text; component: [SystemPage](components.md#system-page)): 404 Page not found, 403 No access, 500 Something went wrong, Maintenance (with expected end time when known). The 500 page shows the error reference id.
 
 **Error reference**: 500 pages and unexpected-error banners show a short reference id ("Reference: 7F3K-92QD") with a copy button. The same id is in the server logs and Sentry so support can find the event; it contains no personal data.
 
@@ -122,7 +122,7 @@ Every screen specifies these states (D31 Specify):
 - When a newer version is deployed, the next navigation reloads the page at the same URL. The user sees no message.
 - Never reload while the save bar is visible; wait until the user saves or discards.
 - A tab left open for hours shows a quiet `info` banner: "A new version is available · Reload".
-- A failed load of a screen's code reloads once; if it fails again, show the 500 page with its reference.
+- A failed load of a screen's code reloads once; if it fails again, show the 500 page with its reference when there is one.
 - Emergency only (minimum version): a blocking dialog "Reload to continue", with a single primary button.
 
 ## Long-running work (D56)

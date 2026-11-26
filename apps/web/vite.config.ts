@@ -14,5 +14,7 @@ export default defineConfig({
   },
   // Development only: the Worker serves the API on the same origin in every environment.
   server: { proxy: { '/api': 'http://localhost:8787' } },
-  test: { environment: 'jsdom' },
+  // A test's own finds wait up to 5 s (asyncUtilTimeout); the test needs room above that for its
+  // first visit, which loads lazy screens and translations, when the whole check runs at once.
+  test: { environment: 'jsdom', testTimeout: 15_000 },
 })

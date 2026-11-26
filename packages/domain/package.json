@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./_shared/api-errors": "./src/_shared/api-errors.ts",
     "./_shared/avatar": "./src/_shared/avatar.ts",
     "./_shared/choose-provider": "./src/_shared/choose-provider.ts",
     "./_shared/identity": "./src/_shared/identity.ts",

@@ -34,8 +34,19 @@ export function renderApp({
   return { router, queryClient }
 }
 
-export function problem({ status, code }: { status: number; code: string }) {
-  return Response.json({ type: 'about:blank', status, code }, { status })
+export function problem({
+  status,
+  code,
+  reference,
+}: {
+  status: number
+  code: string
+  reference?: string
+}) {
+  return Response.json(
+    { type: 'about:blank', status, code, ...(reference && { reference }) },
+    { status },
+  )
 }
 
 // A session that ends on the server after the app cached me: later calls to /api/me answer 401 too.

@@ -38,3 +38,15 @@ describe('Button', () => {
     expect(link.className).toContain('border-border-hard')
   })
 })
+
+it('the subtle variant has no border until hover, and a soft one on touch (ticket 93, decision 8)', async () => {
+  render(<Button variant="subtle">Copy</Button>)
+
+  const button = screen.getByRole('button', { name: 'Copy' })
+
+  expect(button.className).toContain('border-transparent')
+  expect(button.className).toContain('hover:border-border-hard')
+  expect(button.className).toContain('hover:text-text')
+  expect(button.className).toContain('pointer-coarse:border-border')
+  expect(button.className).not.toContain('bg-ui')
+})

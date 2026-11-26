@@ -23,9 +23,10 @@ shadcn `Button`. Height 36 / 44, small 32 / 40, padding 0 16 (small 0 12), radiu
 | Secondary | Transparent, 1 px `--border-hard`, `--text-1b`; hover border and text `--text` | `outline` | Other actions, Cancel |
 | Ghost | Transparent, underlined `--text-1` | `link` | Low-weight inline actions: Discard, Save view |
 | Quiet | Transparent; hover `--nav-hover` | `ghost` | Toolbar and row actions, icon buttons in chrome |
+| Subtle | Transparent, 1 px transparent border; hover 1 px `--border-hard` like Secondary; on touch (no hover) always a soft 1 px `--border` | new `subtle` | Icon-only actions inside content, like copying the error reference |
 | Danger | `--neg` fill, `--on-neg` text | `destructive` | Final confirm of a destructive action |
 | Danger outline | `--neg-border` border, `--neg` text; hover fills `--neg` | new `destructive-outline` | Opens a destructive flow (Remove member…) |
-| Icon-only | Square 36 / 44 (small 32 / 40), any variant | `size="icon"` | Secondary page actions and row menus |
+| Icon-only | Square 32 / 44, any variant | `size="icon"` | Secondary page actions and row menus |
 
 - Icon-only buttons always have `aria-label` and a tooltip with the same text.
 - One primary per view. Discard (drop unsaved edits) is not Cancel (close without acting).
@@ -165,6 +166,16 @@ shadcn `Progress`. Progress 8 high radius 4; compact usage bar (sidebar "Members
 
 Custom (`AppLoader` in `packages/ui`, feedback family). The logo mark in ink, 48 px, centred on `--bg`, with a bead cut into the arc that slides along it and back (1.6 s, ease-in-out). Only while there is no layout to draw yet: the first load, after sign-in and when switching company; it appears after about 300 ms. Inside a screen, a skeleton. `role="status"` with `aria-label="Loading"`. With `prefers-reduced-motion` the bead stays still at the top of the arc. `apps/web/index.html` has a static copy of its markup in `#root`, shown before the bundle runs; its styles are the `app-loader` classes in `styles.css`, not inline, because of the CSP ([patterns](patterns.md#app-shell)). Only that copy waits 300 ms in CSS (`app-loader-delayed`), also with reduced motion; the React one is delayed by `pendingMs`. The static copy's `aria-label` is "worKampo", because static HTML cannot be translated.
 
+### Error reference
+
+Custom (`ErrorReference` in `packages/ui`, feedback family). The [error reference](patterns.md#screen-states) of a 500: «Referencia: 7F3K-92QD» followed by a copy button. The reference is in a `<code>` with `dir="ltr"`, `translate="no"` and `user-select: all`, and it may break at any character. The copy button is icon-only (ticket 93, decision 8): the `subtle` button, no text and no border, a border like the secondary's on hover, and a tooltip «Copiar la referencia» that is also its `aria-label`; on touch, where there is no hover, it always has a soft border and a 44 px target; elsewhere it is the small icon-only square. Texts come as props.
+
+- **E1 copied.** Copying uses `navigator.clipboard.writeText` with the reference. For 2 s the icon turns into a check in `--pos` and the tooltip says «Copiada»; a hidden `role="status"` announces «Referencia copiada», and the focus stays on the button.
+- **E2 copy failed.** The reference is selected and a line «No se ha podido copiar. Selecciona la referencia y cópiala.» appears under it with `role="alert"`.
+- **E3 long reference.** It breaks, and the button moves to the next line.
+- Only a reference that matches the format `XXXX-XXXX` (Crockford base32) reaches it: the caller drops anything else.
+- The web's 500 loads it lazily, so its tooltip stays out of the entry bundle: a reference only exists when the API answered, so the app's code was loading. Until it loads, or if it fails to, the line shows as plain selectable text without the button (ticket 93).
+
 ## Overlays
 
 ### Drawer
@@ -230,8 +241,28 @@ Custom (`CardScreen` in `packages/ui/src/layout/`). The layout of the [card scre
 - Sizes: `--chrome` background at every size; header and card 384 px wide at most, centred; padding 24 at the top on phone and 64 from 640 px; 16 px from the screen edges on phone, where the card keeps its border and radius and sits at the top so the keyboard does not cover it.
 - Accessibility: the header is the `banner` landmark and the card sits in `main`; the title is the page's only `h1`.
 
+### System page
+
+Custom (`SystemPage` in `packages/ui/src/layout/`). The [system pages](patterns.md#screen-states) (404, 500) on the `CardScreen` layout, outside the shell: `--chrome` background at full height, the colour logo in the header and the 384 px card. Inside the card, no logo (ticket 93, decision 7): the `h1`, the text in `--text-2`, the meta line («Error 404», «Error 500») with the reference under it on a 500, and the actions stacked at full width. No language selector: at the root the app does not know whether there is a session. Texts come as props; the web's pages and the root's `errorComponent` and `notFoundComponent` are in the entry bundle, never `lazy()`, so a failed code load still paints its own 500.
+
+```tsx
+<SystemPage
+  title={t('system_pages.not_found.title')}
+  body={t('system_pages.not_found.body')}
+  code={t('system_pages.not_found.code')}
+  actions={<HomeLink />}
+/>
+```
+
+- **E1 not found.** A path that does not exist shows «Página no encontrada», «La dirección puede estar mal escrita o la página se ha movido.» and the meta line «Error 404», with one action, «Ir al inicio»: a link to the fixed `/` styled as a secondary button, never built from `returnTo` or any other parameter. No «Atrás», since the history may come from outside the app. Tab title «Página no encontrada · worKampo».
+- **E2 something failed.** When the server fails loading a page, «Algo ha ido mal», «Ha fallado algo por nuestra parte. Vuelve a intentarlo en unos minutos.», «Error 500» and, when the server gave one, its `ErrorReference` («Referencia: 7F3K-92QD»). Actions: «Reintentar» (primary, reloads the page) and «Ir al inicio» (secondary). A failure with no server reference (render, network, code load) shows no reference line; none is made up in the client. Tab title «Algo ha ido mal · worKampo».
+- **E3 full screen on a phone.** On a phone the page has no shell, the background fills the screen and the card is the card screens' one; its controls are 44 px.
+- **Nothing from outside.** The pages never repeat the path, query, slug or a server text (`error.message`, stack); a foreign company and a missing one get the same page.
+- **Focus.** On mount the focus goes to the `h1` (`tabIndex={-1}`); the tab order is the copy button, «Reintentar», «Ir al inicio».
+- Dark: the dark tokens. Reduced motion: there is no animation.
+
 ## Brand
 
 ### Logo mark in ink
 
-Custom (`LogoMark` in `packages/ui`, brand family; `size` in px, `bead` for the app loader). The minimal logo (`logo-mono-*.svg` in [brand/](brand/)) inlined as an SVG filled with `currentColor` on `--text`, so it follows the theme: the circle with the K, the arc and the dot cut out. Sizes: 40 px in empty states, 48 px in the app loader, 56 px on system pages. Decorative: `aria-hidden="true"`, the text next to it carries the meaning. Never in colour inside the app: no orange dot, which would read as a warning (`--warn`) or a notification.
+Custom (`LogoMark` in `packages/ui`, brand family; `size` in px, `bead` for the app loader). The minimal logo (`logo-mono-*.svg` in [brand/](brand/)) inlined as an SVG filled with `currentColor` on `--text`, so it follows the theme: the circle with the K, the arc and the dot cut out. Sizes: 40 px in empty states, 48 px in the app loader. Decorative: `aria-hidden="true"`, the text next to it carries the meaning. Never in colour inside the app: no orange dot, which would read as a warning (`--warn`) or a notification.

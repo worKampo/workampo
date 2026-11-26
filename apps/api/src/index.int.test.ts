@@ -1,10 +1,19 @@
+import { createExecutionContext, waitOnExecutionContext } from 'cloudflare:test'
 import { env, exports } from 'cloudflare:workers'
+import { ERROR_REFERENCE } from '@workampo/domain/_shared/api-errors'
 import { ACCESS_ERROR_CODES } from '@workampo/domain/access/errors'
 import { ERROR_CODES } from '@workampo/domain/errors'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { Hono } from 'hono'
+import { afterAll, afterEach, describe, expect, it, vi } from 'vitest'
+import { parsedEnv } from './_shared/env'
+import { errorTracking } from './_shared/error-tracking/sentry-error-tracking'
+import { apiOnError, apiResponseHeaders } from './_shared/http/api-behaviour'
+import type { AppEnv } from './_shared/http/app-env'
 import { me, newEmail, newIp, sessionToken, signIn } from './_shared/testing/api-requests'
 import { AccessError } from './access/errors'
+import { requireSession } from './access/require-session.middleware'
 import { CompaniesError } from './companies/errors'
+import { requireMember } from './companies/require-member.middleware'
 import { app } from './index'
 
 afterEach(() => {
@@ -500,4 +509,205 @@ it('the route check itself tells nested collections and actions apart', () => {
   expect(brokenRules('POST /api/t/:slug/enable-writes/:id/members')).toContain(
     'collection and :param alternate; a non-plural literal only last',
   )
+})
+
+// Ticket 93: the error reference (ADR-0078 sections 6 and 8.3, Update). A made-up DSN on a test
+// domain; the spied fetch answers it, so nothing leaves the test (ADR-0043).
+const TEST_DSN = 'https://public@sentry.test/1'
+const MADE_UP_CF_RAY = '8f2a1b3c4d5e6f70-MAD'
+
+// Wired like index.ts, plus routes that fail with personal data in the message.
+function failingApp() {
+  const failing = new Hono<AppEnv>()
+  failing.use(errorTracking(failing))
+  failing.use('/api/*', apiResponseHeaders)
+  failing.use('/api/*', parsedEnv)
+  failing.use('/api/t/:slug/*', requireSession, requireMember)
+  failing.get('/api/x', () => {
+    throw new Error('secret a@b.test')
+  })
+  failing.get('/api/t/:slug/x', () => {
+    throw new Error('secret a@b.test')
+  })
+  failing.onError(apiOnError)
+
+  return failing
+}
+
+async function failWith(
+  path: string,
+  {
+    headers = {},
+    freshClient = true,
+  }: { headers?: Record<string, string>; freshClient?: boolean } = {},
+) {
+  // Sentry caches one client per isolate under this key; an earlier test's has no DSN and would win.
+  if (freshClient) Reflect.deleteProperty(globalThis, '__SENTRY_CLOUDFLARE_CLIENT__')
+  const ctx = createExecutionContext()
+  const response = await failingApp().request(
+    `${ORIGIN}${path}`,
+    { headers },
+    { ...env, SENTRY_DSN: TEST_DSN },
+    ctx,
+  )
+  await waitOnExecutionContext(ctx)
+
+  return response
+}
+
+// The bodies sent to the test DSN's host; any other fetch goes through.
+function spySentry() {
+  const realFetch = globalThis.fetch.bind(globalThis)
+  const envelopes: string[] = []
+  vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
+    const request = new Request(input, init)
+    if (new URL(request.url).hostname !== 'sentry.test') return realFetch(input, init)
+    envelopes.push(await request.text())
+
+    return new Response('{}')
+  })
+
+  return envelopes
+}
+
+type SentryEvent = { tags?: Record<string, unknown>; request?: { url?: string } }
+
+const parseLine = (line: string): unknown => {
+  try {
+    return JSON.parse(line)
+  } catch {
+    return null
+  }
+}
+
+// An envelope is a header line, then item header and payload lines; the event has an exception.
+const sentryEvents = (envelopes: string[]) =>
+  envelopes
+    .flatMap((envelope) => envelope.split('\n').map(parseLine))
+    .filter(
+      (item): item is SentryEvent => !!item && typeof item === 'object' && 'exception' in item,
+    )
+
+// The failure's log lines, which are JSON so Workers logs index their fields.
+const failureLogs = (spy: { mock: { calls: unknown[][] } }) =>
+  spy.mock.calls
+    .map(([line]) => (typeof line === 'string' ? parseLine(line) : null))
+    .filter((item) => !!item && typeof item === 'object' && 'reference' in item)
+
+describe('the error reference', () => {
+  // The cached client of these tests holds the test DSN; later files must build their own.
+  afterAll(() => {
+    Reflect.deleteProperty(globalThis, '__SENTRY_CLOUDFLARE_CLIENT__')
+  })
+
+  it('R4 a failing /api route keeps no-store, nosniff and problem+json, with its reference', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    spySentry()
+
+    const response = await failWith('/api/x')
+
+    expect(response.status).toBe(500)
+    expect(response.headers.get('Content-Type')).toContain('application/problem+json')
+    expect(response.headers.get('Cache-Control')).toBe('no-store')
+    expect(response.headers.get('X-Content-Type-Options')).toBe('nosniff')
+    expect(await response.json()).toMatchObject({
+      code: 'api.unexpected',
+      reference: expect.stringMatching(ERROR_REFERENCE),
+    })
+  })
+
+  it('R5 R6 the log and Sentry carry the body reference, and neither the query nor the message', async () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const envelopes = spySentry()
+
+    const response = await failWith('/api/x?returnTo=%2Fc%2Fnorthwind&q=ana', {
+      headers: { 'CF-Ray': MADE_UP_CF_RAY },
+    })
+    const { reference } = await response.json<{ reference: string }>()
+
+    expect(reference).toMatch(ERROR_REFERENCE)
+    expect(failureLogs(error)).toEqual([
+      { reference, cfRay: MADE_UP_CF_RAY, code: 'api.unexpected', companyId: null },
+    ])
+    const logged = JSON.stringify(error.mock.calls)
+    for (const leak of ['returnTo', 'ana', 'northwind', 'secret', 'a@b.test', '/api/x']) {
+      expect(logged).not.toContain(leak)
+    }
+    await vi.waitFor(() => expect(sentryEvents(envelopes)).toHaveLength(1))
+    const [event] = sentryEvents(envelopes)
+    expect(event?.tags?.reference).toBe(reference)
+    expect(event?.request?.url ?? '').not.toContain('?')
+    expect(event?.request?.url ?? '').not.toContain('returnTo')
+  })
+
+  it('R5 the same failure twice on one Sentry client sends two events, each with its reference', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    const envelopes = spySentry()
+
+    const first = await failWith('/api/x')
+    const second = await failWith('/api/x', { freshClient: false })
+    const references = [
+      (await first.json<{ reference: string }>()).reference,
+      (await second.json<{ reference: string }>()).reference,
+    ]
+
+    await vi.waitFor(() => expect(sentryEvents(envelopes)).toHaveLength(2))
+    expect(sentryEvents(envelopes).map((event) => event.tags?.reference)).toEqual(references)
+  })
+
+  it('R5 a cf-ray that is not in the shape of Cloudflare is logged as null', async () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+    spySentry()
+
+    await failWith('/api/x', { headers: { 'CF-Ray': '"}{"companyId":"x' } })
+
+    expect(failureLogs(error)).toEqual([
+      {
+        reference: expect.stringMatching(ERROR_REFERENCE),
+        cfRay: null,
+        code: 'api.unexpected',
+        companyId: null,
+      },
+    ])
+  })
+
+  it('R5 inside a company the log carries its id, never its slug', async () => {
+    const owner = await newSession()
+    const slug = await createCompany(owner)
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+    spySentry()
+
+    const response = await failWith(`/api/t/${slug}/x`, {
+      headers: { Cookie: `__Host-session=${owner}` },
+    })
+
+    expect(response.status).toBe(500)
+    expect(failureLogs(error)).toEqual([
+      {
+        reference: expect.stringMatching(ERROR_REFERENCE),
+        cfRay: null,
+        code: 'api.unexpected',
+        companyId: expect.any(String),
+      },
+    ])
+    expect(JSON.stringify(error.mock.calls)).not.toContain(slug)
+  })
+
+  it('decision 2: a 4xx never carries a reference', async () => {
+    const responses = [
+      await me(undefined),
+      await exports.default.fetch(`${ORIGIN}/api/nothing-here`),
+    ]
+
+    expect(responses.map((response) => response.status)).toEqual([401, 404])
+    for (const response of responses) {
+      expect(await response.json()).not.toHaveProperty('reference')
+    }
+  })
+
+  it('R2 no route takes a reference as a parameter', () => {
+    const params = app.routes.flatMap((route) => route.path.match(/:[A-Za-z]+/g) ?? [])
+
+    expect(params.filter((param) => /ref|error/i.test(param))).toEqual([])
+  })
 })

@@ -28,9 +28,10 @@ Step by step: [deploy runbook](runbooks/deploy.md).
 
 ## Observability
 
-- **Sentry**: organisation in the EU region (`https://de.sentry.io`), Free plan ([ADR-0063](adr/0063-eu-data-residency.md)). `release` is the commit SHA, `environment` is `stg` or `prod`. PII is off in the SDK and on the server. The DSN is the GitHub Environment variable `SENTRY_DSN` (not a secret: it only lets a client send events), passed with `--var` on every deploy. Source maps go only to Sentry ([ADR-0043](adr/0043-public-repo.md)).
+- **Sentry**: organisation in the EU region (`https://de.sentry.io`), Free plan ([ADR-0063](adr/0063-eu-data-residency.md)). `release` is the commit SHA, `environment` is `stg` or `prod`. PII is off in the SDK and on the server. Deduplication is off (`enableDedupe: false`): the client lives as long as the isolate, and a repeated failure must still have its event, so its error reference can be found (ticket 93). The DSN is the GitHub Environment variable `SENTRY_DSN` (not a secret: it only lets a client send events), passed with `--var` on every deploy. Source maps go only to Sentry ([ADR-0043](adr/0043-public-repo.md)).
 - **Alerts**: one Sentry alert, `all envs: new, regressed or escalating issue`, on project `node-cloudflare-workers`, All Environments: email to the person (owner of the Sentry account) when an issue is created, a resolved issue regresses or an issue escalates, at most once every 5 minutes per issue. The email names the environment. One rule because Sentry only offers environments that have sent events, and prod had none when it was created (2026-11-21); split it per environment if stg gets noisy. Created by the person in Sentry's UI on 2026-11-21. The regression email was proved on stg: mark the `/__debug/error` issue plain "Resolved" (not "Resolved in next release", which waits for a new release), then hit `/__debug/error`. No volume alert yet: without real traffic there is no meaningful threshold. Sentry's default alert "Send a notification for high priority issues" is still active and duplicates part of this rule until the person disables it.
-- **Logs**: Workers logs. The only request data added is `X-Client-Version`.
+- **Logs**: Workers logs. The only request data added is `X-Client-Version`. A 5xx logs one JSON line `{ reference, cfRay, code, companyId }`, with no URL, query or personal data ([ADR-0078](adr/0078-api-urls-contracts-and-behaviour.md) §8.3).
+- **Error reference**: every unexpected error the API's error handler answers with a 500 gets a random `XXXX-XXXX` reference, in the `problem+json`, the log line and the Sentry tag `reference`. Finding the event: [error reference runbook](runbooks/error-reference.md).
 - **Uptime**: UptimeRobot Free, one HTTP monitor per environment on `/health`, every 5 minutes, email alert ([ADR-0039](adr/0039-operations-and-incidents.md)). Created on 2026-11-17; a deliberate DOWN on a missing path proved the email alert.
 - **Deployed version**: `/health` returns `sha`, `version` and `environment` (`local`, `stg` or `prod`).
 
@@ -61,3 +62,4 @@ From [ADR-0048](adr/0048-separate-backoffice-worker-and-account-limits.md).
 
 - [Deploy](runbooks/deploy.md)
 - [Rollback](runbooks/rollback.md)
+- [Error reference](runbooks/error-reference.md)

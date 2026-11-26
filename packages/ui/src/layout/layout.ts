@@ -9,3 +9,4 @@ export {
 export { CardScreen } from './card-screen'
 export { Page } from './page'
 export { SkipLink } from './skip-link'
+export { SystemPage } from './system-page'
