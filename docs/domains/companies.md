@@ -173,7 +173,7 @@ Rule: El inicio lleva a donde lleva entrar, y sin sesión a /login
     When abro /
     Then llego a /login
 
-@wip(#92)
+@issue(#92)
 Rule: Dentro de una empresa, el menú muestra la empresa, mi rol y solo lo que ya existe
 
   @id:companies-92-1
@@ -194,7 +194,7 @@ Rule: Dentro de una empresa, el menú muestra la empresa, mi rol y solo lo que y
     Then la tarjeta "Tus direcciones" muestra la dirección de la app de la empresa
     And no muestra la de la página pública
 
-@wip(#92)
+@issue(#92)
 Rule: Desde el menú cambio de empresa y cierro sesión
 
   @id:companies-92-4
@@ -209,7 +209,7 @@ Rule: Desde el menú cambio de empresa y cierro sesión
     When abro mi menú de usuario y pulso "Cerrar sesión"
     Then mi sesión queda revocada y llego a /login
 
-@wip(#92)
+@issue(#92)
 Rule: El menú se adapta al dispositivo y se maneja con teclado
 
   @id:companies-92-6
@@ -225,7 +225,7 @@ Rule: El menú se adapta al dispositivo y se maneja con teclado
     When pliego el menú lateral
     Then queda una barra de iconos, cada uno con su tooltip
 
-@wip(#92)
+@issue(#92)
 Rule: Los nombres del menú se leen siempre completos
 
   @id:companies-92-8
@@ -238,7 +238,7 @@ Rule: Los nombres del menú se leen siempre completos
     Given el nombre de la empresa tiene 80 caracteres
     Then el menú lo corta con puntos suspensivos y muestra el nombre completo en un tooltip
 
-@wip(#92)
+@issue(#92)
 Rule: La app se puede usar con teclado y lector de pantalla desde que carga
 
   @id:companies-92-10
