@@ -86,7 +86,7 @@ shadcn `Card`.
 
 ### Avatars
 
-`Avatar` in `packages/ui` (content family). Workspace logo in the sidebar: 32 square radius 8 in `--ui`. Initials and colour come from `packages/domain/src/_shared/avatar.ts`, so web, mobile and emails agree.
+`Avatar` in `packages/ui` (content family). The company logo in the shell is the `company` avatar, with the initials palette (E5), as in the company picker. Initials and colour come from `packages/domain/src/_shared/avatar.ts`, so web, mobile and emails agree.
 
 ```tsx
 <Avatar kind="person" name={user.name ?? user.email} />
@@ -159,7 +159,7 @@ shadcn `Progress`. Progress 8 high radius 4; compact usage bar (sidebar "Members
 
 ### App loader
 
-Custom. The logo mark in ink, 48 px, centred on `--bg`, with a bead cut into the arc that slides along it and back (1.6 s, ease-in-out). Only while there is no layout to draw yet: the first load, after sign-in and when switching company; it appears after about 300 ms. Inside a screen, a skeleton. `role="status"` with `aria-label="Loading"`. With `prefers-reduced-motion` the bead stays still at the top of the arc.
+Custom (`AppLoader` in `packages/ui`, feedback family). The logo mark in ink, 48 px, centred on `--bg`, with a bead cut into the arc that slides along it and back (1.6 s, ease-in-out). Only while there is no layout to draw yet: the first load, after sign-in and when switching company; it appears after about 300 ms. Inside a screen, a skeleton. `role="status"` with `aria-label="Loading"`. With `prefers-reduced-motion` the bead stays still at the top of the arc. `apps/web/index.html` has a static copy of its markup in `#root`, shown before the bundle runs; its styles are the `app-loader` classes in `styles.css`, not inline, because of the CSP ([patterns](patterns.md#app-shell)).
 
 ## Overlays
 
@@ -175,6 +175,13 @@ shadcn `Dialog` / `AlertDialog` (destructive confirmations). Max width 480 (wide
 
 shadcn `Popover`, `DropdownMenu`. `--surface`, 1 px `--border`, radius 12, `--shadow-pop`, padding 4, min width 200. Menu item: 36 high, padding 0 10, radius 8, 13 px `--text-1`; hover / highlighted `--surface-hover` + `--text`; danger item `--neg`; separator 1 px `--border` with 4 px margin. Radio items (saved views) use `menuitemradio` + `aria-checked`.
 
+`Menu` in `packages/ui` (overlays family) wraps the Radix dropdown: `MenuTrigger`, `MenuContent` (aligned to the end, 4 px from the trigger), `MenuHeader`, `MenuItem`, `MenuSeparator`.
+
+- Keyboard: Enter, Space or ↓ open on the first item, ↑ on the last; arrows, Home, End and typeahead move; Esc closes and returns the focus to the trigger.
+- Header: a non-interactive label (`MenuHeader`, weight 500 `--text`), such as the name and email of the user menu.
+- Busy item: `busy` disables the item (`aria-busy`) so a second select cannot run the action again; the menu stays open and the trigger shows `aria-busy`.
+- Inline error: a failed action shows its message inside the menu with `role="alert"`, and the item can be selected again.
+
 ### Command palette
 
 shadcn `Command` inside a `Dialog`. Opened with Ctrl K (Cmd K on macOS), the sidebar Search item or the topbar search button. Panel max width 600, radius 12, `--shadow-modal`, 96 px from the top (12 px on phone). Input 52 high, 15 px, search icon at the left, placeholder "Search pages, members, actions…". Groups with overline headings: Pages, Actions (actions can show their shortcut as kbd). Footer hint: "↑↓ to move · Enter to open · Esc to close". First result highlighted. `role="dialog"`, `aria-label="Command palette"`.
@@ -186,12 +193,26 @@ Ink background (`--text`) with `--bg` text, so they read as system feedback in b
 | Component | shadcn | Spec |
 |---|---|---|
 | Toast | `Sonner` | Bottom centre, 24 from the bottom, max width 440, padding 12 16, radius 12, `--shadow-float`. One line + optional action ("Undo", underlined, weight 600). `role="status"`. Not for errors that need action: use a banner or inline error |
-| Tooltip | `Tooltip` | 12/16, padding 6 8, radius 8, below the trigger with 6 px gap. Shown on hover and keyboard focus. Mandatory on icon-only buttons; text equals the `aria-label` |
+| Tooltip | `Tooltip` | 12/16, padding 6 8, radius 8, below the trigger with 6 px gap (`side="right"` in the rail). Shown on hover and keyboard focus, after 300 ms. Mandatory on icon-only buttons; text equals the `aria-label`. For a cut name, it shows the full text only when the text is cut (the shell's company name) |
 | Save bar | custom | Sticky 16 above the bottom of the page, centred, padding 12 12 12 16, radius 12, `--shadow-float`. "2 unsaved changes" + Discard (outlined in `--bg`) + Save (filled `--bg`, text `--text`). `role="region"`, `aria-label="Unsaved changes"` |
 
 ## Layout
 
-Shell, sidebar and topbar are not catalogued yet.
+### App shell
+
+Custom (`AppShell` in `packages/ui/src/layout/app-shell/`), on Radix `Dialog` for the side menu. Layout and behaviour: [patterns](patterns.md#app-shell). It takes slots (`company`, `nav`, `user`, `topbar`) and renders them in the sidebar, the rail and the side menu; its pieces read where they are:
+
+- `CompanyLink`: avatar, name (13/16 weight 600) and role in meta; a 44 px link. The name is cut with an ellipsis and gets a tooltip only when cut.
+- `NavItem`: 36 / 44 high, radius 8, 16 px icon and label; current: `--nav-active`, 1 px `--border` ring, weight 600. In the rail, a 40 px square with the label visually hidden and a tooltip at its right. Routers wrap it (`createLink(NavItem)`).
+- `UserButton`: avatar, name and email; with no name the email takes its place, without a second line. A 44 px square with the avatar in the rail and the topbar; `aria-busy` while signing out.
+- `TopbarCompany`: avatar and name in the topbar, not a focus stop.
+- Collapse button: a quiet icon button in the sidebar foot, with a tooltip.
+- Side menu: 280 px, `--chrome`, end border `--border`, `--shadow-drawer-start` (`--shadow-drawer` in RTL), over the `--scrim`; title visually hidden.
+- `<main id="content" tabindex="-1">`: max 880 px.
+
+### Skip link
+
+Custom (`SkipLink` in `packages/ui/src/layout/`). The first focusable element of a layout, visually hidden until focused; then fixed 16 from the top and start, `--surface`, radius 8, padding 8 16, weight 500, `--shadow-pop`. Links to the target id (`#content`).
 
 ### Page
 
@@ -209,4 +230,4 @@ Custom (`CardScreen` in `packages/ui/src/layout/`). The layout of the [card scre
 
 ### Logo mark in ink
 
-Custom. The minimal logo (`logo-mono-*.svg` in [brand/](brand/)) inlined as an SVG filled with `currentColor` on `--text`, so it follows the theme: the circle with the K, the arc and the dot cut out. Sizes: 40 px in empty states, 48 px in the app loader, 56 px on system pages. Decorative: `aria-hidden="true"`, the text next to it carries the meaning. Never in colour inside the app: no orange dot, which would read as a warning (`--warn`) or a notification.
+Custom (`LogoMark` in `packages/ui`, brand family; `size` in px, `bead` for the app loader). The minimal logo (`logo-mono-*.svg` in [brand/](brand/)) inlined as an SVG filled with `currentColor` on `--text`, so it follows the theme: the circle with the K, the arc and the dot cut out. Sizes: 40 px in empty states, 48 px in the app loader, 56 px on system pages. Decorative: `aria-hidden="true"`, the text next to it carries the meaning. Never in colour inside the app: no orange dot, which would read as a warning (`--warn`) or a notification.
