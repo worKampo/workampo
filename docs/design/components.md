@@ -23,6 +23,7 @@ shadcn `Button`. Height 36 / 44, small 32 / 40, padding 0 16 (small 0 12), radiu
 | Secondary | Transparent, 1 px `--border-hard`, `--text-1b`; hover border and text `--text` | `outline` | Other actions, Cancel |
 | Ghost | Transparent, underlined `--text-1` | `link` | Low-weight inline actions: Discard, Save view |
 | Quiet | Transparent; hover `--nav-hover` | `ghost` | Toolbar and row actions, icon buttons in chrome |
+| Subtle | Transparent, 1 px transparent border; hover 1 px `--border-hard` like Secondary; on touch (no hover) always a soft 1 px `--border` | new `subtle` | Icon-only actions inside content, like copying the error reference |
 | Danger | `--neg` fill, `--on-neg` text | `destructive` | Final confirm of a destructive action |
 | Danger outline | `--neg-border` border, `--neg` text; hover fills `--neg` | new `destructive-outline` | Opens a destructive flow (Remove member…) |
 | Icon-only | Square 36 / 44 (small 32 / 40), any variant | `size="icon"` | Secondary page actions and row menus |
@@ -263,4 +264,4 @@ Custom (`SystemPage` in `packages/ui/src/layout/`). The [system pages](patterns.
 
 ### Logo mark in ink
 
-Custom (`LogoMark` in `packages/ui`, brand family; `size` in px, `bead` for the app loader). The minimal logo (`logo-mono-*.svg` in [brand/](brand/)) inlined as an SVG filled with `currentColor` on `--text`, so it follows the theme: the circle with the K, the arc and the dot cut out. Sizes: 40 px in empty states, 48 px in the app loader, 56 px on system pages. Decorative: `aria-hidden="true"`, the text next to it carries the meaning. Never in colour inside the app: no orange dot, which would read as a warning (`--warn`) or a notification.
+Custom (`LogoMark` in `packages/ui`, brand family; `size` in px, `bead` for the app loader). The minimal logo (`logo-mono-*.svg` in [brand/](brand/)) inlined as an SVG filled with `currentColor` on `--text`, so it follows the theme: the circle with the K, the arc and the dot cut out. Sizes: 40 px in empty states, 48 px in the app loader. Decorative: `aria-hidden="true"`, the text next to it carries the meaning. Never in colour inside the app: no orange dot, which would read as a warning (`--warn`) or a notification.
