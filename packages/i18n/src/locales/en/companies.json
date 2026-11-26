@@ -15,7 +15,10 @@
     "back_to_companies": "Back to my companies"
   },
   "company_home": {
-    "welcome": "Welcome to {{name}}"
+    "welcome": "Welcome to {{name}}",
+    "title": "Welcome to {{name}}",
+    "addresses": "Your addresses",
+    "app_address": "App"
   },
   "not_found": {
     "title": "We could not find this company",
@@ -41,5 +44,29 @@
     "title": "Choose a company",
     "signed_in_as": "You are signed in as {{email}}",
     "create": "Create a new company"
+  },
+  "shell": {
+    "skip_to_content": "Skip to content",
+    "company_navigation": "Company",
+    "switch_company": "Switch company",
+    "roles": {
+      "owner": "Owner",
+      "admin": "Administrator",
+      "member": "Member",
+      "viewer": "Viewer"
+    },
+    "main_nav": "Main",
+    "home": "Home",
+    "account": "Your account",
+    "account_menu": "Your account menu",
+    "collapse": "Collapse menu",
+    "expand": "Expand menu",
+    "open_nav": "Open menu",
+    "close_nav": "Close menu",
+    "nav_dialog": "Menu"
+  },
+  "company_error": {
+    "title": "We could not open the company",
+    "retry": "Try again"
   }
 }

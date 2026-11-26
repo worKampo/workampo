@@ -13,7 +13,10 @@
   },
   "company_home": {
     "_screen": "The first screen inside a company: a welcome with the company name.",
-    "welcome": "{{name}} is the company name, rendered as plain text."
+    "welcome": "{{name}} is the company name, rendered as plain text.",
+    "title": "Heading of the company home; {{name}} is the full company name, rendered as plain text.",
+    "addresses": "Heading of the card listing the addresses where the company is reached.",
+    "app_address": "Label of the row with the address of the app; a product word, usually left as is."
   },
   "not_found": {
     "_screen": "Shown when the company address does not exist or the person is not a member. Must not reveal which of the two it is.",
@@ -38,5 +41,26 @@
     "title": "Heading of the picker; a short invitation to choose.",
     "signed_in_as": "Says which account is signed in; {{email}} is the account email, rendered as plain text.",
     "create": "Link to the create-company screen."
+  },
+  "shell": {
+    "_screen": "The app shell around every page inside a company: sidebar (collapsible to a narrow rail) on desktop, a top bar and a side menu dialog on small screens. Shows the company, its main navigation and the signed-in account.",
+    "skip_to_content": "First link of the page, visible on focus; jumps to the main content.",
+    "company_navigation": "Accessible name of the area with the company button.",
+    "switch_company": "Accessible hint of the company button, a link to the company picker.",
+    "roles": "The person’s role in the company, shown under the company name. owner: who created it; viewer: can only read.",
+    "main_nav": "Accessible name of the main navigation landmark; screen readers append ‘navigation’.",
+    "home": "Navigation item and page name of the company home; also used in the browser tab title.",
+    "account": "Accessible name of the button that opens the account menu.",
+    "account_menu": "Accessible name of the account menu (name, email, sign out).",
+    "collapse": "Button that narrows the sidebar to icons only.",
+    "expand": "Button that widens the narrowed sidebar back.",
+    "open_nav": "Top bar button on small screens that opens the side menu.",
+    "close_nav": "Button that closes the side menu on small screens.",
+    "nav_dialog": "Accessible name of the side menu dialog on small screens."
+  },
+  "company_error": {
+    "_screen": "Shown instead of the company when loading it fails (server or network error). Has Retry and Back to my companies.",
+    "title": "Heading; says it could not be opened, without blaming the person.",
+    "retry": "Button that loads the company again."
   }
 }
