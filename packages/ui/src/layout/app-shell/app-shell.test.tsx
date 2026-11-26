@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import type { ReactNode } from 'react'
 import { afterEach, expect, it, vi } from 'vitest'
-import { AppShell, CompanyLink, NavItem } from './app-shell'
+import { AppShell, CompanyLink, NavItem, UserButton } from './app-shell'
 
 const LABELS = {
   skipToContent: 'Saltar al contenido',
@@ -20,10 +21,12 @@ async function renderShell({
   collapsed = false,
   onCollapsedChange = () => {},
   name = 'Northwind Logistics',
+  user = <button type="button">Ana</button>,
 }: Partial<{
   collapsed: boolean
   onCollapsedChange: (collapsed: boolean) => void
   name: string
+  user: ReactNode
 }> = {}) {
   const icon = <svg aria-hidden="true" />
   render(
@@ -46,7 +49,7 @@ async function renderShell({
           <NavItem href="/c/northwind/x" onClick={stay} icon={icon} label="Otra" />
         </>
       }
-      user={<button type="button">Ana</button>}
+      user={user}
     >
       <p>Contenido</p>
     </AppShell>,
@@ -211,4 +214,41 @@ it('@id:companies-92-1 the company link carries the name in its own direction an
   expect(company.getAttribute('href')).toBe('/companies')
   expect(company.textContent).toContain('Propietario')
   expect(within(company).getByText('شركة الشمال').getAttribute('dir')).toBe('auto')
+})
+
+it('@id:companies-92-7 in the rail the company link shows its name in a tooltip', async () => {
+  await renderShell({ collapsed: true })
+
+  fireEvent.focus(companyLink(/Northwind Logistics/))
+
+  expect((await screen.findByRole('tooltip')).textContent).toBe('Northwind Logistics')
+})
+
+it('@id:companies-92-7 in the rail the user button shows the name, or the email without one', async () => {
+  await renderShell({
+    collapsed: true,
+    user: <UserButton avatar={null} name={undefined} email="ana@northwind.test" />,
+  })
+
+  fireEvent.focus(screen.getByRole('button', { name: 'ana@northwind.test' }))
+
+  expect((await screen.findByRole('tooltip')).textContent).toBe('ana@northwind.test')
+})
+
+it('@id:companies-92-9 in the open sidebar the user button shows a tooltip only when its name is cut', async () => {
+  layOutText({ cut: false })
+  await renderShell({ user: <UserButton avatar={null} name="Ana" email="ana@northwind.test" /> })
+  fireEvent.focus(screen.getByRole('button', { name: /Ana/ }))
+  expect(screen.queryByRole('tooltip')).toBeNull()
+})
+
+it('@id:companies-92-9 a cut user name shows whole in a tooltip', async () => {
+  layOutText({ cut: true })
+  await renderShell({
+    user: <UserButton avatar={null} name={LONG_NAME} email="ana@northwind.test" />,
+  })
+
+  fireEvent.focus(screen.getByRole('button', { name: new RegExp(LONG_NAME) }))
+
+  expect((await screen.findByRole('tooltip')).textContent).toBe(LONG_NAME)
 })

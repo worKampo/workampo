@@ -59,6 +59,7 @@ export function MenuContent({
       <DropdownMenu.Content
         sideOffset={sideOffset}
         align={align}
+        collisionPadding={8}
         onFocus={(event) => {
           // Preventing the content's own focus skips Radix's move to the first item.
           if (!menu?.focusLast.current || event.target !== event.currentTarget) return

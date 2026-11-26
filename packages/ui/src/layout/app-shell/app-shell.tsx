@@ -185,7 +185,8 @@ export function NavItem({
   )
 }
 
-// The company button at the top; its name is cut with an ellipsis and read whole in a tooltip.
+// The company button at the top; its name is cut with an ellipsis and read whole in a tooltip,
+// which the rail always shows.
 export function CompanyLink({
   avatar,
   name,
@@ -227,7 +228,7 @@ export function CompanyLink({
     </a>
   )
 
-  return cut ? (
+  return rail || cut ? (
     <Tooltip content={name} side={rail ? 'right' : 'bottom'}>
       {link}
     </Tooltip>
@@ -237,7 +238,7 @@ export function CompanyLink({
 }
 
 // The account button of the sidebar foot (avatar, name and email); the rail and the topbar keep the avatar.
-// With no name the email takes its place, without a second line.
+// With no name the email takes its place, without a second line. The tooltip follows CompanyLink's rule.
 export function UserButton({
   avatar,
   name,
@@ -250,8 +251,9 @@ export function UserButton({
   email: string
 }) {
   const { rail } = useContext(PlaceContext)
+  const [cut, nameRef] = useIsCut()
 
-  return (
+  const button = (
     <button
       type="button"
       className={cx(
@@ -265,7 +267,7 @@ export function UserButton({
     >
       {avatar}
       <span className={rail ? 'sr-only' : 'flex min-w-0 flex-col'}>
-        <span dir="auto" className="truncate text-body font-medium text-text">
+        <span ref={nameRef} dir="auto" className="truncate text-body font-medium text-text">
           {name ?? email}
         </span>
         {name && (
@@ -275,6 +277,14 @@ export function UserButton({
         )}
       </span>
     </button>
+  )
+
+  return rail || cut ? (
+    <Tooltip content={name ?? email} side={rail ? 'right' : 'top'}>
+      {button}
+    </Tooltip>
+  ) : (
+    button
   )
 }
 
