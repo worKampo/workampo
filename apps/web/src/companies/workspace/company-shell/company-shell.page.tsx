@@ -46,6 +46,7 @@ export function CompanyShell() {
   const { slug } = workspaceRoute.useParams()
   const { data: company } = useCompanyContext(slug)
   const [collapsed, setCollapsed] = useRail()
+  const signOut = useSignOut()
 
   // The loader cached the context before the shell renders.
   if (!company) return null
@@ -85,11 +86,11 @@ export function CompanyShell() {
             activeProps={{ current: true }}
           />
         }
-        user={<AccountMenu />}
+        user={<AccountMenu signOut={signOut} />}
         topbar={
           <>
             <TopbarCompany avatar={avatar} name={company.name} />
-            <AccountMenu />
+            <AccountMenu signOut={signOut} />
           </>
         }
       >
@@ -99,11 +100,10 @@ export function CompanyShell() {
   )
 }
 
-// The sidebar and the topbar each hold one; both show the same sign-out state.
-function AccountMenu() {
+// The sidebar and the topbar each hold one; the shell owns the sign-out so both show the same state.
+function AccountMenu({ signOut }: { signOut: ReturnType<typeof useSignOut> }) {
   const { t } = useTranslation(['companies', 'access', 'api', 'common'])
   const navigate = useNavigate()
-  const signOut = useSignOut()
   const { data: me } = useMe()
 
   if (!me) return null
