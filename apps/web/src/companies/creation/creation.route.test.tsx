@@ -85,7 +85,8 @@ describe('creating a company', () => {
     expect(router.state.location.pathname).toMatch(/^\/c\/northwind-logistics\/?$/)
     expect(created).toHaveLength(1)
     expect(created[0]?.key).toMatch(/^[0-9a-f-]{36}$/)
-  })
+    // Types two fields and then loads the company shell's lazy chunk: past 5 s under a busy check.
+  }, 10_000)
 
   it('@id:companies-91-3 the start without a company opens the creation form directly', async () => {
     const { router } = renderApp({ path: '/', answer: companiesApi({ name: 'Ana' }) })
