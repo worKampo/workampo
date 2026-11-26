@@ -46,7 +46,6 @@
   },
   "shell": {
     "skip_to_content": "Saltar al contenido",
-    "company_navigation": "Empresa",
     "switch_company": "Cambiar de empresa",
     "roles": {
       "owner": "Propietario",
@@ -56,7 +55,6 @@
     },
     "main_nav": "Principal",
     "home": "Inicio",
-    "account": "Tu cuenta",
     "account_menu": "Menú de tu cuenta",
     "collapse": "Plegar menú",
     "expand": "Desplegar menú",

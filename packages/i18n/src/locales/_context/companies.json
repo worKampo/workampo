@@ -44,12 +44,10 @@
   "shell": {
     "_screen": "The app shell around every page inside a company: sidebar (collapsible to a narrow rail) on desktop, a top bar and a side menu dialog on small screens. Shows the company, its main navigation and the signed-in account.",
     "skip_to_content": "First link of the page, visible on focus; jumps to the main content.",
-    "company_navigation": "Accessible name of the area with the company button.",
     "switch_company": "Accessible hint of the company button, a link to the company picker.",
     "roles": "The person’s role in the company, shown under the company name. owner: who created it; viewer: can only read.",
     "main_nav": "Accessible name of the main navigation landmark; screen readers append ‘navigation’.",
     "home": "Navigation item and page name of the company home; also used in the browser tab title.",
-    "account": "Accessible name of the button that opens the account menu.",
     "account_menu": "Accessible name of the account menu (name, email, sign out).",
     "collapse": "Button that narrows the sidebar to icons only.",
     "expand": "Button that widens the narrowed sidebar back.",

@@ -46,7 +46,6 @@
   },
   "shell": {
     "skip_to_content": "Salta al contingut",
-    "company_navigation": "Empresa",
     "switch_company": "Canvia d’empresa",
     "roles": {
       "owner": "Propietari",
@@ -56,7 +55,6 @@
     },
     "main_nav": "Principal",
     "home": "Inici",
-    "account": "El teu compte",
     "account_menu": "Menú del teu compte",
     "collapse": "Plega el menú",
     "expand": "Desplega el menú",

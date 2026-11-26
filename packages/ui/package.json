@@ -12,6 +12,9 @@
     "./overlays": "./src/overlays/overlays.ts",
     "./feedback": "./src/feedback/feedback.ts"
   },
+  "sideEffects": [
+    "**/*.css"
+  ],
   "scripts": {
     "typecheck": "tsc",
     "lint": "biome check .",

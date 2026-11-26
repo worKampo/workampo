@@ -46,7 +46,6 @@
   },
   "shell": {
     "skip_to_content": "Skip to content",
-    "company_navigation": "Company",
     "switch_company": "Switch company",
     "roles": {
       "owner": "Owner",
@@ -56,7 +55,6 @@
     },
     "main_nav": "Main",
     "home": "Home",
-    "account": "Your account",
     "account_menu": "Your account menu",
     "collapse": "Collapse menu",
     "expand": "Expand menu",

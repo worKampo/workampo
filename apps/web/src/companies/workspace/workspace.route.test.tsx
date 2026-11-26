@@ -209,7 +209,7 @@ describe('the company shell', () => {
     localStorage.clear()
   })
 
-  it.fails('@id:companies-92-1 shows the company, my role and «Inicio» as the current page', async () => {
+  it('@id:companies-92-1 shows the company, my role and «Inicio» as the current page', async () => {
     await openHome()
 
     const companyLinks = screen.getAllByRole('link', { name: /Northwind Logistics/ })
@@ -221,7 +221,7 @@ describe('the company shell', () => {
     for (const link of current) expect(link.textContent).toContain('Inicio')
   })
 
-  it.fails('@id:companies-92-2 renders nothing that does not exist yet', async () => {
+  it('@id:companies-92-2 renders nothing that does not exist yet', async () => {
     await openHome()
 
     expect(screen.getAllByRole('navigation').length).toBeGreaterThan(0)
@@ -231,7 +231,7 @@ describe('the company shell', () => {
     expect(screen.queryAllByText(/\bplan\b|prueba/i)).toHaveLength(0)
   })
 
-  it.fails('@id:companies-92-3 «Tus direcciones» shows the app address only', async () => {
+  it('@id:companies-92-3 «Tus direcciones» shows the app address only', async () => {
     await openHome()
 
     expect(screen.getByRole('heading', { name: 'Tus direcciones' })).toBeTruthy()
@@ -241,7 +241,7 @@ describe('the company shell', () => {
     expect(main.split(window.location.host)).toHaveLength(2)
   })
 
-  it.fails('@id:companies-92-4 the company button links to the company picker', async () => {
+  it('@id:companies-92-4 the company button links to the company picker', async () => {
     await openHome()
 
     const companyLinks = screen.getAllByRole('link', { name: /Northwind Logistics/ })
@@ -249,7 +249,7 @@ describe('the company shell', () => {
     expect(companyLinks.some((link) => link.getAttribute('href') === '/companies')).toBe(true)
   })
 
-  it.fails('@id:companies-92-5 the user menu shows my name and email, not as items, and signs me out to /login', async () => {
+  it('@id:companies-92-5 the user menu shows my name and email, not as items, and signs me out to /login', async () => {
     const asked: string[] = []
     const { router } = await openHome(shellApi({ asked }))
 
@@ -267,7 +267,7 @@ describe('the company shell', () => {
     expect(asked.some((call) => call.startsWith('DELETE '))).toBe(true)
   })
 
-  it.fails('@id:companies-92-5 while signing out the menu stays open, the item disabled and the button busy', async () => {
+  it('@id:companies-92-5 while signing out the menu stays open, the item disabled and the button busy', async () => {
     await openHome(shellApi({ signOut: () => new Promise<Response>(() => {}) }))
 
     const { account, menu } = await openAccountMenu(/Ana/)
@@ -279,7 +279,7 @@ describe('the company shell', () => {
     expect(screen.getByRole('menu')).toBeTruthy()
   })
 
-  it.fails('@id:companies-92-5 a sign-out that fails says so inside the menu and can be tried again', async () => {
+  it('@id:companies-92-5 a sign-out that fails says so inside the menu and can be tried again', async () => {
     let calls = 0
     const { router } = await openHome(
       shellApi({
@@ -302,7 +302,7 @@ describe('the company shell', () => {
     await waitFor(() => expect(router.state.location.pathname).toBe('/login'))
   })
 
-  it.fails('@id:companies-92-8 an account without a name shows its email, once, in place of the name', async () => {
+  it('@id:companies-92-8 an account without a name shows its email, once, in place of the name', async () => {
     await openHome(shellApi({ name: null }))
 
     const { menu } = await openAccountMenu(/ana@example\.com/)
@@ -310,7 +310,7 @@ describe('the company shell', () => {
     expect(within(menu).getAllByText('ana@example.com')).toHaveLength(1)
   })
 
-  it.fails('@id:companies-92-7 the rail starts unfolded and is kept for the next visit', async () => {
+  it('@id:companies-92-7 the rail starts unfolded and is kept for the next visit', async () => {
     await openHome()
 
     await userEvent.click(screen.getByRole('button', { name: 'Plegar menú' }))
@@ -322,7 +322,7 @@ describe('the company shell', () => {
     expect(screen.getByRole('button', { name: 'Desplegar menú' })).toBeTruthy()
   })
 
-  it.fails('@id:companies-92-7 a browser that refuses storage still shows and folds the menu', async () => {
+  it('@id:companies-92-7 a browser that refuses storage still shows and folds the menu', async () => {
     const refuse = () => {
       throw new DOMException('denied', 'SecurityError')
     }
@@ -335,7 +335,7 @@ describe('the company shell', () => {
     expect(await screen.findByRole('button', { name: 'Desplegar menú' })).toBeTruthy()
   })
 
-  it.fails('@id:companies-92-10 the first focus is «Saltar al contenido», which leads to the main content', async () => {
+  it('@id:companies-92-10 the first focus is «Saltar al contenido», which leads to the main content', async () => {
     await openHome()
 
     await userEvent.tab()
@@ -346,13 +346,13 @@ describe('the company shell', () => {
     expect(screen.getByRole('main').id).toBe('content')
   })
 
-  it.fails('@id:companies-92-10 the tab is titled with the page, the company and the app', async () => {
+  it('@id:companies-92-10 the tab is titled with the page, the company and the app', async () => {
     await openHome()
 
     await waitFor(() => expect(document.title).toBe('Inicio · Northwind Logistics · worKampo'))
   })
 
-  it.fails('@id:companies-92-10 a subpage that does not exist is inside the shell, with nothing current and its own title', async () => {
+  it('@id:companies-92-10 a subpage that does not exist is inside the shell, with nothing current and its own title', async () => {
     renderApp({ path: '/c/northwind/settings', answer: shellApi() })
 
     expect(await screen.findByRole('heading', { name: 'No encontramos esta página' })).toBeTruthy()
@@ -365,7 +365,7 @@ describe('the company shell', () => {
     )
   })
 
-  it.fails('@id:companies-92-11 a company that takes long to load shows the app loader', async () => {
+  it('@id:companies-92-11 a company that takes long to load shows the app loader', async () => {
     const slow = () =>
       new Promise<Response>((resolve) => setTimeout(() => resolve(Response.json(NORTHWIND)), 1000))
     renderApp({ path: '/c/northwind', answer: shellApi({ context: slow }) })
@@ -374,7 +374,7 @@ describe('the company shell', () => {
     expect(await screen.findByText(HOME)).toBeTruthy()
   })
 
-  it.fails('@id:companies-92-1 a company that cannot be loaded shows an error without the shell, and «Reintentar» opens it', async () => {
+  it('@id:companies-92-1 a company that cannot be loaded shows an error without the shell, and «Reintentar» opens it', async () => {
     let failing = true
     const context = () =>
       failing ? problem({ status: 500, code: 'internal' }) : Response.json(NORTHWIND)

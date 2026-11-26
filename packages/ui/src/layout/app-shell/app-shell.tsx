@@ -3,11 +3,9 @@ import {
   type ComponentProps,
   createContext,
   type ReactNode,
-  type RefObject,
+  useCallback,
   useContext,
   useEffect,
-  useLayoutEffect,
-  useRef,
   useState,
 } from 'react'
 import { cx } from '../../_shared/cx'
@@ -198,8 +196,7 @@ export function CompanyLink({
   ...props
 }: Omit<ComponentProps<'a'>, 'children'> & { avatar: ReactNode; name: string; meta?: string }) {
   const { rail, onNavigate } = useContext(PlaceContext)
-  const nameRef = useRef<HTMLSpanElement>(null)
-  const cut = useIsCut(nameRef)
+  const [cut, nameRef] = useIsCut()
 
   const link = (
     <a
@@ -293,21 +290,23 @@ export function TopbarCompany({ avatar, name }: { avatar: ReactNode; name: strin
   )
 }
 
-function useIsCut(ref: RefObject<HTMLElement | null>) {
+// A callback ref: showing the tooltip remounts the link, so each new name element is measured anew.
+function useIsCut() {
   const [cut, setCut] = useState(false)
 
-  useLayoutEffect(() => {
-    const element = ref.current
+  const ref = useCallback((element: HTMLElement | null) => {
     if (!element) return
-    const measure = () => setCut(element.scrollWidth > element.clientWidth)
+    const measure = () => element.isConnected && setCut(element.scrollWidth > element.clientWidth)
     measure()
+    // The web font widens the text without resizing its box, which the observer would miss.
+    document.fonts?.ready.then(measure)
     if (typeof ResizeObserver === 'undefined') return
     const observer = new ResizeObserver(measure)
     observer.observe(element)
     return () => observer.disconnect()
-  }, [ref])
+  }, [])
 
-  return cut
+  return [cut, ref] as const
 }
 
 const svg = {

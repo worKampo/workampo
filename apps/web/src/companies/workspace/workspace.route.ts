@@ -2,11 +2,13 @@ import { createLazyRoute, createRoute, notFound, redirect } from '@tanstack/reac
 import { meQueryOptions, replaceSession } from '@workampo/app-core/access/me'
 import { companyContextQueryOptions } from '@workampo/app-core/companies/workspace/read-context'
 import { errorKeyOf } from '@workampo/app-core/errors'
-import { rootRoute } from '../../_shared/router/root-route'
+import { RouteLoader, rootRoute } from '../../_shared/router/root-route'
 
 const companyRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/c/$slug',
+  pendingComponent: RouteLoader,
+  pendingMs: 300,
   // No session, no app: after signing in the person comes back to the page they asked for
   // (@id:companies-90-13, @id:access-91-1).
   beforeLoad: async ({ context, location }) => {
@@ -30,8 +32,16 @@ const companyRoute = createRoute({
     }
   },
 }).lazy(() =>
-  import('./company-home/company-home.page').then(({ CompanyNotFoundPage }) =>
-    createLazyRoute('/c/$slug')({ notFoundComponent: CompanyNotFoundPage }),
+  Promise.all([
+    import('./company-home/company-home.page'),
+    import('./company-shell/company-shell.page'),
+    import('./company-error/company-error.page'),
+  ]).then(([{ CompanyNotFoundPage }, { CompanyShell }, { CompanyErrorPage }]) =>
+    createLazyRoute('/c/$slug')({
+      component: CompanyShell,
+      errorComponent: CompanyErrorPage,
+      notFoundComponent: CompanyNotFoundPage,
+    }),
   ),
 )
 
