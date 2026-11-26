@@ -1,14 +1,8 @@
 import { render } from '@testing-library/react'
 import { expect, it } from 'vitest'
+import { LogoMark } from './logo-mark'
 
-// A specifier Vite does not resolve ahead, so the file loads before T4 creates the module; turn it
-// into a static import when the it.fails marks go.
-const MODULE = './logo-mark'
-const load = () => import(/* @vite-ignore */ MODULE)
-
-it.fails('@id:companies-92-11 LogoMark is a decorative mark of the size asked, unique in the page', async () => {
-  const { LogoMark } = await load()
-
+it('@id:companies-92-11 LogoMark is a decorative mark of the size asked, unique in the page', () => {
   const { container } = render(
     <>
       <LogoMark size={48} />
