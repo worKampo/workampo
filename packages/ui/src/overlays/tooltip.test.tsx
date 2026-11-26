@@ -30,3 +30,21 @@ it('@id:companies-92-7 focusing the trigger shows the tooltip, which describes i
   fireEvent.keyDown(document.activeElement ?? trigger, { key: 'Escape' })
   await waitFor(() => expect(screen.queryByRole('tooltip')).toBeNull())
 })
+
+it('@id:companies-92-9 a tooltip disabled while open does not come back by itself when enabled again', async () => {
+  const tooltip = (disabled: boolean) => (
+    <Tooltip content="Northwind Logistics" disabled={disabled}>
+      <button type="button">N</button>
+    </Tooltip>
+  )
+  const { rerender } = render(tooltip(false))
+  fireEvent.focus(screen.getByRole('button', { name: 'N' }))
+  await screen.findByRole('tooltip')
+
+  rerender(tooltip(true))
+  await waitFor(() => expect(screen.queryByRole('tooltip')).toBeNull())
+  rerender(tooltip(false))
+
+  await new Promise((resolve) => setTimeout(resolve, 400))
+  expect(screen.queryByRole('tooltip')).toBeNull()
+})

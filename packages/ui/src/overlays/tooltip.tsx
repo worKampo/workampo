@@ -1,5 +1,5 @@
 import * as TooltipPrimitive from '@radix-ui/react-tooltip'
-import type { ReactNode } from 'react'
+import { type ReactNode, useState } from 'react'
 
 // docs/design/components.md, "Inverted surfaces": ink background, 12/16, padding 6 8, radius 8, 6 px gap.
 export function Tooltip({
@@ -14,9 +14,16 @@ export function Tooltip({
   disabled?: boolean
   children: ReactNode
 }) {
+  // Controlled, so a tooltip re-enabled while hovered does not pop up without a new interaction.
+  const [open, setOpen] = useState(false)
+  if (disabled && open) setOpen(false)
+
   return (
     <TooltipPrimitive.Provider delayDuration={300}>
-      <TooltipPrimitive.Root {...(disabled && { open: false })}>
+      <TooltipPrimitive.Root
+        open={!disabled && open}
+        onOpenChange={(next) => setOpen(!disabled && next)}
+      >
         <TooltipPrimitive.Trigger asChild>{children}</TooltipPrimitive.Trigger>
         <TooltipPrimitive.Portal>
           <TooltipPrimitive.Content
