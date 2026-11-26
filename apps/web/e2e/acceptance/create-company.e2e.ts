@@ -1,4 +1,4 @@
-import { type Browser, expect, type Page, test } from '@playwright/test'
+import { type Browser, expect, type Locator, type Page, test } from '@playwright/test'
 import { newEmail, signInWithCode } from '../../../../e2e/support/acceptance-support'
 
 test.use({ locale: 'es-ES' })
@@ -90,7 +90,7 @@ for (const slug of ['ab', 'mi--empresa', '-norte', 'norte-stg']) {
 
     await fillCompany(page, { name: 'E2E Formato', slug })
 
-    await expect(page.getByText(/formato no es válido/i)).toBeVisible()
+    await expect(page.getByText(/^Usa de 3 a 40 caracteres/)).toBeVisible()
     await expectNotCreated(page)
   })
 }
@@ -170,6 +170,116 @@ test('@id:companies-90-10 of two people sending the same URL at once, the other 
   )
   expect(outcomes.sort()).toEqual(['created', 'taken'])
 })
+
+test('@id:companies-166-1 without a company I see what a company is above the form', async ({
+  page,
+}) => {
+  await openForm(page)
+
+  const intro = page.getByText(/^Una empresa es el espacio de tu equipo en worKampo/)
+  await expect(intro).toBeVisible()
+  await expect(intro).toContainText('Serás su propietario')
+  expect(await isAbove(intro, page.locator('form'))).toBe(true)
+})
+
+test('@id:companies-166-2 the URL shows its prefix and a hint before any error', async ({
+  page,
+}) => {
+  await openForm(page)
+
+  const prefix = page.getByText('…/c/', { exact: true })
+  await expect(prefix).toBeVisible()
+  const [prefixBox, slugBox] = await Promise.all([
+    prefix.boundingBox(),
+    slugField(page).boundingBox(),
+  ])
+  expect(prefixBox && slugBox && prefixBox.x + prefixBox.width <= slugBox.x + 1).toBe(true)
+  await expect(
+    page.getByText('Minúsculas, números y guiones; algunos nombres están reservados.'),
+  ).toBeVisible()
+  await expect(slugField(page)).not.toHaveAttribute('aria-invalid', 'true')
+})
+
+test('@id:companies-166-3 a free URL shows "Disponible" in the positive colour', async ({
+  page,
+}) => {
+  await openForm(page)
+
+  await nameField(page).fill(`E2E Verde ${random()}`)
+
+  const available = page.getByText(AVAILABLE)
+  await expect(available).toBeVisible()
+  expect(await colourOf(available)).toBe(await tokenColour(page, '--pos'))
+})
+
+test('@id:companies-166-4 while creating, the button keeps focus and says "Creando…"', async ({
+  page,
+}) => {
+  let release = () => {}
+  const held = new Promise<void>((resolve) => {
+    release = resolve
+  })
+  await page.route('**/api/companies', async (route) => {
+    if (route.request().method() !== 'POST') return route.fallback()
+    await held
+    return route.continue()
+  })
+  await openForm(page)
+  await fillCompany(page, { name: `E2E Creando ${random()}` })
+  await expect(page.getByText(AVAILABLE)).toBeVisible()
+
+  await createButton(page).click()
+
+  const busy = page.getByRole('button', { name: 'Creando…' })
+  await expect(busy).toBeFocused()
+  await expect(busy).toHaveAttribute('aria-busy', 'true')
+  release()
+  await expect(page).toHaveURL(/\/c\/e2e-creando-/)
+})
+
+test('@id:companies-166-5 a server rejection shows in a negative banner above the form', async ({
+  page,
+}) => {
+  await page.route('**/api/companies', (route) =>
+    route.request().method() === 'POST'
+      ? route.fulfill({
+          status: 500,
+          contentType: 'application/problem+json',
+          body: JSON.stringify({ type: 'about:blank', status: 500, code: 'internal' }),
+        })
+      : route.fallback(),
+  )
+  await openForm(page)
+  await fillCompany(page, { name: `E2E Rechazo ${random()}` })
+  await expect(page.getByText(AVAILABLE)).toBeVisible()
+
+  await createButton(page).click()
+
+  const banner = page.locator('form > [role="alert"]:first-child')
+  await expect(banner).toBeVisible()
+  await expect(banner).toBeFocused()
+  await expect(page).toHaveURL(/\/companies\/new$/)
+})
+
+// `a` ends above where `b` starts on the page.
+async function isAbove(a: Locator, b: Locator) {
+  const [boxA, boxB] = await Promise.all([a.boundingBox(), b.boundingBox()])
+  return !!boxA && !!boxB && boxA.y + boxA.height <= boxB.y + 1
+}
+
+const colourOf = (locator: Locator) => locator.evaluate((el) => getComputedStyle(el).color)
+
+// The computed colour of a design token, read from a probe so both sides use the same format.
+function tokenColour(page: Page, token: string) {
+  return page.evaluate((name) => {
+    const probe = document.createElement('span')
+    probe.style.color = `var(${name})`
+    document.body.appendChild(probe)
+    const colour = getComputedStyle(probe).color
+    probe.remove()
+    return colour
+  }, token)
+}
 
 // Another person, in their own browser, takes `slug` first.
 async function createElsewhere(browser: Browser, slug: string) {
