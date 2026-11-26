@@ -1,4 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react'
+import { createRef } from 'react'
 import { describe, expect, it } from 'vitest'
 import { Field } from './field'
 import { InputGroup } from './input-group'
@@ -30,6 +31,15 @@ describe('InputGroup', () => {
     fireEvent.click(prefix)
 
     expect(document.activeElement).toBe(input)
+  })
+
+  it('@id:companies-166-2 clicking the prefix focuses the input when the caller passes its own ref', () => {
+    const ref = createRef<HTMLInputElement>()
+    render(<InputGroup prefix="…/c/" aria-label="URL" ref={ref} />)
+
+    fireEvent.mouseDown(screen.getByText('…/c/'))
+
+    expect(document.activeElement).toBe(ref.current)
   })
 
   it('@id:companies-166-2 draws the focus ring on the group, and the error border with aria-invalid', () => {

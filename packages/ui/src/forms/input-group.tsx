@@ -1,5 +1,4 @@
 import type { ComponentProps, ReactNode } from 'react'
-import { useRef } from 'react'
 import { cx } from '../_shared/cx'
 
 // docs/design/components.md, "Input group": one box, so focus and error styles go on the group.
@@ -8,8 +7,6 @@ export function InputGroup({
   className,
   ...props
 }: Omit<ComponentProps<'input'>, 'prefix'> & { prefix: ReactNode }) {
-  const input = useRef<HTMLInputElement>(null)
-
   return (
     <div
       className={cx(
@@ -20,20 +17,20 @@ export function InputGroup({
         className,
       )}
     >
-      {/* Prevented, the mousedown does not blur the input before it gets the focus. */}
+      {/* Prevented, the mousedown does not blur the input before it gets the focus. The sibling, not a
+          ref: the caller's ref (react-hook-form's register) must reach the input untouched. */}
       <span
         aria-hidden="true"
         dir="ltr"
         className="shrink-0 pl-3 text-text-2 select-none"
         onMouseDown={(event) => {
           event.preventDefault()
-          input.current?.focus()
+          ;(event.currentTarget.nextElementSibling as HTMLInputElement | null)?.focus()
         }}
       >
         {prefix}
       </span>
       <input
-        ref={input}
         className="h-full min-w-0 flex-1 rounded-r-lg bg-transparent pr-3 text-text focus:outline-none"
         {...props}
       />
