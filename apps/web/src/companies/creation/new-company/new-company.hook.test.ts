@@ -267,7 +267,7 @@ describe('useNewCompanyPage', () => {
     expect(result.current.messageKey).toBeUndefined()
     expect(posts(sent)).toEqual([])
   })
-  it.fails('@id:companies-90-5 an empty URL on submit asks for it at its field', async () => {
+  it('@id:companies-90-5 an empty URL on submit asks for it at its field', async () => {
     const { result, sent } = await renderPage(api({ name: 'Ana' }))
     await waitFor(() => expect(result.current.askUserName).toBe(false))
 
@@ -279,7 +279,7 @@ describe('useNewCompanyPage', () => {
     expect(posts(sent)).toEqual([])
   })
 
-  it.fails('@id:companies-90-5 an invalid format shows only after the 300 ms pause, not with each key', async () => {
+  it('@id:companies-90-5 an invalid format shows only after the 300 ms pause, not with each key', async () => {
     const { result } = await renderPage()
 
     fill(result, { slug: 'ab' })
@@ -290,7 +290,7 @@ describe('useNewCompanyPage', () => {
     await waitFor(() => expect(result.current.slugStatus).toBe('invalid'))
   })
 
-  it.fails('@id:companies-90-8 sending with errors focuses the first field in error', async () => {
+  it('@id:companies-90-8 sending with errors focuses the first field in error', async () => {
     const { result } = await renderPage(api({ name: null }))
     await waitFor(() => expect(result.current.askUserName).toBe(true))
     const setFocus = vi.spyOn(result.current.form, 'setFocus')
@@ -300,7 +300,7 @@ describe('useNewCompanyPage', () => {
     expect(setFocus.mock.calls[0]?.[0]).toBe('name')
   })
 
-  it.fails('@id:companies-90-8 sending with only my name missing focuses my name', async () => {
+  it('@id:companies-90-8 sending with only my name missing focuses my name', async () => {
     const { result } = await renderPage(api({ name: null }))
     await waitFor(() => expect(result.current.askUserName).toBe(true))
     fill(result, { name: 'Clínica Norte' })
@@ -327,7 +327,7 @@ describe('useNewCompanyPage', () => {
     expect(setFocus).not.toHaveBeenCalled()
   })
 
-  it.fails('@id:companies-166-4 a second submit while the creation is pending sends nothing', async () => {
+  it('@id:companies-166-4 a second submit while the creation is pending sends nothing', async () => {
     const { result, sent, onCreated } = await renderPage(api({ name: 'Ana' }))
     fill(result, { name: 'Clínica Norte' })
     await waitFor(() => expect(result.current.slugStatus).toBe('available'))

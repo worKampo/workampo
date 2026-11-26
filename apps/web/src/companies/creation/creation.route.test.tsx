@@ -306,7 +306,7 @@ describe('creating a company', () => {
 })
 
 describe('the polished creation screen', () => {
-  it.fails('@id:companies-166-1 explains what a company is above the form', async () => {
+  it('@id:companies-166-1 explains what a company is above the form', async () => {
     renderApp({ path: '/', answer: companiesApi({ name: 'Ana' }) })
 
     await nameField()
@@ -321,7 +321,7 @@ describe('the polished creation screen', () => {
     ).toBeTruthy()
   })
 
-  it.fails('@id:companies-166-2 the URL has the …/c/ prefix and a fixed hint before any error', async () => {
+  it('@id:companies-166-2 the URL has the …/c/ prefix and a fixed hint before any error', async () => {
     renderApp({ path: '/companies/new', answer: companiesApi({ name: 'Ana' }) })
 
     await nameField()
@@ -342,7 +342,7 @@ describe('the polished creation screen', () => {
     expect(hint.isConnected).toBe(true)
   })
 
-  it.fails('@id:companies-166-3 a free URL shows "Disponible" as the positive state', async () => {
+  it('@id:companies-166-3 a free URL shows "Disponible" as the positive state', async () => {
     renderApp({ path: '/companies/new', answer: companiesApi({ name: 'Ana' }) })
 
     await userEvent.type(await nameField(), 'Clínica Norte')
@@ -353,7 +353,7 @@ describe('the polished creation screen', () => {
     expect(status?.textContent).toMatch(/^Disponible/)
   })
 
-  it.fails('@id:companies-166-4 while creating, the button keeps the focus and says "Creando…"', async () => {
+  it('@id:companies-166-4 while creating, the button keeps the focus and says "Creando…"', async () => {
     const hold = gate()
     const api = companiesApi({ name: 'Ana' })
     renderApp({
@@ -377,7 +377,7 @@ describe('the polished creation screen', () => {
     expect(await screen.findByText('Bienvenido a Northwind Logistics')).toBeTruthy()
   }, 10_000)
 
-  it.fails('@id:companies-166-5 a server rejection shows a negative banner first in the form, focused, gone on the next submit', async () => {
+  it('@id:companies-166-5 a server rejection shows a negative banner first in the form, focused, gone on the next submit', async () => {
     let calls = 0
     const second = gate()
     const api = companiesApi({ name: 'Ana' })
@@ -405,7 +405,7 @@ describe('the polished creation screen', () => {
     second.open()
   }, 10_000)
 
-  it.fails('@id:companies-166-5 a failed availability check shows the banner without moving focus', async () => {
+  it('@id:companies-166-5 a failed availability check shows the banner without moving focus', async () => {
     const api = companiesApi({ name: 'Ana' })
     renderApp({
       path: '/companies/new',
@@ -422,7 +422,7 @@ describe('the polished creation screen', () => {
     expect(document.activeElement).toBe(name)
   }, 10_000)
 
-  it.fails('@id:companies-166-5 a URL taken while sending shows at its field and takes focus, with no banner', async () => {
+  it('@id:companies-166-5 a URL taken while sending shows at its field and takes focus, with no banner', async () => {
     renderApp({
       path: '/companies/new',
       answer: companiesApi({
@@ -440,7 +440,7 @@ describe('the polished creation screen', () => {
     expect(screen.queryByRole('alert')).toBeNull()
   }, 10_000)
 
-  it.fails('@id:companies-90-8 every field is required, and the URL and name carry their input limits', async () => {
+  it('@id:companies-90-8 every field is required, and the URL and name carry their input limits', async () => {
     renderApp({ path: '/companies/new', answer: companiesApi({ name: null }) })
 
     const name = await nameField()
