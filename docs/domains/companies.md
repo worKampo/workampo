@@ -127,7 +127,7 @@ Rule: Una empresa se crea una sola vez, aunque se envíe a la vez o se repita la
     Then la empresa queda completa una sola vez
     And entro en ella como propietario
 
-@wip(#93)
+@issue(#93)
 Rule: Solo sus miembros entran en una empresa, y para el resto es como si no existiera
 
   @id:companies-90-12
