@@ -57,7 +57,7 @@ describe('the error reference', () => {
     return error
   }
 
-  it.fails('a 5xx keeps a valid reference, and anything else has none', async () => {
+  it('a 5xx keeps a valid reference, and anything else has none', async () => {
     const kept = await failure(answerWith(500, { code: 'api.unexpected', reference: '7F3K-92QD' }))
     expect(kept).toMatchObject({ code: 'api.unexpected', status: 500, reference: '7F3K-92QD' })
     expect(

@@ -1,4 +1,5 @@
 import { expect, it } from 'vitest'
+import { ERROR_REFERENCE, isErrorReference } from './_shared/api-errors'
 import { isAccessErrorCode } from './access/errors'
 import { isErrorCode } from './errors'
 
@@ -9,21 +10,12 @@ it('recognises the error codes of the domains and nothing else', () => {
   expect(isErrorCode(undefined)).toBe(false)
 })
 
-// A specifier Vite does not resolve ahead, so the file loads before T3 adds the exports; turn it
-// into a static import when the it.fails marks go.
-const ERRORS = './errors'
-const loadErrors = () => import(/* @vite-ignore */ ERRORS)
-
-it.fails('the error reference format is XXXX-XXXX in Crockford base32 (ticket 93, R1)', async () => {
-  const { ERROR_REFERENCE } = await loadErrors()
-
+it('the error reference format is XXXX-XXXX in Crockford base32 (ticket 93, R1)', () => {
   expect(ERROR_REFERENCE.source).toBe('^[0-9A-HJKMNP-TV-Z]{4}-[0-9A-HJKMNP-TV-Z]{4}$')
   expect(ERROR_REFERENCE.flags).toBe('')
 })
 
-it.fails('recognises an error reference and nothing else (ticket 93, X1)', async () => {
-  const { isErrorReference } = await loadErrors()
-
+it('recognises an error reference and nothing else (ticket 93, X1)', () => {
   for (const valid of ['7F3K-92QD', '0000-ZZZZ', 'ABCD-EFGH']) {
     expect(isErrorReference(valid)).toBe(true)
   }

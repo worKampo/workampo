@@ -1,3 +1,4 @@
+import { isErrorReference } from '@workampo/domain/_shared/api-errors'
 import { type ErrorCode, isErrorCode } from '@workampo/domain/errors'
 
 export type ApiErrorCode = ErrorCode | 'unknown'
@@ -8,11 +9,17 @@ type Answer = { ok: boolean; status: number; json(): Promise<unknown> }
 export class ApiError extends Error {
   readonly code: ApiErrorCode
   readonly status: number
+  readonly reference: string | undefined
 
-  constructor({ code, status }: { code: ApiErrorCode; status: number }) {
+  constructor({
+    code,
+    status,
+    reference,
+  }: { code: ApiErrorCode; status: number; reference?: string | undefined }) {
     super(code)
     this.code = code
     this.status = status
+    this.reference = reference
   }
 }
 
@@ -23,12 +30,15 @@ export async function send<T extends Answer>(call: () => Promise<T>): Promise<T>
   })
   if (response.ok) return response
 
-  throw new ApiError({ code: await problemCode(response), status: response.status })
-}
-
-async function problemCode(response: Answer): Promise<ApiErrorCode> {
   const body: unknown = await response.json().catch(() => null)
-  const code = typeof body === 'object' && body !== null && 'code' in body ? body.code : null
+  const problem = typeof body === 'object' && body !== null ? body : {}
+  const code = 'code' in problem ? problem.code : null
+  const reference = 'reference' in problem ? problem.reference : null
 
-  return isErrorCode(code) ? code : 'unknown'
+  throw new ApiError({
+    code: isErrorCode(code) ? code : 'unknown',
+    status: response.status,
+    // Only a server failure carries a reference the 500 page may show (ticket 93, R1).
+    reference: response.status >= 500 && isErrorReference(reference) ? reference : undefined,
+  })
 }
