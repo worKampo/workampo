@@ -534,9 +534,15 @@ function failingApp() {
   return failing
 }
 
-async function failWith(path: string, headers: Record<string, string> = {}) {
+async function failWith(
+  path: string,
+  {
+    headers = {},
+    freshClient = true,
+  }: { headers?: Record<string, string>; freshClient?: boolean } = {},
+) {
   // Sentry caches one client per isolate under this key; an earlier test's has no DSN and would win.
-  Reflect.deleteProperty(globalThis, '__SENTRY_CLOUDFLARE_CLIENT__')
+  if (freshClient) Reflect.deleteProperty(globalThis, '__SENTRY_CLOUDFLARE_CLIENT__')
   const ctx = createExecutionContext()
   const response = await failingApp().request(
     `${ORIGIN}${path}`,
@@ -615,7 +621,7 @@ describe('the error reference', () => {
     const envelopes = spySentry()
 
     const response = await failWith('/api/x?returnTo=%2Fc%2Fnorthwind&q=ana', {
-      'CF-Ray': MADE_UP_CF_RAY,
+      headers: { 'CF-Ray': MADE_UP_CF_RAY },
     })
     const { reference } = await response.json<{ reference: string }>()
 
@@ -634,11 +640,26 @@ describe('the error reference', () => {
     expect(event?.request?.url ?? '').not.toContain('returnTo')
   })
 
+  it('R5 the same failure twice on one Sentry client sends two events, each with its reference', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    const envelopes = spySentry()
+
+    const first = await failWith('/api/x')
+    const second = await failWith('/api/x', { freshClient: false })
+    const references = [
+      (await first.json<{ reference: string }>()).reference,
+      (await second.json<{ reference: string }>()).reference,
+    ]
+
+    await vi.waitFor(() => expect(sentryEvents(envelopes)).toHaveLength(2))
+    expect(sentryEvents(envelopes).map((event) => event.tags?.reference)).toEqual(references)
+  })
+
   it('R5 a cf-ray that is not in the shape of Cloudflare is logged as null', async () => {
     const error = vi.spyOn(console, 'error').mockImplementation(() => {})
     spySentry()
 
-    await failWith('/api/x', { 'CF-Ray': '"}{"companyId":"x' })
+    await failWith('/api/x', { headers: { 'CF-Ray': '"}{"companyId":"x' } })
 
     expect(failureLogs(error)).toEqual([
       {
@@ -656,7 +677,9 @@ describe('the error reference', () => {
     const error = vi.spyOn(console, 'error').mockImplementation(() => {})
     spySentry()
 
-    const response = await failWith(`/api/t/${slug}/x`, { Cookie: `__Host-session=${owner}` })
+    const response = await failWith(`/api/t/${slug}/x`, {
+      headers: { Cookie: `__Host-session=${owner}` },
+    })
 
     expect(response.status).toBe(500)
     expect(failureLogs(error)).toEqual([
