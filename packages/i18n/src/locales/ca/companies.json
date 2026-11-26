@@ -23,11 +23,6 @@
     "addresses": "Les teves adreces",
     "app_address": "App"
   },
-  "not_found": {
-    "title": "No trobem aquesta empresa",
-    "body": "Pot ser que l'adreça estigui mal escrita o que no hi tinguis accés.",
-    "back": "Torna a les meves empreses"
-  },
   "page_not_found": {
     "title": "No trobem aquesta pàgina",
     "body": "Pot ser que l'adreça estigui mal escrita o que la pàgina s'hagi mogut.",
@@ -65,9 +60,5 @@
     "open_nav": "Obre el menú",
     "close_nav": "Tanca el menú",
     "nav_dialog": "Menú"
-  },
-  "company_error": {
-    "title": "No hem pogut obrir l’empresa",
-    "retry": "Torna-ho a provar"
   }
 }

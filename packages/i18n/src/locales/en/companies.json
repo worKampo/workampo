@@ -23,11 +23,6 @@
     "addresses": "Your addresses",
     "app_address": "App"
   },
-  "not_found": {
-    "title": "We could not find this company",
-    "body": "The address may be mistyped, or you may not have access.",
-    "back": "Back to my companies"
-  },
   "page_not_found": {
     "title": "We could not find this page",
     "body": "The address may be mistyped, or the page may have moved.",
@@ -65,9 +60,5 @@
     "open_nav": "Open menu",
     "close_nav": "Close menu",
     "nav_dialog": "Menu"
-  },
-  "company_error": {
-    "title": "We could not open the company",
-    "retry": "Try again"
   }
 }

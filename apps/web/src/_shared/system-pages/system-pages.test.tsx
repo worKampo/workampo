@@ -39,7 +39,7 @@ const me = (request: Request) =>
     : problem({ status: 404, code: 'api.not_found' })
 
 describe('the root 404', () => {
-  it.fails('SystemPage E1 a path that does not exist shows «Página no encontrada» and leads home', async () => {
+  it('SystemPage E1 a path that does not exist shows «Página no encontrada» and leads home', async () => {
     const { router } = renderApp({ path: '/no-existe', answer: me })
 
     const heading = await screen.findByRole('heading', NOT_FOUND)
@@ -56,7 +56,7 @@ describe('the root 404', () => {
     await waitFor(() => expect(router.state.location.pathname).not.toBe('/no-existe'))
   })
 
-  it.fails('X2 «Ir al inicio» is always /, whatever returnTo says', async () => {
+  it('X2 «Ir al inicio» is always /, whatever returnTo says', async () => {
     renderApp({ path: '/no-existe?returnTo=https://evil.example', answer: me })
 
     await screen.findByRole('heading', NOT_FOUND)
@@ -65,7 +65,7 @@ describe('the root 404', () => {
     expect(document.body.innerHTML).not.toContain('evil.example')
   })
 
-  it.fails('X1 nothing from the path or the query reaches the page', async () => {
+  it('X1 nothing from the path or the query reaches the page', async () => {
     renderApp({
       path: '/no-existe/<img src=x onerror=alert(1)>?q=<script>alert(1)</script>',
       answer: me,
@@ -83,7 +83,7 @@ describe('the root 404', () => {
 })
 
 describe('the root 500', () => {
-  it.fails('SystemPage E2 a server failure shows «Algo ha ido mal» with the reference of the API, its title and tab order', async () => {
+  it('SystemPage E2 a server failure shows «Algo ha ido mal» with the reference of the API, its title and tab order', async () => {
     renderApp({
       path: '/c/northwind',
       answer: failingCompany(() =>
@@ -102,6 +102,8 @@ describe('the root 500', () => {
     expect(screen.queryByRole('navigation')).toBeNull()
     expect(document.body.textContent).not.toContain('Ya lo sabemos')
     await waitFor(() => expect(document.title).toBe('Algo ha ido mal · worKampo'))
+    // The copy button arrives in a lazy chunk, after the plain reference line.
+    await screen.findByRole('button', { name: 'Copiar la referencia' })
 
     expect(document.activeElement).toBe(heading)
     await userEvent.tab()
@@ -116,7 +118,7 @@ describe('the root 500', () => {
     expect(home.getAttribute('href')).toBe('/')
   }, 15_000)
 
-  it.fails('W1 decision 3: a network failure shows no reference, no message and no stack', async () => {
+  it('W1 decision 3: a network failure shows no reference, no message and no stack', async () => {
     renderApp({
       path: '/c/northwind',
       answer: failingCompany(() => {
@@ -134,7 +136,7 @@ describe('the root 500', () => {
     expect(screen.getByRole('button', { name: 'Reintentar' })).toBeTruthy()
   }, 15_000)
 
-  it.fails('decision 2: an unexpected 4xx shows the 500 with no reference, even if it brings one', async () => {
+  it('decision 2: an unexpected 4xx shows the 500 with no reference, even if it brings one', async () => {
     renderApp({
       path: '/c/northwind',
       answer: failingCompany(() =>

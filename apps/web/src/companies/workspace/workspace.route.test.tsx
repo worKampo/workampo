@@ -62,7 +62,7 @@ describe('the company home', () => {
     expect(foreignText).toBe(missingText)
   })
 
-  it.fails('@id:companies-90-12 the not-found state is the system 404, which leads home', async () => {
+  it('@id:companies-90-12 the not-found state is the system 404, which leads home', async () => {
     const { router } = renderApp({ path: '/c/sol-bakery', answer: workspaceApi({}) })
 
     expect(
@@ -76,7 +76,7 @@ describe('the company home', () => {
     await waitFor(() => expect(router.state.location.pathname).not.toMatch(/^\/c\/sol-bakery/))
   })
 
-  it.fails('@id:companies-90-12 A1 a foreign and a missing company render the same HTML, with no slug', async () => {
+  it('@id:companies-90-12 A1 a foreign and a missing company render the same HTML, with no slug', async () => {
     const api = workspaceApi({ northwind: 'Northwind Logistics' })
     // React's generated ids count up across renders; nothing else may differ.
     const html = () => document.body.innerHTML.replace(/«r[0-9a-z]+»|:r[0-9a-z]+:/g, '<id>')
@@ -417,7 +417,7 @@ describe('the company shell', () => {
 
   // «Reintentar» reloads the page, which jsdom cannot do: the browser check in
   // e2e/system-pages.e2e.ts proves it.
-  it.fails('@id:companies-92-1 a company that cannot be loaded shows the system 500 without the shell', async () => {
+  it('@id:companies-92-1 a company that cannot be loaded shows the system 500 without the shell', async () => {
     const context = () => problem({ status: 500, code: 'api.unexpected', reference: '7F3K-92QD' })
     renderApp({ path: '/c/northwind', answer: shellApi({ context }) })
 
@@ -431,7 +431,7 @@ describe('the company shell', () => {
     expect(document.body.textContent).not.toContain('Northwind Logistics')
   }, 15_000)
 
-  it.fails('@id:companies-90-12 a company I cannot open shows the system 404 without the shell', async () => {
+  it('@id:companies-90-12 a company I cannot open shows the system 404 without the shell', async () => {
     renderApp({ path: '/c/sol-bakery', answer: shellApi() })
 
     expect(

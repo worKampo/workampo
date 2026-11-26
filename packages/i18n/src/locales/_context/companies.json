@@ -21,12 +21,6 @@
     "addresses": "Heading of the card listing the addresses where the company is reached.",
     "app_address": "Label of the row with the address of the app; a product word, usually left as is."
   },
-  "not_found": {
-    "_screen": "Shown when the company address does not exist or the person is not a member. Must not reveal which of the two it is.",
-    "title": "Heading of the not-found state.",
-    "body": "One sentence; covers both cases without saying which.",
-    "back": "The one action of the not-found state: a link to /, which leads to the company picker or to the person's only company."
-  },
   "page_not_found": {
     "_screen": "Shown to a member inside a company when the address under the company does not match any page.",
     "title": "Heading of the page-not-found state.",
@@ -58,10 +52,5 @@
     "open_nav": "Top bar button on small screens that opens the side menu.",
     "close_nav": "Button that closes the side menu on small screens.",
     "nav_dialog": "Accessible name of the side menu dialog on small screens."
-  },
-  "company_error": {
-    "_screen": "Shown instead of the company when loading it fails (server or network error). Has Retry and Back to my companies.",
-    "title": "Heading; says it could not be opened, without blaming the person.",
-    "retry": "Button that loads the company again."
   }
 }
