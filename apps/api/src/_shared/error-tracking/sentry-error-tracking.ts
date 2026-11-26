@@ -9,6 +9,9 @@ export function errorTracking(app: Hono<AppEnv>) {
     dsn: env.SENTRY_DSN,
     environment: env.ENVIRONMENT,
     release: deployedSha(env),
+    // The client lives as long as the isolate: deduplication would drop a repeated failure, and its
+    // error reference would then have no event to find (#93).
+    enableDedupe: false,
     dataCollection: {
       userInfo: false,
       cookies: false,
