@@ -1,10 +1,6 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, expect, it, vi } from 'vitest'
-
-// A specifier Vite does not resolve ahead, so the file loads before T7 creates the module; turn it
-// into a static import when the it.fails marks go.
-const MODULE = './app-shell'
-const load = () => import(/* @vite-ignore */ MODULE)
+import { AppShell, CompanyLink, NavItem } from './app-shell'
 
 const LABELS = {
   skipToContent: 'Saltar al contenido',
@@ -29,7 +25,6 @@ async function renderShell({
   onCollapsedChange: (collapsed: boolean) => void
   name: string
 }> = {}) {
-  const { AppShell, CompanyLink, NavItem } = await load()
   const icon = <svg aria-hidden="true" />
   render(
     <AppShell
@@ -73,7 +68,7 @@ function companyLink(name: RegExp) {
 
 afterEach(() => vi.restoreAllMocks())
 
-it.fails('@id:companies-92-10 the skip link is the first stop and leads to the main content', async () => {
+it('@id:companies-92-10 the skip link is the first stop and leads to the main content', async () => {
   await renderShell()
 
   const [first] = document.querySelectorAll<HTMLElement>('a[href], button')
@@ -86,7 +81,7 @@ it.fails('@id:companies-92-10 the skip link is the first stop and leads to the m
   expect(main.textContent).toContain('Contenido')
 })
 
-it.fails('@id:companies-92-1 the navigation is named and only the current item is marked as such', async () => {
+it('@id:companies-92-1 the navigation is named and only the current item is marked as such', async () => {
   await renderShell()
 
   const nav = screen.getByRole('navigation', { name: 'Principal' })
@@ -98,7 +93,7 @@ it.fails('@id:companies-92-1 the navigation is named and only the current item i
   expect(screen.getByRole('button', { name: 'Ana' })).toBeTruthy()
 })
 
-it.fails('@id:companies-92-7 folding asks for the rail, and the rail offers to unfold', async () => {
+it('@id:companies-92-7 folding asks for the rail, and the rail offers to unfold', async () => {
   const onCollapsedChange = vi.fn()
   await renderShell({ onCollapsedChange })
 
@@ -107,7 +102,7 @@ it.fails('@id:companies-92-7 folding asks for the rail, and the rail offers to u
   expect(onCollapsedChange).toHaveBeenCalledWith(true)
 })
 
-it.fails('@id:companies-92-7 unfolding the rail asks for the sidebar', async () => {
+it('@id:companies-92-7 unfolding the rail asks for the sidebar', async () => {
   const onCollapsedChange = vi.fn()
   await renderShell({ collapsed: true, onCollapsedChange })
 
@@ -116,7 +111,7 @@ it.fails('@id:companies-92-7 unfolding the rail asks for the sidebar', async () 
   expect(onCollapsedChange).toHaveBeenCalledWith(false)
 })
 
-it.fails('@id:companies-92-7 in the rail each item keeps its name and shows it in a tooltip', async () => {
+it('@id:companies-92-7 in the rail each item keeps its name and shows it in a tooltip', async () => {
   await renderShell({ collapsed: true })
   const item = within(screen.getByRole('navigation', { name: 'Principal' })).getByRole('link', {
     name: 'Inicio',
@@ -127,7 +122,7 @@ it.fails('@id:companies-92-7 in the rail each item keeps its name and shows it i
   expect((await screen.findByRole('tooltip')).textContent).toBe('Inicio')
 })
 
-it.fails('@id:companies-92-7 in the open sidebar the items show no tooltip', async () => {
+it('@id:companies-92-7 in the open sidebar the items show no tooltip', async () => {
   await renderShell()
   const item = within(screen.getByRole('navigation', { name: 'Principal' })).getByRole('link', {
     name: 'Inicio',
@@ -138,7 +133,7 @@ it.fails('@id:companies-92-7 in the open sidebar the items show no tooltip', asy
   expect(screen.queryByRole('tooltip')).toBeNull()
 })
 
-it.fails('@id:companies-92-6 the menu button opens a modal side menu with the focus on the company', async () => {
+it('@id:companies-92-6 the menu button opens a modal side menu with the focus on the company', async () => {
   await renderShell()
 
   fireEvent.click(screen.getByRole('button', { name: 'Abrir menú' }))
@@ -149,7 +144,7 @@ it.fails('@id:companies-92-6 the menu button opens a modal side menu with the fo
   await waitFor(() => expect(document.activeElement).toBe(company))
 })
 
-it.fails('@id:companies-92-6 the focus stays trapped inside the side menu', async () => {
+it('@id:companies-92-6 the focus stays trapped inside the side menu', async () => {
   await renderShell()
   fireEvent.click(screen.getByRole('button', { name: 'Abrir menú' }))
   const dialog = await screen.findByRole('dialog', { name: 'Menú' })
@@ -162,7 +157,7 @@ it.fails('@id:companies-92-6 the focus stays trapped inside the side menu', asyn
   expect(dialog.contains(document.activeElement)).toBe(true)
 })
 
-it.fails('@id:companies-92-6 Esc closes the side menu and the focus goes back to the menu button', async () => {
+it('@id:companies-92-6 Esc closes the side menu and the focus goes back to the menu button', async () => {
   await renderShell()
   const open = screen.getByRole('button', { name: 'Abrir menú' })
   fireEvent.click(open)
@@ -174,7 +169,7 @@ it.fails('@id:companies-92-6 Esc closes the side menu and the focus goes back to
   expect(document.activeElement).toBe(open)
 })
 
-it.fails('@id:companies-92-6 the close button and choosing an item close the side menu', async () => {
+it('@id:companies-92-6 the close button and choosing an item close the side menu', async () => {
   await renderShell()
   const open = screen.getByRole('button', { name: 'Abrir menú' })
 
@@ -189,7 +184,7 @@ it.fails('@id:companies-92-6 the close button and choosing an item close the sid
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
 })
 
-it.fails('@id:companies-92-9 a cut company name shows whole in a tooltip, and its link is named by it', async () => {
+it('@id:companies-92-9 a cut company name shows whole in a tooltip, and its link is named by it', async () => {
   layOutText({ cut: true })
   await renderShell({ name: LONG_NAME })
   const company = companyLink(new RegExp(LONG_NAME))
@@ -199,7 +194,7 @@ it.fails('@id:companies-92-9 a cut company name shows whole in a tooltip, and it
   expect((await screen.findByRole('tooltip')).textContent).toBe(LONG_NAME)
 })
 
-it.fails('@id:companies-92-9 a company name that fits shows no tooltip', async () => {
+it('@id:companies-92-9 a company name that fits shows no tooltip', async () => {
   layOutText({ cut: false })
   await renderShell()
   const company = companyLink(/Northwind Logistics/)
@@ -209,7 +204,7 @@ it.fails('@id:companies-92-9 a company name that fits shows no tooltip', async (
   expect(screen.queryByRole('tooltip')).toBeNull()
 })
 
-it.fails('@id:companies-92-1 the company link carries the name in its own direction and the role', async () => {
+it('@id:companies-92-1 the company link carries the name in its own direction and the role', async () => {
   await renderShell({ name: 'شركة الشمال' })
   const company = companyLink(/شركة الشمال/)
 
