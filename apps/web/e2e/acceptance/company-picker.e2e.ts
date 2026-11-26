@@ -106,7 +106,8 @@ test('@id:companies-91-6 a suspended membership is not in the picker and its com
   await expect(page.getByText('Sol Bakery')).toHaveCount(0)
 
   await page.goto('/c/sol-bakery')
-  await expect(page.getByText('No encontramos esta empresa')).toBeVisible()
+  await expect(page.getByRole('heading', { level: 1, name: 'Página no encontrada' })).toBeVisible()
+  await expect(page.getByRole('link', { name: 'Ir al inicio' })).toHaveAttribute('href', '/')
   await expect(page.getByText('Bienvenido a Sol Bakery')).toHaveCount(0)
 })
 

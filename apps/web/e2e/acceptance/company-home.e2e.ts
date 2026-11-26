@@ -16,9 +16,7 @@ async function createCompany(
   expect(response.status()).toBe(201)
 }
 
-// The page as a person reads it, with the slug blanked so two companies' pages compare.
-const visibleText = async (page: Page, slug: string) =>
-  ((await page.locator('body').textContent()) ?? '').replaceAll(slug, '<slug>')
+const visibleText = async (page: Page) => (await page.locator('body').textContent()) ?? ''
 
 test('@id:companies-90-1 the home of my company welcomes me with its name', async ({ page }) => {
   await signInWithCode(page, newEmail())
@@ -44,7 +42,7 @@ test('@id:companies-90-1 a long name with unicode and markup is shown as text', 
   await expect(page.locator('b', { hasText: 'Ελλάδα' })).toHaveCount(0)
 })
 
-test('@id:companies-90-12 another company looks the same as one that does not exist', async ({
+test('@id:companies-90-12 another company shows the same system 404 as one that does not exist', async ({
   page,
   browser,
 }) => {
@@ -63,15 +61,17 @@ test('@id:companies-90-12 another company looks the same as one that does not ex
   const missing = `e2e-missing-${random()}`
 
   await page.goto(`/c/${foreign}`)
-  await expect(page.getByRole('heading').first()).toBeVisible()
-  const foreignText = await visibleText(page, foreign)
+  await expectSystemNotFound(page)
+  const foreignText = await visibleText(page)
   await page.goto(`/c/${missing}`)
-  await expect(page.getByRole('heading').first()).toBeVisible()
-  const missingText = await visibleText(page, missing)
+  await expectSystemNotFound(page)
+  const missingText = await visibleText(page)
 
   expect(foreignText).not.toContain('E2E Sol Bakery')
+  expect(foreignText).not.toContain(foreign)
   expect(foreignText).not.toContain('Bienvenido')
   expect(foreignText).toBe(missingText)
+  expect((await page.request.get(`/api/t/${foreign}/`)).status()).toBe(404)
 })
 
 test('@id:companies-90-13 without a session a company page leads to /login', async ({ page }) => {
@@ -88,4 +88,9 @@ test('@id:companies-90-13 without a session a company page leads to /login', asy
 function baseUrl() {
   const { baseURL } = test.info().project.use
   return baseURL ? { baseURL } : {}
+}
+
+async function expectSystemNotFound(page: Page) {
+  await expect(page.getByRole('heading', { level: 1, name: 'Página no encontrada' })).toBeVisible()
+  await expect(page.getByRole('link', { name: 'Ir al inicio' })).toHaveAttribute('href', '/')
 }
