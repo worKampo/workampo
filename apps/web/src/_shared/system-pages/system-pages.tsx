@@ -42,8 +42,20 @@ const CopyableReference = lazy(() =>
 )
 
 // While CopyableReference loads, or if it cannot: the line alone, still selectable by hand.
-function PlainReference({ reference, labels }: { reference: string; labels: { line: string } }) {
-  const [before, after] = labels.line.split(reference)
+export function PlainReference({
+  reference,
+  labels,
+}: {
+  reference: string
+  labels: { line: string }
+}) {
+  // A translation that lost the reference still shows it, after the line. Not ErrorReference's own
+  // helper: importing it here would pull the lazy copy button into the entry bundle.
+  const at = labels.line.indexOf(reference)
+  const [before, after] =
+    at === -1
+      ? [`${labels.line} `, '']
+      : [labels.line.slice(0, at), labels.line.slice(at + reference.length)]
   return (
     <Text size="xs" tone="muted">
       {before}

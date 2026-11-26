@@ -1,3 +1,4 @@
+import { ERROR_REFERENCE } from '@workampo/domain/_shared/api-errors'
 import { Hono } from 'hono'
 import { expect, it, vi } from 'vitest'
 import { apiOnError } from './api-behaviour'
@@ -18,7 +19,6 @@ it('an unexpected error outside /api keeps the plain 500', async () => {
 })
 
 // Ticket 93: the error reference of every unexpected failure (ADR-0078 section 6, Update).
-const ERROR_REFERENCE = /^[0-9A-HJKMNP-TV-Z]{4}-[0-9A-HJKMNP-TV-Z]{4}$/
 
 function failingApp() {
   return new Hono<AppEnv>()

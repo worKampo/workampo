@@ -1,9 +1,10 @@
 import { createExecutionContext, waitOnExecutionContext } from 'cloudflare:test'
 import { env, exports } from 'cloudflare:workers'
+import { ERROR_REFERENCE } from '@workampo/domain/_shared/api-errors'
 import { ACCESS_ERROR_CODES } from '@workampo/domain/access/errors'
 import { ERROR_CODES } from '@workampo/domain/errors'
 import { Hono } from 'hono'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterAll, afterEach, describe, expect, it, vi } from 'vitest'
 import { parsedEnv } from './_shared/env'
 import { errorTracking } from './_shared/error-tracking/sentry-error-tracking'
 import { apiOnError, apiResponseHeaders } from './_shared/http/api-behaviour'
@@ -513,7 +514,6 @@ it('the route check itself tells nested collections and actions apart', () => {
 // Ticket 93: the error reference (ADR-0078 sections 6 and 8.3, Update). A made-up DSN on a test
 // domain; the spied fetch answers it, so nothing leaves the test (ADR-0043).
 const TEST_DSN = 'https://public@sentry.test/1'
-const ERROR_REFERENCE = /^[0-9A-HJKMNP-TV-Z]{4}-[0-9A-HJKMNP-TV-Z]{4}$/
 const MADE_UP_CF_RAY = '8f2a1b3c4d5e6f70-MAD'
 
 // Wired like index.ts, plus routes that fail with personal data in the message.
@@ -589,6 +589,11 @@ const failureLogs = (spy: { mock: { calls: unknown[][] } }) =>
     .filter((item) => !!item && typeof item === 'object' && 'reference' in item)
 
 describe('the error reference', () => {
+  // The cached client of these tests holds the test DSN; later files must build their own.
+  afterAll(() => {
+    Reflect.deleteProperty(globalThis, '__SENTRY_CLOUDFLARE_CLIENT__')
+  })
+
   it('R4 a failing /api route keeps no-store, nosniff and problem+json, with its reference', async () => {
     vi.spyOn(console, 'error').mockImplementation(() => {})
     spySentry()
