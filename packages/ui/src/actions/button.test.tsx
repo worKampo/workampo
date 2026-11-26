@@ -39,14 +39,8 @@ describe('Button', () => {
   })
 })
 
-// Loaded untyped, so `variant="subtle"` typechecks before T4 adds it; turn it into the static
-// import above when the it.fails mark goes.
-const BUTTON = './button'
-const loadButton = () => import(/* @vite-ignore */ BUTTON)
-
-it.fails('the subtle variant has no border until hover, and a soft one on touch (ticket 93, decision 8)', async () => {
-  const { Button: Untyped } = await loadButton()
-  render(<Untyped variant="subtle">Copy</Untyped>)
+it('the subtle variant has no border until hover, and a soft one on touch (ticket 93, decision 8)', async () => {
+  render(<Button variant="subtle">Copy</Button>)
 
   const button = screen.getByRole('button', { name: 'Copy' })
 

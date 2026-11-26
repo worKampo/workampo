@@ -1,10 +1,6 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-
-// A specifier Vite does not resolve ahead, so the file loads before T4 creates the module; turn it
-// into a static import when the it.fails marks go.
-const MODULE = './error-reference'
-const load = () => import(/* @vite-ignore */ MODULE)
+import { ErrorReference } from './error-reference'
 
 // A made-up reference (ADR-0043).
 const REFERENCE = '7F3K-92QD'
@@ -29,7 +25,6 @@ afterEach(() => {
 })
 
 async function renderReference() {
-  const { ErrorReference } = await load()
   render(<ErrorReference reference={REFERENCE} labels={LABELS} />)
 
   return screen.getByRole('button', { name: 'Copiar la referencia' })
@@ -43,7 +38,7 @@ async function copy(button: HTMLElement) {
 }
 
 describe('ErrorReference', () => {
-  it.fails('shows the line with the reference in a code that is never translated and selects whole', async () => {
+  it('shows the line with the reference in a code that is never translated and selects whole', async () => {
     await renderReference()
 
     const code = screen.getByText(REFERENCE)
@@ -55,7 +50,7 @@ describe('ErrorReference', () => {
     expect(code.parentElement?.textContent).toContain(LABELS.line)
   })
 
-  it.fails('decision 8: the copy button is subtle and icon-only, named like its tooltip', async () => {
+  it('decision 8: the copy button is subtle and icon-only, named like its tooltip', async () => {
     const button = await renderReference()
 
     expect(button.textContent).toBe('')
@@ -66,7 +61,7 @@ describe('ErrorReference', () => {
     expect((await screen.findByRole('tooltip')).textContent).toBe('Copiar la referencia')
   })
 
-  it.fails('E1 copying writes the reference, announces it and keeps the focus on the button', async () => {
+  it('E1 copying writes the reference, announces it and keeps the focus on the button', async () => {
     const writeText = vi.fn(async (_text: string) => {})
     stubClipboard(writeText)
     const button = await renderReference()
@@ -81,7 +76,7 @@ describe('ErrorReference', () => {
     expect(screen.queryByRole('alert')).toBeNull()
   })
 
-  it.fails('E1 the tooltip says «Copiada» after copying, and the copy icon is back after 2 s', async () => {
+  it('E1 the tooltip says «Copiada» after copying, and the copy icon is back after 2 s', async () => {
     stubClipboard(async () => {})
     const button = await renderReference()
 
@@ -97,7 +92,7 @@ describe('ErrorReference', () => {
     )
   })
 
-  it.fails('E2 a failed copy selects the reference and says so in an alert, with the focus kept', async () => {
+  it('E2 a failed copy selects the reference and says so in an alert, with the focus kept', async () => {
     stubClipboard(async () => {
       throw new Error('denied')
     })
@@ -111,7 +106,7 @@ describe('ErrorReference', () => {
     expect(screen.queryByText('Referencia copiada')).toBeNull()
   })
 
-  it.fails('E2 without a clipboard the copy fails the same way', async () => {
+  it('E2 without a clipboard the copy fails the same way', async () => {
     const button = await renderReference()
 
     await copy(button)

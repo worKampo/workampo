@@ -1,15 +1,10 @@
 import { render, screen } from '@testing-library/react'
 import type { ReactNode } from 'react'
 import { describe, expect, it } from 'vitest'
-
-// A specifier Vite does not resolve ahead, so the file loads before T4 creates the module; turn it
-// into a static import when the it.fails marks go.
-const MODULE = './system-page'
-const load = () => import(/* @vite-ignore */ MODULE)
+import { SystemPage } from './system-page'
 
 // docs/design/components.md, "System page".
 async function renderNotFound(reference?: ReactNode) {
-  const { SystemPage } = await load()
   render(
     <SystemPage
       title="Página no encontrada"
@@ -27,7 +22,7 @@ async function renderNotFound(reference?: ReactNode) {
 }
 
 describe('SystemPage', () => {
-  it.fails('E1 the card has the title, the text, the code as a meta line and the action', async () => {
+  it('E1 the card has the title, the text, the code as a meta line and the action', async () => {
     const { main } = await renderNotFound()
 
     expect(main.textContent).toContain(
@@ -38,21 +33,21 @@ describe('SystemPage', () => {
     expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1)
   })
 
-  it.fails('E1 decision 7: the colour logo is in the header and there is no logo inside the card', async () => {
+  it('E1 decision 7: the colour logo is in the header and there is no logo inside the card', async () => {
     const { main } = await renderNotFound()
 
     expect(screen.getByRole('banner').textContent).toContain('worKampo')
     expect(main.querySelector('svg')).toBeNull()
   })
 
-  it.fails('the title takes the focus on mount, by code only', async () => {
+  it('the title takes the focus on mount, by code only', async () => {
     const { heading } = await renderNotFound()
 
     expect(heading.tabIndex).toBe(-1)
     expect(document.activeElement).toBe(heading)
   })
 
-  it.fails('E2 the reference goes under the meta line, before the actions', async () => {
+  it('E2 the reference goes under the meta line, before the actions', async () => {
     await renderNotFound(<span>Referencia: 7F3K-92QD</span>)
 
     const code = screen.getByText('Error 404')
@@ -64,7 +59,7 @@ describe('SystemPage', () => {
     ).toBeTruthy()
   })
 
-  it.fails('E3 the page fills the screen on the chrome background and stacks the actions', async () => {
+  it('E3 the page fills the screen on the chrome background and stacks the actions', async () => {
     const { main } = await renderNotFound()
 
     const page = main.parentElement
@@ -75,7 +70,7 @@ describe('SystemPage', () => {
     )
   })
 
-  it.fails('shows no reference line without a reference', async () => {
+  it('shows no reference line without a reference', async () => {
     const { main } = await renderNotFound()
 
     expect(main.textContent).not.toContain('Referencia')
