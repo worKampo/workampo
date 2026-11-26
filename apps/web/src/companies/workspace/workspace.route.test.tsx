@@ -62,12 +62,36 @@ describe('the company home', () => {
     expect(foreignText).toBe(missingText)
   })
 
-  it('@id:companies-90-12 the not-found state leads back to the start', async () => {
+  it.fails('@id:companies-90-12 the not-found state is the system 404, which leads home', async () => {
     const { router } = renderApp({ path: '/c/sol-bakery', answer: workspaceApi({}) })
 
-    await userEvent.click(await screen.findByRole('link', { name: 'Volver a mis empresas' }))
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Página no encontrada' }),
+    ).toBeTruthy()
+    const home = screen.getByRole('link', { name: 'Ir al inicio' })
+    expect(home.getAttribute('href')).toBe('/')
+    await waitFor(() => expect(document.title).toBe('Página no encontrada · worKampo'))
+    await userEvent.click(home)
 
-    await waitFor(() => expect(router.state.location.pathname).toBe('/'))
+    await waitFor(() => expect(router.state.location.pathname).not.toMatch(/^\/c\/sol-bakery/))
+  })
+
+  it.fails('@id:companies-90-12 A1 a foreign and a missing company render the same HTML, with no slug', async () => {
+    const api = workspaceApi({ northwind: 'Northwind Logistics' })
+    // React's generated ids count up across renders; nothing else may differ.
+    const html = () => document.body.innerHTML.replace(/«r[0-9a-z]+»|:r[0-9a-z]+:/g, '<id>')
+    renderApp({ path: '/c/sol-bakery', answer: api })
+    await screen.findByRole('heading', { level: 1, name: 'Página no encontrada' })
+    const foreign = html()
+    cleanup()
+
+    renderApp({ path: '/c/missing-company', answer: api })
+    await screen.findByRole('heading', { level: 1, name: 'Página no encontrada' })
+    const missing = html()
+
+    expect(foreign).not.toContain('sol-bakery')
+    expect(missing).not.toContain('missing-company')
+    expect(foreign).toBe(missing)
   })
 
   it('@id:companies-90-13 without a session a company page leads to /login', async () => {
@@ -391,27 +415,28 @@ describe('the company shell', () => {
     expect(emptyHeadings()).toEqual([])
   })
 
-  it('@id:companies-92-1 a company that cannot be loaded shows an error without the shell, and «Reintentar» opens it', async () => {
-    let failing = true
-    const context = () =>
-      failing ? problem({ status: 500, code: 'internal' }) : Response.json(NORTHWIND)
+  // «Reintentar» reloads the page, which jsdom cannot do: the browser check in
+  // e2e/system-pages.e2e.ts proves it.
+  it.fails('@id:companies-92-1 a company that cannot be loaded shows the system 500 without the shell', async () => {
+    const context = () => problem({ status: 500, code: 'api.unexpected', reference: '7F3K-92QD' })
     renderApp({ path: '/c/northwind', answer: shellApi({ context }) })
 
     // The query retries a 500 three times (1 s, 2 s, 4 s) before the route gives up.
-    const title = { name: 'No hemos podido abrir la empresa' }
+    const title = { level: 1, name: 'Algo ha ido mal' }
     expect(await screen.findByRole('heading', title, { timeout: 10_000 })).toBeTruthy()
     expect(screen.queryByRole('navigation')).toBeNull()
-    expect(screen.getByRole('link', { name: 'Volver a mis empresas' })).toBeTruthy()
-    failing = false
-    await userEvent.click(screen.getByRole('button', { name: 'Reintentar' }))
-
-    expect(await screen.findByText(HOME)).toBeTruthy()
+    expect(screen.getByText('7F3K-92QD').tagName).toBe('CODE')
+    expect(screen.getByRole('button', { name: 'Reintentar' })).toBeTruthy()
+    expect(screen.getByRole('link', { name: 'Ir al inicio' }).getAttribute('href')).toBe('/')
+    expect(document.body.textContent).not.toContain('Northwind Logistics')
   }, 15_000)
 
-  it('@id:companies-90-12 a company I cannot open shows its not-found state without the shell', async () => {
+  it.fails('@id:companies-90-12 a company I cannot open shows the system 404 without the shell', async () => {
     renderApp({ path: '/c/sol-bakery', answer: shellApi() })
 
-    expect(await screen.findByRole('heading', { name: 'No encontramos esta empresa' })).toBeTruthy()
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Página no encontrada' }),
+    ).toBeTruthy()
     expect(screen.queryByRole('navigation')).toBeNull()
   })
 })

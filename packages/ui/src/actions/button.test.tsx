@@ -38,3 +38,21 @@ describe('Button', () => {
     expect(link.className).toContain('border-border-hard')
   })
 })
+
+// Loaded untyped, so `variant="subtle"` typechecks before T4 adds it; turn it into the static
+// import above when the it.fails mark goes.
+const BUTTON = './button'
+const loadButton = () => import(/* @vite-ignore */ BUTTON)
+
+it.fails('the subtle variant has no border until hover, and a soft one on touch (ticket 93, decision 8)', async () => {
+  const { Button: Untyped } = await loadButton()
+  render(<Untyped variant="subtle">Copy</Untyped>)
+
+  const button = screen.getByRole('button', { name: 'Copy' })
+
+  expect(button.className).toContain('border-transparent')
+  expect(button.className).toContain('hover:border-border-hard')
+  expect(button.className).toContain('hover:text-text')
+  expect(button.className).toContain('pointer-coarse:border-border')
+  expect(button.className).not.toContain('bg-ui')
+})
