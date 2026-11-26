@@ -228,12 +228,10 @@ export function CompanyLink({
     </a>
   )
 
-  return rail || cut ? (
-    <Tooltip content={name} side={rail ? 'right' : 'bottom'}>
+  return (
+    <Tooltip content={name} side={rail ? 'right' : 'bottom'} disabled={!(rail || cut)}>
       {link}
     </Tooltip>
-  ) : (
-    link
   )
 }
 
@@ -279,12 +277,10 @@ export function UserButton({
     </button>
   )
 
-  return rail || cut ? (
-    <Tooltip content={name ?? email} side={rail ? 'right' : 'top'}>
+  return (
+    <Tooltip content={name ?? email} side={rail ? 'right' : 'top'} disabled={!(rail || cut)}>
       {button}
     </Tooltip>
-  ) : (
-    button
   )
 }
 

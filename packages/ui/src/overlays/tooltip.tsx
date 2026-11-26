@@ -5,15 +5,18 @@ import type { ReactNode } from 'react'
 export function Tooltip({
   content,
   side = 'bottom',
+  disabled = false,
   children,
 }: {
   content: ReactNode
   side?: TooltipPrimitive.TooltipContentProps['side']
+  // Keeps the trigger mounted while the tooltip may not open, so a focused trigger keeps its focus.
+  disabled?: boolean
   children: ReactNode
 }) {
   return (
     <TooltipPrimitive.Provider delayDuration={300}>
-      <TooltipPrimitive.Root>
+      <TooltipPrimitive.Root {...(disabled && { open: false })}>
         <TooltipPrimitive.Trigger asChild>{children}</TooltipPrimitive.Trigger>
         <TooltipPrimitive.Portal>
           <TooltipPrimitive.Content

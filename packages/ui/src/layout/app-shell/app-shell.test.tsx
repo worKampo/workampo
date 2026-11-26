@@ -157,7 +157,7 @@ it('@id:companies-92-6 the focus stays trapped inside the side menu', async () =
 
   fireEvent.keyDown(last ?? dialog, { key: 'Tab' })
 
-  expect(dialog.contains(document.activeElement)).toBe(true)
+  expect(document.activeElement).toBe(stops[0])
 })
 
 it('@id:companies-92-6 Esc closes the side menu and the focus goes back to the menu button', async () => {
