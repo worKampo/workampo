@@ -52,3 +52,59 @@ describe('Field', () => {
     expect(screen.getByLabelText('URL').getAttribute('aria-describedby')).toBe(region?.id)
   })
 })
+
+// Spread, so typecheck accepts `hint` and `success` before T2 adds them; write them as props when
+// the it.fails marks go.
+const urlField = (status: { help?: string; success?: string; error?: string } = {}) => {
+  const added = { hint: 'Lowercase letters, numbers and hyphens', ...status }
+  return (
+    <Field label="URL" {...added}>
+      {(props) => <Input {...props} />}
+    </Field>
+  )
+}
+
+describe('Field hint and success', () => {
+  it.fails('@id:companies-166-2 shows a fixed hint, outside the live region, that the input links', () => {
+    const { container } = render(urlField())
+
+    const hint = screen.getByText('Lowercase letters, numbers and hyphens')
+    const region = container.querySelector('[aria-live="polite"]')
+    expect(hint.closest('[aria-live]')).toBeNull()
+    expect(region?.contains(hint)).toBe(false)
+    expect(screen.getByLabelText('URL').getAttribute('aria-describedby')).toBe(hint.id)
+  })
+
+  it.fails('@id:companies-166-2 keeps the hint when an error arrives, linking the status first', () => {
+    render(urlField({ error: 'Not valid' }))
+
+    const hint = screen.getByText('Lowercase letters, numbers and hyphens')
+    const error = screen.getByText('Not valid')
+    expect(screen.getByLabelText('URL').getAttribute('aria-describedby')).toBe(
+      `${error.id} ${hint.id}`,
+    )
+  })
+
+  it.fails('@id:companies-166-3 shows success in the positive colour with a decorative check', () => {
+    const { container } = render(urlField({ success: 'Available' }))
+
+    const region = container.querySelector('[aria-live="polite"]')
+    expect(region?.textContent).toBe('Available')
+    expect(screen.getByText('Available').closest('[class*="text-pos"]')).not.toBeNull()
+    expect(region?.querySelector('svg')?.getAttribute('aria-hidden')).toBe('true')
+    expect(screen.getByLabelText('URL').getAttribute('aria-invalid')).toBeNull()
+  })
+
+  it.fails('@id:companies-166-3 the status shows the error over success, and success over help', () => {
+    const { container, rerender } = render(
+      urlField({ help: 'Checking', success: 'Available', error: 'Not valid' }),
+    )
+    const region = () => container.querySelector('[aria-live="polite"]')?.textContent
+
+    expect(region()).toBe('Not valid')
+    rerender(urlField({ help: 'Checking', success: 'Available' }))
+    expect(region()).toBe('Available')
+    rerender(urlField({ help: 'Checking' }))
+    expect(region()).toBe('Checking')
+  })
+})

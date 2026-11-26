@@ -66,6 +66,22 @@ const messageOf = (control: HTMLElement) =>
   document.getElementById(control.getAttribute('aria-describedby') ?? '')?.textContent
 const createButton = () => screen.getByRole('button', { name: 'Crear empresa' })
 
+// The ids a control links to, status first and fixed hint last.
+const describedBy = (control: HTMLElement) =>
+  (control.getAttribute('aria-describedby') ?? '').split(' ').filter(Boolean)
+
+const isPost = (request: Request) =>
+  new URL(request.url).pathname === '/api/companies' && request.method === 'POST'
+
+// A promise the test opens, to hold an answer of the API while it looks at the screen.
+function gate() {
+  let open = () => {}
+  const opened = new Promise<void>((resolve) => {
+    open = resolve
+  })
+  return { open, opened }
+}
+
 async function typeSlug(slug: string) {
   await userEvent.clear(slugField())
   await userEvent.type(slugField(), slug)
@@ -143,14 +159,14 @@ describe('creating a company', () => {
   })
 
   for (const slug of ['ab', 'mi--empresa', '-norte', 'norte-stg'])
-    it(`@id:companies-90-5 the URL "${slug}" has an invalid format`, async () => {
+    it.fails(`@id:companies-90-5 the URL "${slug}" has an invalid format`, async () => {
       const created: Created[] = []
       renderApp({ path: '/companies/new', answer: companiesApi({ created }) })
 
       await userEvent.type(await nameField(), 'Formato')
       await typeSlug(slug)
 
-      expect(await screen.findByText(/formato no es válido/i)).toBeTruthy()
+      expect(await screen.findByText(/^Usa de 3 a 40 caracteres/)).toBeTruthy()
       await userEvent.click(createButton())
       expect(created).toEqual([])
     })
@@ -286,5 +302,158 @@ describe('creating a company', () => {
 
     expect(await screen.findByRole('button', { name: 'Continuar' })).toBeTruthy()
     expect(router.state.location.search).toEqual({ returnTo: '/companies/new' })
+  })
+})
+
+describe('the polished creation screen', () => {
+  it.fails('@id:companies-166-1 explains what a company is above the form', async () => {
+    renderApp({ path: '/', answer: companiesApi({ name: 'Ana' }) })
+
+    await nameField()
+    const intro = screen.getByText(/^Una empresa es el espacio de tu equipo en worKampo/)
+    expect(intro.textContent).toBe(
+      'Una empresa es el espacio de tu equipo en worKampo, con su propia dirección. Serás su propietario y más adelante podrás invitar a tu equipo.',
+    )
+    const form = document.querySelector('form')
+    expect(form?.contains(intro)).toBe(false)
+    expect(
+      form && intro.compareDocumentPosition(form) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy()
+  })
+
+  it.fails('@id:companies-166-2 the URL has the …/c/ prefix and a fixed hint before any error', async () => {
+    renderApp({ path: '/companies/new', answer: companiesApi({ name: 'Ana' }) })
+
+    await nameField()
+    const prefix = screen.getByText('…/c/')
+    const hint = screen.getByText(
+      'Minúsculas, números y guiones; algunos nombres están reservados.',
+    )
+    expect(prefix.getAttribute('aria-hidden')).toBe('true')
+    expect(prefix.getAttribute('dir')).toBe('ltr')
+    expect(
+      prefix.compareDocumentPosition(slugField()) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy()
+    expect(slugField().getAttribute('aria-invalid')).toBeNull()
+    expect(describedBy(slugField()).at(-1)).toBe(hint.id)
+
+    await typeSlug('ab')
+    await waitFor(() => expect(slugField().getAttribute('aria-invalid')).toBe('true'))
+    expect(hint.isConnected).toBe(true)
+  })
+
+  it.fails('@id:companies-166-3 a free URL shows "Disponible" as the positive state', async () => {
+    renderApp({ path: '/companies/new', answer: companiesApi({ name: 'Ana' }) })
+
+    await userEvent.type(await nameField(), 'Clínica Norte')
+
+    const available = await screen.findByText(/^Disponible/)
+    expect(available.closest('[class*="text-pos"]')).not.toBeNull()
+    const status = document.getElementById(describedBy(slugField())[0] ?? '')
+    expect(status?.textContent).toMatch(/^Disponible/)
+  })
+
+  it.fails('@id:companies-166-4 while creating, the button keeps the focus and says "Creando…"', async () => {
+    const hold = gate()
+    const api = companiesApi({ name: 'Ana' })
+    renderApp({
+      path: '/companies/new',
+      answer: async (request) => {
+        if (isPost(request)) await hold.opened
+        return api(request)
+      },
+    })
+    await userEvent.type(await nameField(), 'Northwind Logistics')
+    await screen.findByText(/^Disponible/)
+
+    await userEvent.click(createButton())
+
+    const busy = await screen.findByRole('button', { name: 'Creando…' })
+    expect(document.activeElement).toBe(busy)
+    expect(busy.getAttribute('aria-busy')).toBe('true')
+    expect(busy.getAttribute('aria-disabled')).toBe('true')
+    expect(busy.hasAttribute('disabled')).toBe(false)
+    hold.open()
+    expect(await screen.findByText('Bienvenido a Northwind Logistics')).toBeTruthy()
+  }, 10_000)
+
+  it.fails('@id:companies-166-5 a server rejection shows a negative banner first in the form, focused, gone on the next submit', async () => {
+    let calls = 0
+    const second = gate()
+    const api = companiesApi({ name: 'Ana' })
+    renderApp({
+      path: '/companies/new',
+      answer: async (request) => {
+        if (isPost(request) && ++calls === 1) return problem({ status: 500, code: 'internal' })
+        if (isPost(request)) await second.opened
+        return api(request)
+      },
+    })
+    await userEvent.type(await nameField(), 'Northwind Logistics')
+    await screen.findByText(/^Disponible/)
+
+    await userEvent.click(createButton())
+
+    const banner = await screen.findByRole('alert')
+    expect(document.querySelector('form')?.firstElementChild).toBe(banner)
+    expect(banner.tabIndex).toBe(-1)
+    await waitFor(() => expect(document.activeElement).toBe(banner))
+
+    await userEvent.click(createButton())
+
+    await waitFor(() => expect(screen.queryByRole('alert')).toBeNull())
+    second.open()
+  }, 10_000)
+
+  it.fails('@id:companies-166-5 a failed availability check shows the banner without moving focus', async () => {
+    const api = companiesApi({ name: 'Ana' })
+    renderApp({
+      path: '/companies/new',
+      answer: (request) =>
+        new URL(request.url).pathname === '/api/companies/availability'
+          ? problem({ status: 500, code: 'internal' })
+          : api(request),
+    })
+    const name = await nameField()
+
+    await userEvent.type(name, 'Northwind Logistics')
+
+    expect(await screen.findByRole('alert')).toBeTruthy()
+    expect(document.activeElement).toBe(name)
+  }, 10_000)
+
+  it.fails('@id:companies-166-5 a URL taken while sending shows at its field and takes focus, with no banner', async () => {
+    renderApp({
+      path: '/companies/new',
+      answer: companiesApi({
+        name: 'Ana',
+        create: () => problem({ status: 409, code: 'companies.slug_taken' }),
+      }),
+    })
+    await userEvent.type(await nameField(), 'Sol')
+    await screen.findByText(/^Disponible/)
+
+    await userEvent.click(createButton())
+
+    expect(await screen.findByText(/^No disponible/)).toBeTruthy()
+    await waitFor(() => expect(document.activeElement).toBe(slugField()))
+    expect(screen.queryByRole('alert')).toBeNull()
+  }, 10_000)
+
+  it.fails('@id:companies-90-8 every field is required, and the URL and name carry their input limits', async () => {
+    renderApp({ path: '/companies/new', answer: companiesApi({ name: null }) })
+
+    const name = await nameField()
+    const slug = slugField()
+    for (const field of [name, slug, screen.getByLabelText('Tu nombre')]) {
+      expect(field.hasAttribute('required'), field.id).toBe(true)
+      expect(field.getAttribute('aria-required'), field.id).toBe('true')
+    }
+    expect(slug.getAttribute('spellcheck')).toBe('false')
+    expect(slug.getAttribute('autocapitalize')).toBe('none')
+    expect(slug.getAttribute('autocorrect')).toBe('off')
+    expect(slug.getAttribute('autocomplete')).toBe('off')
+    expect(slug.getAttribute('maxlength')).toBe('40')
+    expect(name.getAttribute('maxlength')).toBe('80')
   })
 })
