@@ -1,15 +1,19 @@
 {
   "new_company": {
     "_screen": "The create-company screen (/companies/new): name, the company URL (proposed from the name, checked live), default language, the person's own name when they have none, and Create / Cancel.",
+    "intro": "Context text under the title of the create-company screen: what a company is, that its creator becomes the owner, and that inviting the team comes later.",
     "name_required": "Shown under the company name when it is empty or not valid; tells what to write.",
     "url": "Label of the slug field; the text must contain 'URL'.",
+    "url_hint": "Fixed help under the URL field, always visible; summarises the allowed characters. Keep it short.",
+    "url_required": "Shown under the URL when the person submits with it empty; tells what to write.",
     "available": "Shown under the URL when it is free; the app may append the full address after it.",
     "unavailable": "Shown under the URL when another company has it. Do not say which.",
     "reserved": "The URL is a word the product keeps for itself.",
-    "invalid_format": "The URL has characters or a length we do not accept.",
+    "invalid_format": "The URL has characters or a length we do not accept; states the 3-40 length and the allowed characters.",
     "language_hint": "Short help under the language field.",
     "your_name": "Asked only when the account has no name yet.",
-    "back_to_companies": "Link on the create-company screen that returns to the picker without creating anything."
+    "back_to_companies": "Link on the create-company screen that returns to the picker without creating anything.",
+    "submitting": "Text of the create button while the company is being created. Keep the trailing ellipsis character."
   },
   "company_home": {
     "_screen": "The first screen inside a company: a welcome with the company name.",

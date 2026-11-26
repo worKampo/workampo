@@ -374,6 +374,23 @@ describe('the company shell', () => {
     expect(await screen.findByText(HOME)).toBeTruthy()
   })
 
+  it('@id:companies-92-11 the home paints no empty h1 while the company loads', async () => {
+    let load = () => {}
+    const held = new Promise<Response>((resolve) => {
+      load = () => resolve(Response.json(NORTHWIND))
+    })
+    renderApp({ path: '/c/northwind', answer: shellApi({ context: () => held }) })
+
+    await screen.findByRole('status', { name: 'Cargando' })
+    const emptyHeadings = () =>
+      [...document.querySelectorAll('h1')].filter((h1) => !h1.textContent?.trim())
+    expect(emptyHeadings()).toEqual([])
+    load()
+
+    expect(await screen.findByText(HOME)).toBeTruthy()
+    expect(emptyHeadings()).toEqual([])
+  })
+
   it('@id:companies-92-1 a company that cannot be loaded shows an error without the shell, and «Reintentar» opens it', async () => {
     let failing = true
     const context = () =>

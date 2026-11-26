@@ -75,7 +75,7 @@ Order on the page: KPIs → saved view row → toolbar → bulk bar (when select
 
 - **Labels above** the field; help text under the field, linked with `aria-describedby`.
 - Group related fields in a card with an `h2`; two columns on wide screens via an auto-fit grid (min 240 px), one column on phone.
-- **Validation**: on blur for format errors, on submit for everything. Error under the field (what is wrong and how to fix it), `aria-invalid`. On submit with errors: a negative banner at the top with a **summary** linking to each field, and focus moves to it.
+- **Validation**: on blur for format errors, on submit for everything. Error under the field (what is wrong and how to fix it), `aria-invalid`. On submit with errors: a negative banner at the top with a **summary** linking to each field, and focus moves to it. A short form on a Card screen has no summary: focus moves to the first field with an error.
 - **Submit button** stays enabled; it shows a busy state while saving and prevents double submit.
 - **Edit-in-place settings** (General, Public page): no Save button per section. Any change shows the inverted **save bar** ("N unsaved changes · Discard · Save"). Leaving the page with unsaved changes asks for confirmation. Success: toast; failure: banner + field errors, edits kept.
 - **Create flows** (Create company, Invite members): normal form with a primary submit and Cancel.

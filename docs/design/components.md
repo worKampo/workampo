@@ -45,9 +45,11 @@ shadcn `Input`, `Select`, `Textarea`, `InputGroup`, `Label`.
 | Focus | Background `--field-focus`, no outline, ring `--shadow-focus` (`0 0 0 1px --ui, 0 0 0 4px --focus-halo`) |
 | Error | Border `--neg`; message below in 12/16 `--neg` with an icon; `aria-invalid="true"` and `aria-describedby` to the message |
 | Help | 12/16 `--text-2`, linked with `aria-describedby` |
+| Hint and status | `Field` has a fixed `hint`, always shown and not live, and under it one live status line: error, else `success` (`--pos` with an `aria-hidden` check), else help. `aria-describedby` lists the status first, then the hint |
+| Required | No mark: required fields carry `required` and `aria-required`. When a form has an optional field, that one says «(opcional)» in its label |
 | Textarea | Min height 88, padding 8 12, line height 1.5, vertical resize |
 | Select | Chevron at the right, padding-right 32 |
-| Input group | One bordered box with a prefix (`--text-2`, e.g. a URL base) and the input; the focus ring goes on the group (`:focus-within`) |
+| Input group | One bordered box with a prefix (`--text-2`, e.g. a URL base) and the input; the focus ring goes on the group (`:focus-within`) and `aria-invalid` on the input turns the group border `--neg`. The prefix is `aria-hidden` and `dir="ltr"`; clicking it focuses the input |
 | Search | Input with a 16 px icon at left 12, padding-left 36, background `--chrome-control`; label visually hidden |
 | Form | `Form` stacks its fields and actions 16 px apart and turns off the browser's validation; our messages show the errors. When it opens, its first field takes the focus, since the form is the page's task (the person, 2026-11-25); a form that is not, such as a list's filters, opts out with `focusFirstField={false}`. One form per screen takes the focus: with two, the one that is not the screen's task opts out, or the last one shown would win. `FormActions` holds its buttons right-aligned, secondary then primary, 8 px apart, wrapping on a narrow screen |
 
@@ -142,6 +144,8 @@ shadcn `Alert`. Padding 12 16, radius 12, 1 px border, icon + text (title in wei
 | Positive | `--pos-bg`, `--pos-border` | `status` | "Published." |
 | Negative | `--neg-bg`, `--neg-border` | `alert` | Payment failed, error summary on submit |
 | Staff | `--warn-bg`, `--warn-border`, text and links `--warn-text` | `status` | Staff sessions only (D50) |
+
+Only the negative variant is built (`Banner variant="negative"`): `role="alert"` and `tabIndex={-1}`, so the page can move the focus to it after a failed submit.
 
 `strip` modifier: full width, no radius, only a bottom border; used for banners across the top of the main column.
 

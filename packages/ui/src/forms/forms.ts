@@ -1,4 +1,5 @@
 export { Field } from './field'
 export { Form, FormActions } from './form'
 export { Input } from './input'
+export { InputGroup } from './input-group'
 export { Select } from './select'

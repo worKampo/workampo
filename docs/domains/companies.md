@@ -55,6 +55,35 @@ Rule: La URL de la empresa se propone desde el nombre y tiene que ser válida, n
       | -norte      |
       | norte-stg   |
 
+@issue(#166)
+Rule: El formulario de crear empresa explica qué es una empresa, guía la URL y anuncia lo que pasa
+
+  @id:companies-166-1
+  Example: Sin empresa veo qué es una empresa encima del formulario
+    Given entro sin ninguna empresa
+    Then veo, encima del formulario, qué es una empresa y que seré su propietario
+
+  @id:companies-166-2
+  Example: La URL muestra su prefijo y una ayuda antes de cualquier error
+    Given escribo la URL de la empresa
+    Then veo el prefijo de la dirección (…/c/) delante del campo
+    And veo la ayuda "Minúsculas, números y guiones; algunos nombres están reservados" antes de cualquier error
+
+  @id:companies-166-3
+  Example: Una URL libre se muestra disponible como estado positivo
+    Given la URL está libre
+    Then "Disponible" se muestra en verde, como estado positivo
+
+  @id:companies-166-4
+  Example: Mientras se crea, el botón conserva el foco y anuncia que trabaja
+    Given pulso "Crear empresa"
+    Then el botón conserva el foco y anuncia "Creando…" hasta que termina
+
+  @id:companies-166-5
+  Example: Un fallo general del servidor sale en un aviso negativo encima del formulario
+    Given el servidor rechaza la creación por un fallo general, no porque la URL esté ocupada
+    Then el error se muestra en un aviso negativo encima del formulario, con role alert
+
 @issue(#90)
 Rule: El formulario pide solo el nombre, la URL, el idioma por defecto y, si falta, el nombre de la persona
 
