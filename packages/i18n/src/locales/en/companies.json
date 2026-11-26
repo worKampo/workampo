@@ -1,17 +1,21 @@
 {
   "new_company": {
     "title": "Create company",
+    "intro": "A company is your team's space in worKampo, with its own address. You will be its owner, and later you will be able to invite your team.",
     "name": "Company name",
     "name_required": "Enter the company name.",
     "url": "Company URL",
+    "url_hint": "Lowercase letters, numbers and hyphens; some names are reserved.",
+    "url_required": "Enter the company URL.",
     "available": "Available",
     "unavailable": "Not available. Try another one.",
     "reserved": "This address is reserved. Try another one.",
-    "invalid_format": "The format is not valid. Use lowercase letters, numbers and hyphens.",
+    "invalid_format": "Use 3 to 40 characters: lowercase letters, numbers and hyphens.",
     "language": "Default language",
     "language_hint": "The language people in your company see by default.",
     "your_name": "Your name",
     "submit": "Create company",
+    "submitting": "Creating…",
     "back_to_companies": "Back to my companies"
   },
   "company_home": {

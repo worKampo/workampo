@@ -1,17 +1,21 @@
 {
   "new_company": {
     "title": "Crear empresa",
+    "intro": "Una empresa és l'espai del teu equip a worKampo, amb la seva pròpia adreça. En seràs el propietari i més endavant hi podràs convidar el teu equip.",
     "name": "Nom de l'empresa",
     "name_required": "Escriu el nom de l'empresa.",
     "url": "URL de l'empresa",
+    "url_hint": "Minúscules, números i guions; alguns noms estan reservats.",
+    "url_required": "Escriu l'URL de l'empresa.",
     "available": "Disponible",
     "unavailable": "No disponible. Prova'n una altra.",
     "reserved": "Aquesta adreça està reservada. Prova'n una altra.",
-    "invalid_format": "El format no és vàlid. Fes servir lletres minúscules, números i guions.",
+    "invalid_format": "Fes servir de 3 a 40 caràcters: minúscules, números i guions.",
     "language": "Idioma per defecte",
     "language_hint": "És l'idioma que veuran per defecte les persones de la teva empresa.",
     "your_name": "El teu nom",
     "submit": "Crear empresa",
+    "submitting": "Creant…",
     "back_to_companies": "Torna a les meves empreses"
   },
   "company_home": {

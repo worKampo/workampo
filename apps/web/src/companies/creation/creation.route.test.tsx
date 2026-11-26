@@ -159,7 +159,7 @@ describe('creating a company', () => {
   })
 
   for (const slug of ['ab', 'mi--empresa', '-norte', 'norte-stg'])
-    it.fails(`@id:companies-90-5 the URL "${slug}" has an invalid format`, async () => {
+    it(`@id:companies-90-5 the URL "${slug}" has an invalid format`, async () => {
       const created: Created[] = []
       renderApp({ path: '/companies/new', answer: companiesApi({ created }) })
 
