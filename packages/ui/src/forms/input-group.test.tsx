@@ -1,14 +1,9 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import { Field } from './field'
+import { InputGroup } from './input-group'
 
-// A specifier Vite does not resolve ahead, so the file loads before T2 creates the module; turn it
-// into a static import when the it.fails marks go.
-const MODULE = './input-group'
-const load = () => import(/* @vite-ignore */ MODULE)
-
-async function renderUrl(error?: string) {
-  const { InputGroup } = await load()
+function renderUrl(error?: string) {
   render(
     <Field label="URL" error={error}>
       {(control) => <InputGroup prefix="…/c/" {...control} />}
@@ -19,8 +14,8 @@ async function renderUrl(error?: string) {
 }
 
 describe('InputGroup', () => {
-  it.fails('@id:companies-166-2 puts a decorative left-to-right prefix before the input', async () => {
-    const { input, prefix } = await renderUrl()
+  it('@id:companies-166-2 puts a decorative left-to-right prefix before the input', () => {
+    const { input, prefix } = renderUrl()
 
     expect(prefix.getAttribute('aria-hidden')).toBe('true')
     expect(prefix.getAttribute('dir')).toBe('ltr')
@@ -28,8 +23,8 @@ describe('InputGroup', () => {
     expect(input.getAttribute('aria-describedby')).toBeNull()
   })
 
-  it.fails('@id:companies-166-2 clicking the prefix focuses the input', async () => {
-    const { input, prefix } = await renderUrl()
+  it('@id:companies-166-2 clicking the prefix focuses the input', () => {
+    const { input, prefix } = renderUrl()
 
     fireEvent.mouseDown(prefix)
     fireEvent.click(prefix)
@@ -37,8 +32,8 @@ describe('InputGroup', () => {
     expect(document.activeElement).toBe(input)
   })
 
-  it.fails('@id:companies-166-2 draws the focus ring on the group, and the error border with aria-invalid', async () => {
-    const { input, prefix } = await renderUrl('Not valid')
+  it('@id:companies-166-2 draws the focus ring on the group, and the error border with aria-invalid', () => {
+    const { input, prefix } = renderUrl('Not valid')
     const group = prefix.parentElement
 
     expect(group?.contains(input)).toBe(true)

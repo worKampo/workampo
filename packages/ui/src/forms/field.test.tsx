@@ -53,19 +53,28 @@ describe('Field', () => {
   })
 })
 
-// Spread, so typecheck accepts `hint` and `success` before T2 adds them; write them as props when
-// the it.fails marks go.
-const urlField = (status: { help?: string; success?: string; error?: string } = {}) => {
-  const added = { hint: 'Lowercase letters, numbers and hyphens', ...status }
-  return (
-    <Field label="URL" {...added}>
-      {(props) => <Input {...props} />}
-    </Field>
-  )
-}
+const urlField = ({
+  help,
+  success,
+  error,
+}: {
+  help?: string
+  success?: string
+  error?: string
+} = {}) => (
+  <Field
+    label="URL"
+    hint="Lowercase letters, numbers and hyphens"
+    help={help}
+    success={success}
+    error={error}
+  >
+    {(props) => <Input {...props} />}
+  </Field>
+)
 
 describe('Field hint and success', () => {
-  it.fails('@id:companies-166-2 shows a fixed hint, outside the live region, that the input links', () => {
+  it('@id:companies-166-2 shows a fixed hint, outside the live region, that the input links', () => {
     const { container } = render(urlField())
 
     const hint = screen.getByText('Lowercase letters, numbers and hyphens')
@@ -75,7 +84,7 @@ describe('Field hint and success', () => {
     expect(screen.getByLabelText('URL').getAttribute('aria-describedby')).toBe(hint.id)
   })
 
-  it.fails('@id:companies-166-2 keeps the hint when an error arrives, linking the status first', () => {
+  it('@id:companies-166-2 keeps the hint when an error arrives, linking the status first', () => {
     render(urlField({ error: 'Not valid' }))
 
     const hint = screen.getByText('Lowercase letters, numbers and hyphens')
@@ -85,7 +94,7 @@ describe('Field hint and success', () => {
     )
   })
 
-  it.fails('@id:companies-166-3 shows success in the positive colour with a decorative check', () => {
+  it('@id:companies-166-3 shows success in the positive colour with a decorative check', () => {
     const { container } = render(urlField({ success: 'Available' }))
 
     const region = container.querySelector('[aria-live="polite"]')
@@ -95,7 +104,7 @@ describe('Field hint and success', () => {
     expect(screen.getByLabelText('URL').getAttribute('aria-invalid')).toBeNull()
   })
 
-  it.fails('@id:companies-166-3 the status shows the error over success, and success over help', () => {
+  it('@id:companies-166-3 the status shows the error over success, and success over help', () => {
     const { container, rerender } = render(
       urlField({ help: 'Checking', success: 'Available', error: 'Not valid' }),
     )
