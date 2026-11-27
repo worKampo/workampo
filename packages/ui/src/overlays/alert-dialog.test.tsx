@@ -38,13 +38,13 @@ describe('AlertDialog', () => {
     expect(document.getElementById(describedBy)?.textContent).toBe(DESCRIPTION)
   })
 
-  it('E6 the focus goes to the first action and the page behind is out of reach', async () => {
+  // The page behind is inert through showModal, which jsdom lacks: new-version.e2e.ts E6 proves it.
+  it('E6 the focus goes to the first action', async () => {
     const dialog = await renderDialog()
 
     const reload = screen.getByRole('button', { name: 'Reload' })
     await waitFor(() => expect(document.activeElement).toBe(reload))
     expect(dialog.contains(reload)).toBe(true)
-    expect(screen.queryByRole('button', { name: 'Behind' })).toBeNull()
   })
 
   it('E6 Esc, the scrim and a click outside leave it open', async () => {
