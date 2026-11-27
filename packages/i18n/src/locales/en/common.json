@@ -26,5 +26,16 @@
       "copied_status": "Reference copied",
       "copy_failed": "Couldn't copy. Select the reference and copy it."
     }
+  },
+  "new_version": {
+    "banner": {
+      "text": "A new version is available",
+      "reload": "Reload"
+    },
+    "dialog": {
+      "title": "Reload to continue",
+      "body": "There's a new version of worKampo and this one can no longer be used.",
+      "reload": "Reload"
+    }
   }
 }
