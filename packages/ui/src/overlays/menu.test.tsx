@@ -1,7 +1,20 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { expect, it, vi } from 'vitest'
+import type { FC, ReactNode } from 'react'
+import { expect, it, onTestFinished, vi } from 'vitest'
 
+import * as menuModule from './menu'
 import { Menu, MenuContent, MenuHeader, MenuItem, MenuSeparator, MenuTrigger } from './menu'
+
+// The scope the app shell gives the menus inside it. Read loosely until menu.tsx exports it, so the
+// tests below fail on their expectations rather than on a missing component.
+type MenuScopeProps = {
+  container?: HTMLElement | null
+  onOpenChange?: (open: boolean) => void
+  children: ReactNode
+}
+const MenuScope =
+  (menuModule as unknown as { MenuScope?: FC<MenuScopeProps> }).MenuScope ??
+  (({ children }: MenuScopeProps) => children)
 
 async function renderAccountMenu({ onSignOut = () => {}, busy = false } = {}) {
   render(
@@ -84,4 +97,44 @@ it('@id:companies-92-5 the menu does not lock the page behind, and a press outsi
   fireEvent.pointerDown(document.body)
 
   await waitFor(() => expect(screen.queryByRole('menu')).toBeNull())
+})
+
+// showModal makes everything outside the side menu's <dialog> inert, a menu portalled to body included.
+it.fails('@id:companies-196-2 inside the side menu of the shell the content is portalled into its dialog', async () => {
+  const dialog = document.body.appendChild(document.createElement('dialog'))
+  onTestFinished(() => dialog.remove())
+  render(
+    <MenuScope container={dialog}>
+      <Menu>
+        <MenuTrigger>Ana</MenuTrigger>
+        <MenuContent>
+          <MenuItem>Cerrar sesión</MenuItem>
+        </MenuContent>
+      </Menu>
+    </MenuScope>,
+  )
+
+  fireEvent.keyDown(screen.getByRole('button', { name: 'Ana' }), { key: 'Enter' })
+
+  expect(dialog.contains(await screen.findByRole('menu'))).toBe(true)
+})
+
+it.fails('@id:companies-196-1 the shell learns when a menu inside it opens and closes', async () => {
+  const onOpenChange = vi.fn()
+  render(
+    <MenuScope onOpenChange={onOpenChange}>
+      <Menu>
+        <MenuTrigger>Ana</MenuTrigger>
+        <MenuContent>
+          <MenuItem>Cerrar sesión</MenuItem>
+        </MenuContent>
+      </Menu>
+    </MenuScope>,
+  )
+
+  fireEvent.keyDown(screen.getByRole('button', { name: 'Ana' }), { key: 'Enter' })
+  fireEvent.keyDown(await screen.findByRole('menu'), { key: 'Escape' })
+  await waitFor(() => expect(screen.queryByRole('menu')).toBeNull())
+
+  expect(onOpenChange.mock.calls).toEqual([[true], [false]])
 })
