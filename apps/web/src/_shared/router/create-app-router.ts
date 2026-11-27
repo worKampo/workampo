@@ -4,6 +4,7 @@ import {
   defaultStringifySearch,
   type RouterHistory,
 } from '@tanstack/react-router'
+import { reloadOnNavigation } from '../new-version/reload-on-navigation'
 import type { RouterContext } from './root-route'
 
 export function createAppRouter<TRouteTree extends AnyRoute>({
@@ -16,7 +17,7 @@ export function createAppRouter<TRouteTree extends AnyRoute>({
   history?: RouterHistory
 }) {
   // Hovering or focusing a link downloads its screen (ADR-0073 point 4).
-  return createRouter({
+  const router = createRouter({
     routeTree,
     context,
     defaultPreload: 'intent',
@@ -24,4 +25,7 @@ export function createAppRouter<TRouteTree extends AnyRoute>({
     stringifySearch: (search) => defaultStringifySearch(search).replaceAll('%2F', '/'),
     ...(history && { history }),
   })
+  reloadOnNavigation({ router, watch: context.versionWatch, ...context.browser })
+
+  return router
 }

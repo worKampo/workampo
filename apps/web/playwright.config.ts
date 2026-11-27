@@ -1,4 +1,5 @@
 import { defineConfig, devices } from '@playwright/test'
+import { buildVersion } from '../../scripts/build/spa-version.mjs'
 
 // The page journeys of the web run against the API Worker that serves it, like the API's own
 // suite (apps/api/playwright.config.ts), on their own port and local state so both can run at once.
@@ -15,6 +16,8 @@ const SIGN_IN_LIMITS = [
 const PORT = 8789
 const LOCAL_URL = `https://localhost:${PORT}`
 const deployedUrl = process.env.E2E_BASE_URL
+// The same values the web build defines, so the Worker serves the version the SPA was built with.
+const spa = deployedUrl ? undefined : buildVersion({ env: process.env })
 
 export default defineConfig({
   testDir: 'e2e',
@@ -36,7 +39,7 @@ export default defineConfig({
         `wrangler d1 migrations apply global-local --local --persist-to ${PERSIST}`,
         `wrangler d1 migrations apply shard-1-local --local --persist-to ${PERSIST}`,
         `node ../../scripts/db/seed.mjs --persist-to ${PERSIST}`,
-        `wrangler dev --local --ip localhost --local-protocol https --port ${PORT} --persist-to ${PERSIST} --var PUBLIC_BASE_URL:${LOCAL_URL} ${SIGN_IN_LIMITS}`,
+        `wrangler dev --local --ip localhost --local-protocol https --port ${PORT} --persist-to ${PERSIST} --var PUBLIC_BASE_URL:${LOCAL_URL} --var APP_VERSION:${spa?.version} --var APP_BUILD_DATE:${spa?.buildDate} ${SIGN_IN_LIMITS}`,
       ].join(' && '),
       url: `${LOCAL_URL}/health`,
       ignoreHTTPSErrors: true,

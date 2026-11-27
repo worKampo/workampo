@@ -64,6 +64,8 @@
       "version_metadata": { "binding": "CF_VERSION_METADATA" },
       "vars": {
         "ENVIRONMENT": "stg",
+        // Raising it goes through a PR and a deploy the person approves; earlier than any build, it blocks nobody.
+        "MIN_CLIENT_VERSION": "2026-01-01T00:00:00Z",
         "ENABLE_DEBUG_ERROR": "true",
         "TENANT_ROUTING": "path",
         "PUBLIC_BASE_URL": "https://app-stg.workampo.workers.dev",
@@ -99,6 +101,8 @@
       "version_metadata": { "binding": "CF_VERSION_METADATA" },
       "vars": {
         "ENVIRONMENT": "prod",
+        // Raising it goes through a PR and a deploy the person approves; earlier than any build, it blocks nobody.
+        "MIN_CLIENT_VERSION": "2026-01-01T00:00:00Z",
         "TENANT_ROUTING": "path",
         "PUBLIC_BASE_URL": "https://app.workampo.workers.dev",
         // WorkOS Staging until the first real users (ADR-0071 updates, issue 118); Production is issue 119.

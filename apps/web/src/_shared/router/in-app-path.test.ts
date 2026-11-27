@@ -21,4 +21,11 @@ describe('inAppPath', () => {
   it('@id:companies-91-4 a javascript: URL leaves the app, never runs in it', () => {
     expect(inAppPath('javascript:alert(1)')).toBeUndefined()
   })
+
+  it('a path of our origin that starts with // or /\\ leaves the app, since it would name another host', () => {
+    const { origin } = window.location
+
+    expect(inAppPath(`${origin}//evil.example/x`)).toBeUndefined()
+    expect(inAppPath(`${origin}/%2F/evil.example/x`)).toBe('/%2F/evil.example/x')
+  })
 })

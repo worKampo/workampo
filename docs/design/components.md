@@ -146,9 +146,14 @@ shadcn `Alert`. Padding 12 16, radius 12, 1 px border, icon + text (title in wei
 | Negative | `--neg-bg`, `--neg-border` | `alert` | Payment failed, error summary on submit |
 | Staff | `--warn-bg`, `--warn-border`, text and links `--warn-text` | `status` | Staff sessions only (D50) |
 
-Only the negative variant is built (`Banner variant="negative"`): `role="alert"` and `tabIndex={-1}`, so the page can move the focus to it after a failed submit.
+Two variants are built:
+
+- `Banner variant="negative"`: `role="alert"` and `tabIndex={-1}`, so the page can move the focus to it after a failed submit.
+- `Banner variant="info"`: info icon, `role="status"` unless the caller passes its own `role`.
 
 `strip` modifier: full width, no radius, only a bottom border; used for banners across the top of the main column.
+
+`floating` modifier: fixed at the bottom centre, 24 px from the edge, max width 440, radius 12, `--shadow-float`, opaque background (`--info-bg` over `--surface`). On phone 16 px from the edges plus `env(safe-area-inset-bottom)`. Logical properties for RTL; the action wraps below the text when it does not fit. Used by the [new version notice](patterns.md#new-version-available-d59).
 
 ### Empty state
 
@@ -185,6 +190,8 @@ shadcn `Sheet` (`side="right"`). Width min(480 px, 100 %), full width on phone. 
 ### Dialog
 
 shadcn `Dialog` / `AlertDialog` (destructive confirmations). Max width 480 (wide 600), `--surface`, radius 12, `--shadow-modal`, centred over the `--scrim`. Head padding 24 24 0 with title and close; body 16 24 24, gap 16; foot 16 24 with top border, actions right-aligned (secondary, then primary). On phone the same component becomes a **bottom sheet**: anchored to the bottom, full width, top corners 16. Same a11y as the drawer.
+
+`AlertDialog` in `packages/ui` (overlays family) is built on the native `<dialog>` with `showModal()`, with the same look: Radix's scroll lock injects a `<style>` that the CSP (`style-src 'self'`) blocks. Props `open`, `title`, `description` and `actions`; texts come as props. It closes only through its actions: Esc, the scrim and a click outside do nothing, and it has no close button. `role="alertdialog"`, `aria-modal`, `aria-labelledby` the title and `aria-describedby` the text; the focus goes to the first action and stays trapped. On phone the actions are full width (44 px). No entry animation. Used by the [minimum version dialog](patterns.md#new-version-available-d59).
 
 ### Popover and menu
 

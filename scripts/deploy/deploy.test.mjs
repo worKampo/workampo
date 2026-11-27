@@ -21,15 +21,25 @@ const SAMPLE_CONFIG = `{
   /* Each environment repeats its bindings. */
   "env": {
     "stg": {
-      "vars": { "URL": "https://example.com/a//b" },
+      "vars": { "URL": "https://example.com/a//b", "MIN_CLIENT_VERSION": "2026-01-01T00:00:00Z" },
       "d1_databases": [
         { "binding": "DB_GLOBAL", "database_name": "global-stg" },
         { "binding": "DB_SHARD_1", "database_name": "shard-1-stg" }
       ]
     },
-    "prod": { "d1_databases": [{ "binding": "DB_GLOBAL", "database_name": "global-prod" }] }
+    "prod": {
+      "vars": { "MIN_CLIENT_VERSION": "2026-01-01T00:00:00Z" },
+      "d1_databases": [{ "binding": "DB_GLOBAL", "database_name": "global-prod" }]
+    }
   }
 }`
+
+// The tree ids of the SPA inputs, as `git ls-tree HEAD -- <inputs>` prints them.
+const LS_TREE = [
+  '040000 tree 1111111111111111111111111111111111111111\tapps/web',
+  '040000 tree 2222222222222222222222222222222222222222\tpackages/domain',
+  '',
+].join('\n')
 
 function fakeIo({
   deployed = DEPLOYED,
@@ -41,23 +51,29 @@ function fakeIo({
   onMaster = true,
   shallow = false,
   mergeBaseStatus = 1,
+  config = SAMPLE_CONFIG,
+  lsTree = LS_TREE,
+  lastSpaCommit = '2026-01-01T10:00:00+01:00',
 } = {}) {
   const calls = []
   const io = {
     env,
     log: () => {},
-    readFile: () => SAMPLE_CONFIG,
+    readFile: () => config,
     removeMaps: (dir) => calls.push({ command: 'removeMaps', args: [dir] }),
     assertNoFakeProvider: (dir) => calls.push({ command: 'assertNoFakeProvider', args: [dir] }),
     deployedSha: async () => deployed,
-    run: (command, args) => {
-      calls.push({ command, args })
+    run: (command, args, options) => {
+      calls.push({ command, args, options })
       if (command === 'git' && args[0] === 'rev-parse' && args[1] === '--verify') return `${tip}\n`
       if (command === 'git' && args[0] === 'rev-parse' && args[1] === '--is-shallow-repository')
         return `${shallow}\n`
       if (command === 'git' && args[0] === 'rev-parse') return `${SHA}\n`
       if (command === 'git' && args[0] === 'merge-base' && !onMaster)
         throw Object.assign(new Error(`exit ${mergeBaseStatus}`), { status: mergeBaseStatus })
+      if (command === 'git' && args[0] === 'ls-tree') return lsTree
+      if (command === 'git' && args[0] === 'log' && args.includes('--format=%cI'))
+        return `${lastSpaCommit}\n`
       if (command === 'git' && args[0] === 'log') return `${subject}\n`
       if (command === 'turbo') {
         const names = args.includes(`...[${SHA}...${tip}]`) ? affectedAfter : affected
@@ -339,5 +355,88 @@ test('E4: a stale run outputs nothing new, even with no Worker affected', async 
   ]) {
     const { io } = fakeIo(options)
     assert.equal(await githubOutputOf({ env: 'stg', all: false }, io), 'deployed=false\nfrom=\n')
+  }
+})
+
+// The SPA version reaches the build and the Worker (ADR-0059).
+const HASH = /^[0-9a-f]{12}$/
+const varsOf = (args) =>
+  Object.fromEntries(
+    args.flatMap((arg, i) => (args[i - 1] === '--var' ? [arg.split(/:(.*)/s).slice(0, 2)] : [])),
+  )
+const turboBuildOf = (calls) =>
+  calls.find((c) => c.command === 'turbo' && c.args[0] === 'run' && c.args[1] === 'build')
+
+test('E7 the same SPA version goes to the web build and to the Worker', async () => {
+  const { io, calls } = fakeIo()
+
+  await deploy({ env: 'prod', all: false }, io)
+
+  const vars = varsOf(deploysOf(calls).at(-1).args)
+  assert.match(vars.APP_VERSION, HASH)
+  assert.equal(vars.APP_BUILD_DATE, '2026-01-01T09:00:00Z')
+  assert.equal(vars.GIT_SHA, SHA)
+  const buildEnv = turboBuildOf(calls).options?.env ?? {}
+  assert.equal(buildEnv.VITE_APP_VERSION, vars.APP_VERSION)
+  assert.equal(buildEnv.VITE_APP_BUILD_DATE, vars.APP_BUILD_DATE)
+  // The build keeps the rest of the environment (the Cloudflare and Sentry variables).
+  assert.equal(buildEnv.PATH, io.env.PATH)
+})
+
+test('R8 a version given in the environment is the one deployed', async () => {
+  const env = { VITE_APP_VERSION: '9f8e7d6c5b4a', VITE_APP_BUILD_DATE: '2026-01-01T00:00:00Z' }
+  const { io, calls } = fakeIo({ env })
+
+  await deploy({ env: 'stg', all: false }, io)
+
+  assert.deepEqual(varsOf(deploysOf(calls).at(-1).args), {
+    GIT_SHA: SHA,
+    APP_VERSION: '9f8e7d6c5b4a',
+    APP_BUILD_DATE: '2026-01-01T00:00:00Z',
+  })
+})
+
+test('R8 a missing or invalid version or date stops the deploy before the build and any wrangler call', async () => {
+  for (const options of [
+    { env: { VITE_APP_VERSION: 'dev', VITE_APP_BUILD_DATE: '2026-01-01T00:00:00Z' } },
+    { env: { VITE_APP_VERSION: '9f8e7d6c5b4a', VITE_APP_BUILD_DATE: 'tomorrow' } },
+    { lsTree: '' },
+    { lastSpaCommit: '' },
+  ]) {
+    const { io, calls } = fakeIo(options)
+
+    await assert.rejects(
+      deploy({ env: 'prod', all: false }, io),
+      undefined,
+      JSON.stringify(options),
+    )
+
+    assert.equal(turboBuildOf(calls), undefined)
+    assert.ok(!calls.some((c) => c.command === 'wrangler'))
+  }
+})
+
+test('R6 a MIN_CLIENT_VERSION later than the build date or invalid stops the deploy before wrangler', async () => {
+  for (const minimum of ['2026-01-01T09:00:01Z', '2100-01-01T00:00:00Z', 'tomorrow', '']) {
+    const config = SAMPLE_CONFIG.replaceAll('2026-01-01T00:00:00Z', minimum)
+    const { io, calls } = fakeIo({ config })
+
+    await assert.rejects(deploy({ env: 'prod', all: false }, io), /MIN_CLIENT_VERSION/, minimum)
+
+    assert.ok(!calls.some((c) => c.command === 'wrangler'))
+  }
+})
+
+test('R6 a minimum equal to the build date deploys, and none at all too', async () => {
+  const equal = SAMPLE_CONFIG.replaceAll('2026-01-01T00:00:00Z', '2026-01-01T09:00:00Z')
+  const none = SAMPLE_CONFIG.replaceAll('"MIN_CLIENT_VERSION": "2026-01-01T00:00:00Z"', '"X": ""')
+
+  for (const config of [equal, none]) {
+    const { io, calls } = fakeIo({ config })
+
+    await deploy({ env: 'prod', all: false }, io)
+
+    assert.equal(deploysOf(calls).length, 2)
+    assert.match(varsOf(deploysOf(calls).at(-1).args).APP_VERSION ?? '', HASH)
   }
 })

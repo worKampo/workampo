@@ -119,11 +119,15 @@ Every screen specifies these states (D31 Specify):
 
 ## New version available (D59)
 
-- When a newer version is deployed, the next navigation reloads the page at the same URL. The user sees no message.
-- Never reload while the save bar is visible; wait until the user saves or discards.
-- A tab left open for hours shows a quiet `info` banner: "A new version is available · Reload".
-- A failed load of a screen's code reloads once; if it fails again, show the 500 page with its reference when there is one.
-- Emergency only (minimum version): a blocking dialog "Reload to continue", with a single primary button.
+Every API answer says which version of the SPA is deployed (`X-App-Version`, a hash of the SPA's files) and, in an emergency, the oldest build still allowed (`X-Min-Client-Version`, the ISO date of that build). The client compares them with its own build; it never uses either value as a destination.
+
+- **E1 reload on the next navigation.** When a newer version of the SPA is deployed, the next navigation to another screen reloads the page at its destination, which is always a path of the app. The user sees no message, only the first-load app loader if it takes more than 300 ms. At most one reload per new version, and only on a navigation: never from a timer or an answer.
+- **E2 nothing changed for the SPA.** A deploy that does not touch the SPA's files keeps the same version, so navigating does not reload.
+- **E3 never over unsaved changes.** While the save bar is visible there is no reload and no notice; the first navigation after the user saves or discards reloads.
+- **E4 a failed code load.** When a screen's code fails to load, the page reloads once, without a message. If it fails again, the 500 page of [components.md](components.md#system-page) shows, without a reference line: the failure is the browser's and the server has no event for it.
+- **E5 notice after 30 minutes.** 30 minutes after a new version is detected without navigating, a floating notice shows «Hay una versión nueva» with «Recargar» (`Banner variant="info"` with the `floating` modifier). Once at the root route, after the screen: fixed at the bottom centre, 24 px from the edge, max width 440, opaque, over the shell and every card screen, never on the system pages. It cannot be closed: closing it would keep the old version, and the next navigation reloads anyway. It stays until the page reloads (its button or the next navigation) and hides while the save bar is visible. Its `role="status"` container is always in the DOM; it never takes the focus and is the last stop in the tab order.
+- **E6 minimum version.** When an answer brings a minimum later than the date of the user's build, a blocking `AlertDialog` shows «Recarga para continuar», «Hay una versión nueva de worKampo y esta ya no se puede usar.» and one primary button «Recargar», busy (`aria-busy`) until the page unloads. Only that button closes it: Esc, the scrim and a click outside do nothing, and it has no close button. It shows on every screen except the system pages, also while the save bar is visible, and it wins over the E5 notice. On a phone it is a bottom sheet with a full-width 44 px button.
+- **E7 the build travels with every call.** Every API call carries the build's version in `X-Client-Version`.
 
 ## Long-running work (D56)
 

@@ -1,9 +1,15 @@
+import { isBuildDate, isClientVersion } from '@workampo/domain/_shared/client-version'
 import { createMiddleware } from 'hono/factory'
 import { z } from 'zod'
 
 const optionalText = z.string().optional()
 const threshold = z.coerce.number().int().positive()
+const clientVersion = z.string().refine(isClientVersion).optional()
+const buildDate = z.string().refine(isBuildDate).optional()
 const common = {
+  APP_VERSION: clientVersion,
+  APP_BUILD_DATE: buildDate,
+  MIN_CLIENT_VERSION: buildDate,
   ENABLE_DEBUG_ERROR: optionalText,
   RATE_LIMIT_CODE_REQUESTS_PER_EMAIL: threshold,
   RATE_LIMIT_CODE_REQUESTS_PER_IP: threshold,
@@ -19,6 +25,7 @@ const common = {
 // Variables and secrets the Worker reads beyond what `wrangler types` generates in Env.
 const extraVariablesSchema = z.object({
   APP_VERSION: optionalText,
+  APP_BUILD_DATE: optionalText,
   GIT_SHA: optionalText,
   SENTRY_DSN: optionalText,
   WORKOS_API_KEY: optionalText,

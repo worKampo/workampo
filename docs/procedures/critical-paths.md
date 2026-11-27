@@ -25,6 +25,7 @@ Each line is `- ` followed by one glob in backticks, then a dash and the reason.
 - `apps/*/src/billing/**` - billing.
 - `scripts/github/app-token.mjs` - mints the agents' App token.
 - `scripts/cloudflare/**` - provisions Cloudflare resources and secrets.
+- `scripts/deploy/**` - deploys every Worker, with its migrations, version and minimum client version.
 - `.github/workflows/**` - CI, deploy and the secrets they use.
 - `.claude/hooks/**` - guards that protect secrets and acceptance tests.
 - `apps/api/wrangler.jsonc` - bindings and environments.

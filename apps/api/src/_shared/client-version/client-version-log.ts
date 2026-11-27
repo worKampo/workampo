@@ -1,13 +1,13 @@
+import { isClientVersion } from '@workampo/domain/_shared/client-version'
 import { createMiddleware } from 'hono/factory'
+import { tagClientVersion } from '../error-tracking/sentry-error-tracking'
 import type { AppEnv } from '../http/app-env'
-
-// A build hash or a version; anything else is not logged, so the header cannot carry free text.
-const CLIENT_VERSION = /^[A-Za-z0-9._-]{1,64}$/
 
 export const clientVersionLog = createMiddleware<AppEnv>(async (c, next) => {
   const clientVersion = c.req.header('X-Client-Version')
-  if (clientVersion && CLIENT_VERSION.test(clientVersion)) {
+  if (isClientVersion(clientVersion)) {
     console.log(JSON.stringify({ clientVersion, method: c.req.method }))
+    tagClientVersion(clientVersion)
   }
   await next()
 })

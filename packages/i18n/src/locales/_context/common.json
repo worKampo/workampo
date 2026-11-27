@@ -29,5 +29,14 @@
       "copy_failed": "Shown under the reference when copying fails; the app selects the reference so the person can copy it by hand."
     },
     "_screen": "Full-screen system pages outside the shell: the 404 (an address that does not exist) and the 500 (a server failure or an error the app cannot recover from), with the error reference the person can give to support."
+  },
+  "new_version": {
+    "banner": {
+      "reload": "Button of the new-version notice: reloads the page where the person is. Same text as dialog.reload."
+    },
+    "dialog": {
+      "reload": "Only action of the new-version dialog, which cannot be dismissed: reloads the page. Same text as banner.reload."
+    },
+    "_screen": "Prompts shown on any screen when a new version of the app is out: a floating notice the person can ignore, and a blocking dialog when this version can no longer be used. Both only offer to reload."
   }
 }

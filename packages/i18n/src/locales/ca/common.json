@@ -26,5 +26,16 @@
       "copied_status": "Referència copiada",
       "copy_failed": "No s'ha pogut copiar. Selecciona la referència i copia-la."
     }
+  },
+  "new_version": {
+    "banner": {
+      "text": "Hi ha una versió nova",
+      "reload": "Recarrega"
+    },
+    "dialog": {
+      "title": "Recarrega per continuar",
+      "body": "Hi ha una versió nova de worKampo i aquesta ja no es pot fer servir.",
+      "reload": "Recarrega"
+    }
   }
 }

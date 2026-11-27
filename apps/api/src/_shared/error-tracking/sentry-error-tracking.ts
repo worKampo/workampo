@@ -28,3 +28,8 @@ export function errorTracking(app: Hono<AppEnv>) {
 export function tagErrorReference(reference: string) {
   getIsolationScope().setTag('reference', reference)
 }
+
+// Callers pass only a value that passed isClientVersion, so the tag never carries free text.
+export function tagClientVersion(version: string) {
+  getIsolationScope().setTag('clientVersion', version)
+}

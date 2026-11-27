@@ -6,6 +6,7 @@ import { SystemPage } from '@workampo/ui/layout'
 import { lazy, Suspense } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useDocumentTitle } from '../document-title/document-title'
+import { useReloadAfterChunkError } from '../new-version/chunk-reload'
 
 // A fixed destination: never built from returnTo or anything else in the URL.
 function HomeLink() {
@@ -88,7 +89,9 @@ function Reference({ reference }: { reference: string }) {
 export function ErrorPage({ error }: ErrorComponentProps) {
   const { t } = useTranslation('common')
   useDocumentTitle(t('system_pages.error.title'))
+  const isReloading = useReloadAfterChunkError(error)
   const reference = error instanceof ApiError ? error.reference : undefined
+  if (isReloading) return null
 
   return (
     <SystemPage

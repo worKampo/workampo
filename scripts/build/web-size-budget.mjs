@@ -20,7 +20,7 @@ export const BUDGETS = [
     // Where / lands a person with several companies; / itself has no page.
     screen: 'src/companies/selection/company-picker/company-picker.page.tsx',
     namespaces: ['common', 'access', 'companies'],
-    maxBytes: 134_000,
+    maxBytes: 135_200,
   },
 ]
 
