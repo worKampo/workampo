@@ -240,7 +240,7 @@ Rule: Desde el menú cambio de empresa y cierro sesión
     When abro mi menú de usuario y pulso "Cerrar sesión"
     Then mi sesión queda revocada y llego a /login
 
-@issue(#92)
+@wip(#196)
 Rule: El menú se adapta al dispositivo y se maneja con teclado
 
   @id:companies-92-6
@@ -251,10 +251,32 @@ Rule: El menú se adapta al dispositivo y se maneja con teclado
     And al pulsar Esc se cierra y el foco vuelve al botón de menú
 
   @id:companies-92-7
-  Example: En el escritorio el menú se pliega a una barra de iconos con tooltips
+  Example: En el escritorio el menú se pliega a una barra de iconos
     Given uso un escritorio
     When pliego el menú lateral
-    Then queda una barra de iconos, cada uno con su tooltip
+    Then queda una barra de iconos y cada uno conserva su nombre
+
+  @id:companies-196-1
+  Example: En el escritorio el menú plegado se despliega al pasar el ratón y se puede fijar
+    Given estoy en escritorio con el sidebar plegado
+    When paso el ratón por el rail
+    Then el rail se despliega sobre la página sin moverla
+    And veo el botón «Fijar menú lateral»
+    When lo pulso
+    Then el sidebar queda desplegado y empuja la página
+
+  @id:companies-196-2
+  Example: En el móvil el menú lateral tiene la empresa, la navegación y mi usuario abajo
+    Given estoy en el móvil
+    When abro el menú
+    Then veo la empresa, la navegación y mi usuario abajo
+    And la topbar solo tiene el botón de menú y la empresa
+
+  @id:companies-196-3
+  Example: En el escritorio el menú se recorre con Tab de arriba abajo
+    Given estoy en escritorio con el sidebar desplegado
+    When recorro el sidebar con Tab
+    Then el orden es empresa, plegar, navegación y usuario
 
 @issue(#92)
 Rule: Los nombres del menú se leen siempre completos
