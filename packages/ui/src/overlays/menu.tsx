@@ -6,6 +6,7 @@ import {
   type ReactNode,
   type RefObject,
   useContext,
+  useEffect,
   useRef,
   useState,
 } from 'react'
@@ -15,9 +16,29 @@ import { cx } from '../_shared/cx'
 type MenuContextValue = { focusLast: RefObject<boolean>; open: () => void }
 const MenuContext = createContext<MenuContextValue | null>(null)
 
+// The app shell's menus: the side menu's <dialog> is modal, so content portalled outside it is inert.
+type MenuScopeValue = {
+  container?: HTMLElement | null
+  onOpenChange?: (open: boolean) => void
+  side?: ComponentProps<typeof DropdownMenu.Content>['side']
+}
+const MenuScopeContext = createContext<MenuScopeValue>({})
+
+export function MenuScope({ children, ...scope }: MenuScopeValue & { children: ReactNode }) {
+  return <MenuScopeContext value={scope}>{children}</MenuScopeContext>
+}
+
 export function Menu({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false)
   const focusLast = useRef(false)
+  const { onOpenChange } = useContext(MenuScopeContext)
+
+  // The cleanup also reports a menu unmounted while open, so the shell is never left waiting.
+  useEffect(() => {
+    if (!open || !onOpenChange) return
+    onOpenChange(true)
+    return () => onOpenChange(false)
+  }, [open, onOpenChange])
 
   return (
     <MenuContext value={{ focusLast, open: () => setOpen(true) }}>
@@ -54,10 +75,12 @@ export function MenuContent({
   ...props
 }: ComponentProps<typeof DropdownMenu.Content>) {
   const menu = useContext(MenuContext)
+  const scope = useContext(MenuScopeContext)
 
   return (
-    <DropdownMenu.Portal>
+    <DropdownMenu.Portal container={scope.container}>
       <DropdownMenu.Content
+        side={scope.side}
         sideOffset={sideOffset}
         align={align}
         collisionPadding={8}
