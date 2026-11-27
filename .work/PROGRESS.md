@@ -2,9 +2,9 @@
 
 Ticket #196 el-shell-reparte-el-contenido-igual-en · Branch: feature/196-el-shell-reparte-el-contenido-igual-en
 Step: Build › Verify done
-Done in this step: Verify (spec, UI/UX, verifier); Verify decisions by the person and fixes (355b3ff); Work log with the verification package
+Done in this step: the person checked it locally with pnpm work verify 196 (2026-11-28)
 In progress: —
-Next: the person's local check (pnpm work verify 196), then pnpm work pr
-Waiting for human: local check
+Next: review round 1 of the PR
+Waiting for human: —
 Open questions: —
 Updated: 2026-11-28 03:30
