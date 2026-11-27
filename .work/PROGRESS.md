@@ -2,9 +2,9 @@
 
 PRD #10 · Ticket #95 actualizar-la-app-cuando-hay-una-version · Branch: feature/95-actualizar-la-app-cuando-hay-una-version
 Step: Build › Verify done
-Done in this step: Verify (spec, security, UI/UX, verifier) and its fixes (619cc6d); side menu CSP split to #199; Work log with the verification package
+Done in this step: the person checked it locally with pnpm work verify 95 (2026-11-27)
 In progress: —
-Next: the person's local check (pnpm work verify 95), then pnpm work pr
-Waiting for human: local check
+Next: review round 1 of the PR
+Waiting for human: —
 Open questions: —
-Updated: 2026-11-27 20:10
+Updated: 2026-11-27 21:00
