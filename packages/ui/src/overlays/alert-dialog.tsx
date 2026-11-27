@@ -22,8 +22,12 @@ export function AlertDialog({
   useEffect(() => {
     if (!open) return
 
+    // Unmounting removes the dialog without close(), so the browser would not give the focus back.
+    const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null
     dialog.current?.showModal()
     actionsRef.current?.querySelector<HTMLElement>('button, a[href]')?.focus()
+
+    return () => opener?.focus()
   }, [open])
 
   if (!open) return null
@@ -38,7 +42,7 @@ export function AlertDialog({
       onCancel={(event) => event.preventDefault()}
       // Chrome closes anyway on a repeated Esc without user activation; it reopens at once.
       onClose={() => dialog.current?.showModal()}
-      className="mx-0 mt-auto mb-0 h-fit max-h-none w-full max-w-none rounded-t-2xl border-0 bg-surface p-0 pb-safe text-text shadow-(--shadow-modal) backdrop:bg-scrim sm:m-auto sm:max-w-120 sm:rounded-xl sm:pb-0"
+      className="mx-0 mt-auto mb-0 h-fit max-h-dvh w-full overflow-y-auto max-w-none rounded-t-2xl border-0 bg-surface p-0 pb-safe text-text shadow-(--shadow-modal) backdrop:bg-scrim sm:m-auto sm:max-w-120 sm:rounded-xl sm:pb-0"
     >
       <h2 id={titleId} className="px-6 pt-6 text-base font-semibold text-text">
         {title}

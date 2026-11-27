@@ -31,7 +31,8 @@ export function reloadOnNavigation({
     // Only an in-app path of our origin, never a URL from a header or a parameter (R5).
     const path = inAppPath(to.href)
     if (path === undefined) location.reload()
-    else location.assign(new URL(path, location.origin).href)
+    else
+      location.assign(new URL(path + new URL(to.href, location.origin).hash, location.origin).href)
 
     return true
   }

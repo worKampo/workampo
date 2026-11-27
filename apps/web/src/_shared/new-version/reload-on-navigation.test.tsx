@@ -127,6 +127,17 @@ describe('reloadOnNavigation', () => {
     expect(app.router.state.location.pathname).toBe('/v/0')
   })
 
+  it('E1 the reload keeps the query and fragment of the destination', async () => {
+    const app = visit({ path: '/v/0', served: () => ({ 'X-App-Version': A }) })
+    await app.settled()
+
+    await app.navigate('/v/1?tab=2#section')
+
+    const target = pathOf(app.assigned[0] ?? '')
+    expect(target.origin).toBe(window.location.origin)
+    expect(`${target.pathname}${target.search}${target.hash}`).toBe('/v/1?tab=2#section')
+  })
+
   it('E2 with the same version, or no version header, a navigation stays in the app', async () => {
     expect(reloadOnNavigation).toBeTypeOf('function')
 

@@ -80,4 +80,32 @@ describe('AlertDialog', () => {
     expect(screen.queryByRole('alertdialog')).toBeNull()
     expect(screen.queryByText(TITLE)).toBeNull()
   })
+
+  it('gives the focus back to what had it when its owner closes it', async () => {
+    function Owner() {
+      const [open, setOpen] = useState(false)
+      return (
+        <>
+          <button type="button" onClick={() => setOpen(true)}>
+            Open
+          </button>
+          <AlertDialog
+            open={open}
+            title={TITLE}
+            description={DESCRIPTION}
+            actions={<Button onClick={() => setOpen(false)}>Done</Button>}
+          />
+        </>
+      )
+    }
+    render(<Owner />)
+    const opener = screen.getByRole('button', { name: 'Open' })
+    opener.focus()
+
+    fireEvent.click(opener)
+    await waitFor(() => expect(document.activeElement?.textContent).toBe('Done'))
+    fireEvent.click(screen.getByRole('button', { name: 'Done' }))
+
+    await waitFor(() => expect(document.activeElement).toBe(opener))
+  })
 })
