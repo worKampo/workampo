@@ -6,6 +6,7 @@
     "./_shared/api-errors": "./src/_shared/api-errors.ts",
     "./_shared/avatar": "./src/_shared/avatar.ts",
     "./_shared/choose-provider": "./src/_shared/choose-provider.ts",
+    "./_shared/client-version": "./src/_shared/client-version.ts",
     "./_shared/identity": "./src/_shared/identity.ts",
     "./access/errors": "./src/access/errors.ts",
     "./access/session/session": "./src/access/session/session.ts",
