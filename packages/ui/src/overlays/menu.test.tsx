@@ -73,3 +73,15 @@ it('@id:companies-92-5 a busy item is aria-disabled, keeps the menu open and doe
   expect(onSignOut).not.toHaveBeenCalled()
   expect(screen.getByRole('menu')).toBeTruthy()
 })
+
+it('@id:companies-92-5 the menu does not lock the page behind, and a press outside closes it', async () => {
+  const trigger = await renderAccountMenu()
+  fireEvent.keyDown(trigger, { key: 'Enter' })
+  await screen.findByRole('menu')
+
+  expect(document.body.hasAttribute('data-scroll-locked')).toBe(false)
+  expect(document.body.style.pointerEvents).toBe('')
+  fireEvent.pointerDown(document.body)
+
+  await waitFor(() => expect(screen.queryByRole('menu')).toBeNull())
+})

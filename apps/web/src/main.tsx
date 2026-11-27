@@ -12,6 +12,10 @@ import { AppProviders } from './_shared/providers/app-providers'
 import { createAppRouter } from './_shared/router/create-app-router'
 import { routeTree } from './route-tree'
 
+// zod's first parse probes `new Function`, which script-src 'self' reports as a violation (#199). zod only
+// parses in forms, after the person acts, so a lazy import keeps it out of the entry bundle.
+void import('zod/v4/core').then(({ config }) => config({ jitless: true }))
+
 await initI18n(navigator.languages)
 
 const queryClient = new QueryClient({ defaultOptions: { queries: { retry: shouldRetry } } })

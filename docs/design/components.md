@@ -197,7 +197,7 @@ shadcn `Dialog` / `AlertDialog` (destructive confirmations). Max width 480 (wide
 
 shadcn `Popover`, `DropdownMenu`. `--surface`, 1 px `--border`, radius 12, `--shadow-pop`, padding 4, min width 200. Menu item: 36 high, padding 0 10, radius 8, 13 px `--text-1`; hover / highlighted `--surface-hover` + `--text`; danger item `--neg`; separator 1 px `--border` with 4 px margin. Radio items (saved views) use `menuitemradio` + `aria-checked`.
 
-`Menu` in `packages/ui` (overlays family) wraps the Radix dropdown: `MenuTrigger`, `MenuContent` (aligned to the end, 4 px from the trigger), `MenuHeader`, `MenuItem`, `MenuSeparator`.
+`Menu` in `packages/ui` (overlays family) wraps the Radix dropdown: `MenuTrigger`, `MenuContent` (aligned to the end, 4 px from the trigger), `MenuHeader`, `MenuItem`, `MenuSeparator`. It is non-modal (`modal={false}`): the page behind keeps scrolling, since the modal one's scroll lock injects a `<style>` that the CSP blocks; Esc, a press outside and choosing an item close it.
 
 - Keyboard: Enter, Space or ↓ open on the first item, ↑ on the last; arrows, Home, End and typeahead move; Esc closes and returns the focus to the trigger.
 - Header: a non-interactive label (`MenuHeader`, weight 500 `--text`), such as the name and email of the user menu.
@@ -222,14 +222,14 @@ Ink background (`--text`) with `--bg` text, so they read as system feedback in b
 
 ### App shell
 
-Custom (`AppShell` in `packages/ui/src/layout/app-shell/`), on Radix `Dialog` for the side menu. Layout and behaviour: [patterns](patterns.md#app-shell). It takes slots (`company`, `nav`, `user`, `topbar`) and renders them in the sidebar, the rail and the side menu; its pieces read where they are:
+Custom (`AppShell` in `packages/ui/src/layout/app-shell/`); the side menu is a native `<dialog>` with `showModal()`, like `AlertDialog`, because Radix's scroll lock breaks the CSP. Layout and behaviour: [patterns](patterns.md#app-shell). It takes slots (`company`, `nav`, `user`, `topbar`) and renders them in the sidebar, the rail and the side menu; its pieces read where they are:
 
 - `CompanyLink`: avatar, name (13/16 weight 600) and role in meta; a 44 px link. The name is cut with an ellipsis and gets a tooltip only when cut.
 - `NavItem`: 36 / 44 high, radius 8, 16 px icon and label; current: `--nav-active`, 1 px `--border` ring, weight 600. In the rail, a 40 px square with the label visually hidden and a tooltip at its right. Routers wrap it (`createLink(NavItem)`).
 - `UserButton`: avatar, name and email; with no name the email takes its place, without a second line. A 44 px square with the avatar in the rail and the topbar; `aria-busy` while signing out.
 - `TopbarCompany`: avatar and name in the topbar, not a focus stop.
 - Collapse button: a quiet icon button in the sidebar foot, with a tooltip.
-- Side menu: 280 px, `--chrome`, end border `--border`, `--shadow-drawer-start` (`--shadow-drawer` in RTL), over the `--scrim`; title visually hidden.
+- Side menu: 280 px, `--chrome`, end border `--border`, `--shadow-drawer-start` (`--shadow-drawer` in RTL), over the `--scrim`; named by `aria-label`, with no visible title. Esc, the scrim, its close button and choosing an item close it. While a modal `<dialog>` is open the page behind does not scroll (`html:has(dialog:modal)` in `styles.css`).
 - `<main id="content" tabindex="-1">`: max 880 px.
 
 ### Skip link
