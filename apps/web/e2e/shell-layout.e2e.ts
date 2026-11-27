@@ -36,7 +36,6 @@ const paintedBackground = (element: Element) => {
 test('on a short window the company and the user stay in view and the middle scrolls', async ({
   page,
 }) => {
-  test.fail(true, 'the sidebar does not scroll its middle yet')
   await page.setViewportSize({ width: 1280, height: 320 })
   await openOwnCompany(page)
   const sidebar = page.getByRole('complementary')
@@ -56,7 +55,6 @@ test('on a short window the company and the user stay in view and the middle scr
 })
 
 test('the viewport covers the safe areas', async ({ page }) => {
-  test.fail(true, 'index.html has no viewport-fit=cover yet')
   await page.goto('/login')
 
   await expect(page.locator('meta[name="viewport"]')).toHaveAttribute(
@@ -67,8 +65,6 @@ test('the viewport covers the safe areas', async ({ page }) => {
 
 for (const colorScheme of ['light', 'dark'] as const) {
   test(`in ${colorScheme} the page and the sidebar share one background`, async ({ page }) => {
-    // Dark already paints both alike; light still puts the main column on --bg.
-    test.fail(colorScheme === 'light', 'the main column still sits on --bg')
     await page.emulateMedia({ colorScheme })
     await openOwnCompany(page)
 
@@ -82,7 +78,6 @@ for (const colorScheme of ['light', 'dark'] as const) {
 test('the current item is marked by its tint, weight and aria-current, with no shadow', async ({
   page,
 }) => {
-  test.fail(true, 'the current item still has a ring and a shadow')
   await openOwnCompany(page)
 
   const home = page.getByRole('navigation').getByRole('link', { name: 'Inicio' })
@@ -93,7 +88,6 @@ test('the current item is marked by its tint, weight and aria-current, with no s
 })
 
 test('with reduced motion the rail floats with no transition', async ({ page }) => {
-  test.fail(true, 'the rail does not float on hover yet')
   await page.emulateMedia({ reducedMotion: 'reduce' })
   await openOwnCompany(page, { folded: true })
 
@@ -118,7 +112,6 @@ test.describe('on a desktop-wide touch screen', () => {
   test.use({ viewport: { width: 1194, height: 834 }, hasTouch: true, isMobile: true })
 
   test('«Desplegar menú lateral» sits under the company and floats the rail', async ({ page }) => {
-    test.fail(true, 'the rail has no «Desplegar menú lateral» under the company yet')
     await openOwnCompany(page, { folded: true })
     expect(await page.evaluate(() => matchMedia('(hover: none)').matches)).toBe(true)
 

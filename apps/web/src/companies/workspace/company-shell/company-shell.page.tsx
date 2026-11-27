@@ -64,6 +64,7 @@ export function CompanyShell() {
           navDialog: t('shell.nav_dialog'),
           collapse: t('shell.collapse'),
           expand: t('shell.expand'),
+          pin: t('shell.pin'),
         }}
         collapsed={collapsed}
         onCollapsedChange={setCollapsed}
@@ -87,12 +88,7 @@ export function CompanyShell() {
           />
         }
         user={<AccountMenu signOut={signOut} />}
-        topbar={
-          <>
-            <TopbarCompany avatar={avatar} name={company.name} />
-            <AccountMenu signOut={signOut} />
-          </>
-        }
+        topbar={<TopbarCompany avatar={avatar} name={company.name} />}
       >
         <Outlet />
       </AppShell>
@@ -100,7 +96,7 @@ export function CompanyShell() {
   )
 }
 
-// The sidebar and the topbar each hold one; the shell owns the sign-out so both show the same state.
+// AppShell renders it in the sidebar or the side menu; the shell owns the sign-out so its state survives the switch.
 function AccountMenu({ signOut }: { signOut: ReturnType<typeof useSignOut> }) {
   const { t } = useTranslation(['companies', 'access', 'api', 'common'])
   const navigate = useNavigate()

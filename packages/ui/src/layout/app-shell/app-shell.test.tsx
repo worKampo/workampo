@@ -43,8 +43,6 @@ function Shell({
 }: Options) {
   const [collapsed, setCollapsed] = useState(initial)
   const icon = <svg aria-hidden="true" />
-  // Cast until AppShell takes the search and notifications slots.
-  const slots = { search, notifications } as Record<string, ReactNode>
 
   return (
     <AppShell
@@ -71,7 +69,8 @@ function Shell({
       }
       user={user}
       topbar={topbar}
-      {...slots}
+      search={search}
+      notifications={notifications}
     >
       <p>Contenido</p>
     </AppShell>
@@ -162,7 +161,7 @@ it('@id:companies-92-1 the navigation is named and only the current item is mark
   expect(screen.getByRole('button', { name: 'Ana' })).toBeTruthy()
 })
 
-it.fails('@id:companies-92-1 the current item is marked with no ring and no shadow', async () => {
+it('@id:companies-92-1 the current item is marked with no ring and no shadow', async () => {
   await renderShell()
 
   const current = within(screen.getByRole('navigation')).getByRole('link', { name: 'Inicio' })
@@ -179,7 +178,7 @@ it('@id:companies-92-7 folding asks for the rail', async () => {
   expect(onCollapsedChange).toHaveBeenCalledWith(true)
 })
 
-it.fails('@id:companies-92-7 in the rail the items show no tooltip', async () => {
+it('@id:companies-92-7 in the rail the items show no tooltip', async () => {
   await renderShell({ collapsed: true })
   const item = within(screen.getByRole('navigation', { name: 'Principal' })).getByRole('link', {
     name: 'Inicio',
@@ -191,7 +190,7 @@ it.fails('@id:companies-92-7 in the rail the items show no tooltip', async () =>
   expect(screen.queryByRole('tooltip')).toBeNull()
 })
 
-it.fails('@id:companies-92-7 in the rail the company link shows no tooltip', async () => {
+it('@id:companies-92-7 in the rail the company link shows no tooltip', async () => {
   await renderShell({ collapsed: true })
 
   fireEvent.focus(companyLink(/Northwind Logistics/))
@@ -200,7 +199,7 @@ it.fails('@id:companies-92-7 in the rail the company link shows no tooltip', asy
   expect(screen.queryByRole('tooltip')).toBeNull()
 })
 
-it.fails('@id:companies-92-7 in the rail the user button shows no tooltip', async () => {
+it('@id:companies-92-7 in the rail the user button shows no tooltip', async () => {
   await renderShell({
     collapsed: true,
     user: <UserButton avatar={null} name={undefined} email="ana@northwind.test" />,
@@ -223,7 +222,7 @@ it('@id:companies-92-7 in the open sidebar the items show no tooltip', async () 
   expect(screen.queryByRole('tooltip')).toBeNull()
 })
 
-it.fails('@id:companies-196-1 a mouse resting 300 ms on the rail floats it with «Fijar», and leaving folds it 300 ms later', async () => {
+it('@id:companies-196-1 a mouse resting 300 ms on the rail floats it with «Fijar», and leaving folds it 300 ms later', async () => {
   vi.useFakeTimers()
   const onCollapsedChange = vi.fn()
   await renderShell({ collapsed: true, onCollapsedChange })
@@ -252,7 +251,7 @@ it('@id:companies-196-1 a touch on the rail never floats it', async () => {
   expect(floating()).toBe(false)
 })
 
-it.fails('@id:companies-196-1 «Fijar» pins the floating rail, and leaving it then folds nothing', async () => {
+it('@id:companies-196-1 «Fijar» pins the floating rail, and leaving it then folds nothing', async () => {
   vi.useFakeTimers()
   const onCollapsedChange = vi.fn()
   await renderShell({ collapsed: true, onCollapsedChange })
@@ -268,7 +267,7 @@ it.fails('@id:companies-196-1 «Fijar» pins the floating rail, and leaving it t
   expect(floating()).toBe(false)
 })
 
-it.fails('@id:companies-196-1 the keyboard focus entering the rail floats it at once, and leaving it folds it', async () => {
+it('@id:companies-196-1 the keyboard focus entering the rail floats it at once, and leaving it folds it', async () => {
   await renderShell({ collapsed: true })
 
   tabTo(companyLink(/Northwind Logistics/))
@@ -278,7 +277,7 @@ it.fails('@id:companies-196-1 the keyboard focus entering the rail floats it at 
   expect(floating()).toBe(false)
 })
 
-it.fails('@id:companies-196-1 Esc folds the rail, which stays folded while the focus stays in it', async () => {
+it('@id:companies-196-1 Esc folds the rail, which stays folded while the focus stays in it', async () => {
   await renderShell({ collapsed: true })
   tabTo(companyLink(/Northwind Logistics/))
   expect(floating()).toBe(true)
@@ -293,7 +292,7 @@ it.fails('@id:companies-196-1 Esc folds the rail, which stays folded while the f
   expect(floating()).toBe(true)
 })
 
-it.fails('@id:companies-196-1 a mouse click on «Plegar» keeps the focus on the button, yet the rail folds 300 ms after the mouse leaves', async () => {
+it('@id:companies-196-1 a mouse click on «Plegar» keeps the focus on the button, yet the rail folds 300 ms after the mouse leaves', async () => {
   vi.useFakeTimers()
   const onCollapsedChange = vi.fn()
   await renderShell({ onCollapsedChange })
@@ -309,7 +308,7 @@ it.fails('@id:companies-196-1 a mouse click on «Plegar» keeps the focus on the
   expect(floating()).toBe(false)
 })
 
-it.fails('@id:companies-196-1 a menu open inside the rail keeps it floating, and closing it with a click folds it', async () => {
+it('@id:companies-196-1 a menu open inside the rail keeps it floating, and closing it with a click folds it', async () => {
   vi.useFakeTimers()
   await renderShell({ collapsed: true, user: accountMenu() })
   fireEvent.pointerEnter(rail(), { pointerType: 'mouse' })
@@ -330,7 +329,7 @@ it.fails('@id:companies-196-1 a menu open inside the rail keeps it floating, and
   expect(floating()).toBe(false)
 })
 
-it.fails('@id:companies-196-1 Esc with the account menu open closes only the menu, and a second Esc folds the rail', async () => {
+it('@id:companies-196-1 Esc with the account menu open closes only the menu, and a second Esc folds the rail', async () => {
   await renderShell({ collapsed: true, user: accountMenu() })
   const account = screen.getByRole('button', { name: 'Ana' })
   tabTo(account)
@@ -357,7 +356,7 @@ it('@id:companies-196-1 leaving the page with the rail about to float raises not
   expect(errors).not.toHaveBeenCalled()
 })
 
-it.fails('@id:companies-196-1 on a touch screen «Desplegar» sits under the company and floats the rail, without pinning it', async () => {
+it('@id:companies-196-1 on a touch screen «Desplegar» sits under the company and floats the rail, without pinning it', async () => {
   const onCollapsedChange = vi.fn()
   await renderShell({ collapsed: true, onCollapsedChange })
   const expand = within(rail()).getByRole('button', { name: LABELS.expand })
@@ -370,7 +369,7 @@ it.fails('@id:companies-196-1 on a touch screen «Desplegar» sits under the com
   expect(onCollapsedChange).not.toHaveBeenCalled()
 })
 
-it.fails('@id:companies-196-2 the side menu holds the search and ends with the user, with no notifications', async () => {
+it('@id:companies-196-2 the side menu holds the search and ends with the user, with no notifications', async () => {
   await renderShell({
     search: <button type="button">Buscar</button>,
     notifications: <button type="button">Notificaciones</button>,
@@ -386,7 +385,7 @@ it.fails('@id:companies-196-2 the side menu holds the search and ends with the u
   expect(precedes(within(dialog).getByRole('navigation'), stops.at(-1) as HTMLElement)).toBe(true)
 })
 
-it.fails('@id:companies-196-2 the topbar holds the company and then the notifications, with no account button', async () => {
+it('@id:companies-196-2 the topbar holds the company and then the notifications, with no account button', async () => {
   await renderShell({
     topbar: <TopbarCompany avatar={null} name="Northwind Logistics" />,
     notifications: <button type="button">Notificaciones</button>,
@@ -410,7 +409,7 @@ it('@id:companies-196-2 a folded rail does not reach the side menu', async () =>
   expect(within(dialog).queryByRole('button', { name: LABELS.expand })).toBeNull()
 })
 
-it.fails('@id:companies-196-3 the sidebar reads company, collapse, search, notifications, navigation and user', async () => {
+it('@id:companies-196-3 the sidebar reads company, collapse, search, notifications, navigation and user', async () => {
   await renderShell({
     search: <button type="button">Buscar</button>,
     notifications: <button type="button">Notificaciones</button>,

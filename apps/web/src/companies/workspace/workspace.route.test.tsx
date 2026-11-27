@@ -218,7 +218,7 @@ async function openHome(answer = shellApi()) {
   return rendered
 }
 
-// The account button; below 1024 px the topbar repeats it, so the sidebar's is the first.
+// The sidebar's account button: the only one, as the side menu renders it only while open.
 async function openAccountMenu(name: RegExp) {
   const [account] = await screen.findAllByRole('button', { name })
   if (!account) throw new Error(`no account button named ${name}`)
@@ -338,6 +338,7 @@ describe('the company shell', () => {
     await openHome()
 
     await userEvent.click(screen.getByRole('button', { name: 'Plegar menú lateral' }))
+    await userEvent.unhover(screen.getByRole('complementary'))
     expect(await screen.findByRole('button', { name: 'Desplegar menú lateral' })).toBeTruthy()
     expect(localStorage.getItem(SIDEBAR_KEY)).not.toBeNull()
     cleanup()
@@ -355,11 +356,12 @@ describe('the company shell', () => {
     await openHome()
 
     await userEvent.click(screen.getByRole('button', { name: 'Plegar menú lateral' }))
+    await userEvent.unhover(screen.getByRole('complementary'))
 
     expect(await screen.findByRole('button', { name: 'Desplegar menú lateral' })).toBeTruthy()
   })
 
-  it.fails('@id:companies-196-1 the folded rail offers «Fijar menú lateral» on hover, and pinning it is kept', async () => {
+  it('@id:companies-196-1 the folded rail offers «Fijar menú lateral» on hover, and pinning it is kept', async () => {
     await openHome()
     await userEvent.click(screen.getByRole('button', { name: 'Plegar menú lateral' }))
 
@@ -370,7 +372,7 @@ describe('the company shell', () => {
     expect(localStorage.getItem(SIDEBAR_KEY)).toBe('expanded')
   })
 
-  it.fails('@id:companies-196-2 the account button is the one in the menu, none in the topbar', async () => {
+  it('@id:companies-196-2 the account button is the one in the menu, none in the topbar', async () => {
     await openHome()
 
     expect(await screen.findAllByRole('button', { name: /Ana/ })).toHaveLength(1)

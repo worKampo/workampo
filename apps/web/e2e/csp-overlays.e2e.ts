@@ -110,7 +110,6 @@ for (const { name, viewport } of [
     test('the account menu opens from the side menu, usable and with no CSP error', async ({
       page,
     }) => {
-      test.fail(true, 'the account button is still in the topbar, not in the side menu')
       const cspErrors = await watchCsp(page)
       await openOwnCompany(page)
       await expect(page.getByRole('banner').getByRole('button', { name: /E2E/ })).toHaveCount(0)

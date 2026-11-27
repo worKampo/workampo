@@ -10,6 +10,7 @@ import {
   useState,
 } from 'react'
 import { cx } from '../../_shared/cx'
+import { MenuScope } from '../../overlays/menu'
 import { Tooltip } from '../../overlays/tooltip'
 import { SkipLink } from '../skip-link'
 
@@ -21,6 +22,7 @@ export type AppShellLabels = {
   navDialog: string
   collapse: string
   expand: string
+  pin: string
 }
 
 // The sidebar, the rail and the side menu render the same slots; each tells its pieces how to show.
@@ -28,33 +30,38 @@ type Place = { rail: boolean; onNavigate?: () => void }
 const PlaceContext = createContext<Place>({ rail: false })
 
 const LG = '(min-width: 64rem)'
+const HOVER_DELAY = 300
 
 const iconButton =
   'inline-flex size-9 shrink-0 items-center justify-center rounded-lg text-text-1 hover:bg-nav-hover hover:text-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui max-lg:size-11'
+
+type Slots = {
+  company: ReactNode
+  nav: ReactNode
+  user: ReactNode
+  search?: ReactNode
+  notifications?: ReactNode
+}
 
 // docs/design/patterns.md, "App shell": sidebar 256 / rail 64 on chrome, topbar 56 and a 280 side menu below 1024.
 export function AppShell({
   labels,
   collapsed,
   onCollapsedChange,
-  company,
-  nav,
-  user,
   topbar,
   children,
-}: {
+  ...slots
+}: Slots & {
   labels: AppShellLabels
   collapsed: boolean
   onCollapsedChange: (collapsed: boolean) => void
-  company: ReactNode
-  nav: ReactNode
-  user: ReactNode
-  /** What the topbar shows after «Abrir menú»: TopbarCompany and a compact UserButton. */
+  /** What the topbar shows after «Abrir menú»: TopbarCompany. */
   topbar?: ReactNode
   children: ReactNode
 }) {
   const [navOpen, setNavOpen] = useState(false)
   const openNav = useRef<HTMLButtonElement>(null)
+  const closeNav = useCallback(() => setNavOpen(false), [])
 
   useEffect(() => {
     if (!navOpen || !window.matchMedia) return
@@ -66,68 +73,58 @@ export function AppShell({
   }, [navOpen])
 
   return (
-    <div className="flex min-h-dvh bg-bg">
+    <div className="flex min-h-dvh">
       <SkipLink targetId="content">{labels.skipToContent}</SkipLink>
 
-      <PlaceContext value={{ rail: collapsed }}>
-        <aside
-          className={cx(
-            'sticky top-0 hidden h-dvh shrink-0 flex-col gap-4 bg-chrome py-3 lg:flex',
-            collapsed ? 'w-16 items-center px-2' : 'w-64 px-3',
-          )}
-        >
-          {company}
-          <nav aria-label={labels.navigation} className="flex w-full flex-col items-center gap-1">
-            {nav}
-          </nav>
-          <div className={cx('mt-auto flex w-full flex-col gap-1', collapsed && 'items-center')}>
-            {user}
-            <Tooltip content={collapsed ? labels.expand : labels.collapse} side="right">
-              <button
-                type="button"
-                aria-label={collapsed ? labels.expand : labels.collapse}
-                onClick={() => onCollapsedChange(!collapsed)}
-                className={cx(iconButton, !collapsed && 'self-end')}
-              >
-                <PanelIcon />
-              </button>
-            </Tooltip>
-          </div>
-        </aside>
-      </PlaceContext>
+      <Sidebar
+        labels={labels}
+        collapsed={collapsed}
+        onCollapsedChange={onCollapsedChange}
+        {...slots}
+      />
 
-      <div className="flex min-w-0 grow flex-col">
-        <header className="sticky top-0 z-40 flex h-14 items-center gap-2 bg-chrome ps-1.5 pe-3 lg:hidden">
-          <button
-            ref={openNav}
-            type="button"
-            aria-label={labels.openNav}
-            aria-haspopup="dialog"
-            aria-expanded={navOpen}
-            onClick={() => setNavOpen(true)}
-            className={iconButton}
-          >
-            <MenuIcon />
-          </button>
-          <PlaceContext value={{ rail: true }}>{topbar}</PlaceContext>
+      <div className="flex min-w-0 grow flex-col px-safe">
+        <header className="sticky top-0 z-40 bg-chrome pt-safe lg:hidden">
+          <div className="flex h-14 items-center gap-2 ps-1.5 pe-3">
+            <button
+              ref={openNav}
+              type="button"
+              aria-label={labels.openNav}
+              aria-haspopup="dialog"
+              aria-expanded={navOpen}
+              onClick={() => setNavOpen(true)}
+              className={iconButton}
+            >
+              <MenuIcon />
+            </button>
+            <PlaceContext value={{ rail: true }}>
+              {topbar}
+              {slots.notifications}
+            </PlaceContext>
+          </div>
         </header>
         {navOpen && (
-          <SideMenu label={labels.navDialog} onClose={() => setNavOpen(false)} opener={openNav}>
-            <PlaceContext value={{ rail: false, onNavigate: () => setNavOpen(false) }}>
-              <div className="flex items-center gap-1">
-                <div className="min-w-0 grow">{company}</div>
+          <SideMenu label={labels.navDialog} onClose={closeNav} opener={openNav}>
+            <PlaceContext value={{ rail: false, onNavigate: closeNav }}>
+              <div className="flex shrink-0 items-center gap-1">
+                <div className="min-w-0 grow">{slots.company}</div>
                 <button
                   type="button"
                   aria-label={labels.closeNav}
-                  onClick={() => setNavOpen(false)}
+                  onClick={closeNav}
                   className={iconButton}
                 >
                   <CloseIcon />
                 </button>
               </div>
-              <nav aria-label={labels.navigation} className="flex flex-col gap-1">
-                {nav}
-              </nav>
+              {/* Notifications are the topbar bell here. */}
+              <div className="-m-1 flex min-h-0 grow flex-col gap-4 overflow-y-auto p-1">
+                {slots.search}
+                <nav aria-label={labels.navigation} className="flex flex-col gap-1">
+                  {slots.nav}
+                </nav>
+              </div>
+              <div className="flex shrink-0 flex-col">{slots.user}</div>
             </PlaceContext>
           </SideMenu>
         )}
@@ -144,6 +141,182 @@ export function AppShell({
   )
 }
 
+// The desktop sidebar. Collapsed, it is a rail that floats open over the page on a resting mouse, on keyboard
+// focus, on «Desplegar» (hover: none) and while a menu inside it is open.
+function Sidebar({
+  labels,
+  collapsed,
+  onCollapsedChange,
+  company,
+  search,
+  notifications,
+  nav,
+  user,
+}: Slots & {
+  labels: AppShellLabels
+  collapsed: boolean
+  onCollapsedChange: (collapsed: boolean) => void
+}) {
+  const [hovered, setHovered] = useState(false)
+  const [keyboardFocus, setKeyboardFocus] = useState(false)
+  // Esc folds the rail until the focus leaves it.
+  const [escaped, setEscaped] = useState(false)
+  const [menus, setMenus] = useState(0)
+  const timer = useRef<number>(undefined)
+  const mouseInside = useRef(false)
+  const panel = useRef<HTMLDivElement>(null)
+  const toggle = useRef<HTMLButtonElement>(null)
+  const keyboard = useKeyboardInput()
+
+  const floating = collapsed && (hovered || menus > 0 || (keyboardFocus && !escaped))
+  const rail = collapsed && !floating
+
+  useEffect(() => () => window.clearTimeout(timer.current), [])
+
+  // A tap outside folds what «Desplegar» opened.
+  useEffect(() => {
+    if (!floating) return
+    const fold = (event: PointerEvent) =>
+      panel.current?.contains(event.target as Node) || setHovered(false)
+    document.addEventListener('pointerdown', fold)
+    return () => document.removeEventListener('pointerdown', fold)
+  }, [floating])
+
+  const onMenuOpenChange = useCallback(
+    (open: boolean) => setMenus((count) => count + (open ? 1 : -1)),
+    [],
+  )
+
+  const hoverLater = (next: boolean) => {
+    window.clearTimeout(timer.current)
+    timer.current = window.setTimeout(() => setHovered(next), HOVER_DELAY)
+  }
+
+  // One button that changes with the state, so the focus stays on it when the user folds or pins.
+  const buttons = {
+    expand: { label: labels.expand, icon: <PanelIcon />, act: () => setHovered(true) },
+    pin: { label: labels.pin, icon: <PinIcon />, act: () => onCollapsedChange(false) },
+    collapse: {
+      label: labels.collapse,
+      icon: <PanelIcon />,
+      act: () => {
+        // Folded under the mouse, the rail stays open until the mouse leaves.
+        window.clearTimeout(timer.current)
+        setHovered(mouseInside.current)
+        onCollapsedChange(true)
+      },
+    },
+  }
+  const button = rail ? buttons.expand : buttons[collapsed ? 'pin' : 'collapse']
+
+  return (
+    <aside
+      onPointerEnter={(event) => {
+        if (event.pointerType !== 'mouse') return
+        mouseInside.current = true
+        hoverLater(true)
+      }}
+      onPointerLeave={(event) => {
+        if (event.pointerType !== 'mouse') return
+        mouseInside.current = false
+        hoverLater(false)
+      }}
+      // React bubbles focus from portals too, so a menu's focus counts as inside.
+      onFocus={() => setKeyboardFocus(keyboard.current)}
+      onBlur={(event) => {
+        if (event.currentTarget.contains(event.relatedTarget)) return
+        setKeyboardFocus(false)
+        setEscaped(false)
+      }}
+      onKeyDown={(event) => {
+        // An open menu takes the first Esc and prevents its default.
+        if (event.key !== 'Escape' || event.defaultPrevented || !floating) return
+        window.clearTimeout(timer.current)
+        setHovered(false)
+        setEscaped(true)
+        // The folded rail hides this button where the mouse can hover.
+        if (event.target === toggle.current)
+          panel.current?.querySelector<HTMLElement>('a[href]')?.focus()
+      }}
+      className={cx(
+        'sticky top-0 z-40 hidden h-dvh shrink-0 lg:block',
+        collapsed ? 'w-16' : 'w-64',
+      )}
+    >
+      <PlaceContext value={{ rail }}>
+        <MenuScope onOpenChange={onMenuOpenChange} side={rail ? 'right' : 'top'}>
+          <div
+            ref={panel}
+            className={cx(
+              'flex h-full flex-col gap-4 overflow-hidden bg-chrome py-3 motion-safe:transition-all',
+              rail ? 'w-16 items-center px-2' : 'w-64 px-3',
+              floating &&
+                'absolute inset-y-0 start-0 border-e border-border shadow-(--shadow-drawer-start) rtl:shadow-(--shadow-drawer)',
+            )}
+          >
+            <div className={cx('flex shrink-0 items-center', rail ? 'flex-col gap-2' : 'gap-1')}>
+              <div className={rail ? undefined : 'min-w-0 grow'}>{company}</div>
+              <button
+                ref={toggle}
+                type="button"
+                aria-label={button.label}
+                onClick={button.act}
+                className={cx(iconButton, rail && 'can-hover:hidden')}
+              >
+                {button.icon}
+              </button>
+            </div>
+            <div
+              className={cx(
+                '-m-1 flex min-h-0 grow flex-col gap-4 overflow-y-auto p-1',
+                rail && 'items-center',
+              )}
+            >
+              {(search || notifications) && (
+                <div className="flex w-full flex-col items-center gap-1">
+                  {search}
+                  {notifications}
+                </div>
+              )}
+              <nav
+                aria-label={labels.navigation}
+                className="flex w-full flex-col items-center gap-1"
+              >
+                {nav}
+              </nav>
+            </div>
+            <div className={cx('flex w-full shrink-0 flex-col', rail && 'items-center')}>
+              {user}
+            </div>
+          </div>
+        </MenuScope>
+      </PlaceContext>
+    </aside>
+  )
+}
+
+// Whether the last input was a key rather than a pointer: only keyboard focus holds the rail open.
+function useKeyboardInput() {
+  const keyboard = useRef(true)
+
+  useEffect(() => {
+    const onKey = () => {
+      keyboard.current = true
+    }
+    const onPointer = () => {
+      keyboard.current = false
+    }
+    document.addEventListener('keydown', onKey, true)
+    document.addEventListener('pointerdown', onPointer, true)
+    return () => {
+      document.removeEventListener('keydown', onKey, true)
+      document.removeEventListener('pointerdown', onPointer, true)
+    }
+  }, [])
+
+  return keyboard
+}
+
 // A native modal <dialog>: showModal makes the page inert and traps the focus with no injected styles,
 // which the CSP would block. Esc, the scrim and the caller close it by unmounting it.
 function SideMenu({
@@ -157,19 +330,21 @@ function SideMenu({
   opener: RefObject<HTMLElement | null>
   children: ReactNode
 }) {
-  const dialog = useRef<HTMLDialogElement>(null)
+  // State, not a ref: the menus inside portal into it, since everything outside a modal dialog is inert.
+  const [dialog, setDialog] = useState<HTMLDialogElement | null>(null)
 
   // The company link goes first; unmounting removes the dialog without close(), so the focus is given back.
   useEffect(() => {
-    dialog.current?.showModal()
-    dialog.current?.querySelector<HTMLElement>('a[href], button')?.focus()
+    if (!dialog) return
+    dialog.showModal()
+    dialog.querySelector<HTMLElement>('a[href], button')?.focus()
     return () => opener.current?.focus()
-  }, [opener])
+  }, [dialog, opener])
 
   return (
     // biome-ignore lint/a11y/useKeyWithClickEvents: the scrim click has Esc as its keyboard way (onCancel).
     <dialog
-      ref={dialog}
+      ref={setDialog}
       aria-label={label}
       aria-modal="true"
       onCancel={(event) => {
@@ -180,7 +355,11 @@ function SideMenu({
       onClick={(event) => event.target === event.currentTarget && onClose()}
       className="fixed inset-y-0 start-0 end-auto h-auto max-h-none w-70 max-w-full border-e border-border bg-chrome text-text shadow-(--shadow-drawer-start) backdrop:bg-scrim rtl:shadow-(--shadow-drawer)"
     >
-      <div className="flex min-h-full flex-col gap-4 p-3">{children}</div>
+      <MenuScope container={dialog} side="top">
+        <div className="flex h-full flex-col pt-safe ps-safe pb-safe">
+          <div className="flex min-h-0 grow flex-col gap-4 p-3">{children}</div>
+        </div>
+      </MenuScope>
     </dialog>
   )
 }
@@ -196,7 +375,8 @@ export function NavItem({
   ...props
 }: Omit<ComponentProps<'a'>, 'children'> & { icon: ReactNode; label: string; current?: boolean }) {
   const { rail, onNavigate } = useContext(PlaceContext)
-  const link = (
+
+  return (
     <a
       href={href}
       aria-current={current ? 'page' : undefined}
@@ -207,7 +387,7 @@ export function NavItem({
       className={cx(
         'flex h-9 items-center gap-3 rounded-lg text-body text-text-1 hover:bg-nav-hover hover:text-text max-lg:h-11',
         'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui',
-        current && 'bg-nav-active font-semibold text-text shadow-xs ring-1 ring-border',
+        current && 'bg-nav-active font-semibold text-text',
         rail ? 'w-10 justify-center' : 'w-full px-2.5',
         className,
       )}
@@ -217,18 +397,10 @@ export function NavItem({
       <span className={rail ? 'sr-only' : 'truncate'}>{label}</span>
     </a>
   )
-
-  return rail ? (
-    <Tooltip content={label} side="right">
-      {link}
-    </Tooltip>
-  ) : (
-    link
-  )
 }
 
-// The company button at the top; its name is cut with an ellipsis and read whole in a tooltip,
-// which the rail always shows.
+// The company button at the top; its name is cut with an ellipsis and read whole in a tooltip.
+// The rail has none: it unfolds with the names.
 export function CompanyLink({
   avatar,
   name,
@@ -271,13 +443,13 @@ export function CompanyLink({
   )
 
   return (
-    <Tooltip content={name} side={rail ? 'right' : 'bottom'} disabled={!(rail || cut)}>
+    <Tooltip content={name} side="bottom" disabled={rail || !cut}>
       {link}
     </Tooltip>
   )
 }
 
-// The account button of the sidebar foot (avatar, name and email); the rail and the topbar keep the avatar.
+// The account button of the sidebar foot (avatar, name and email); the rail keeps the avatar.
 // With no name the email takes its place, without a second line. The tooltip follows CompanyLink's rule.
 export function UserButton({
   avatar,
@@ -320,7 +492,7 @@ export function UserButton({
   )
 
   return (
-    <Tooltip content={name ?? email} side={rail ? 'right' : 'top'} disabled={!(rail || cut)}>
+    <Tooltip content={name ?? email} side="top" disabled={rail || !cut}>
       {button}
     </Tooltip>
   )
@@ -388,6 +560,15 @@ function PanelIcon() {
     <svg aria-hidden="true" {...svg} className="size-5 rtl:-scale-x-100">
       <rect x="3" y="4" width="18" height="16" rx="2" />
       <path d="M9 4v16" />
+    </svg>
+  )
+}
+
+function PinIcon() {
+  return (
+    <svg aria-hidden="true" {...svg}>
+      <path d="M12 17v5" />
+      <path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z" />
     </svg>
   )
 }

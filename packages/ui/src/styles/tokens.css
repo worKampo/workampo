@@ -19,7 +19,7 @@
   --chrome-control: #e7e7e9;
   --chrome-control-border: transparent;
   --nav-hover: rgba(17, 17, 17, 0.045);
-  --nav-active: #ffffff;
+  --nav-active: rgba(17, 17, 17, 0.075);
 
   /* fields */
   --field-bg: #f7f7f8;
@@ -117,7 +117,7 @@
 
   /* shadcn mapping */
   --radius: 0.5rem; /* 8px: rounded-lg = controls, rounded-xl = cards and overlays (12px) */
-  /* the body is grey chrome, the sidebar's; the shell's main column and public pages set bg-bg themselves */
+  /* the body is grey chrome, like the sidebar and the shell's main column */
   --background: var(--chrome);
   --foreground: var(--text);
   --card: var(--surface);
