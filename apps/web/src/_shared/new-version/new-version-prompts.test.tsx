@@ -85,7 +85,7 @@ function visit({ path, served }: { path: string; served: Record<string, string> 
 }
 
 describe('the notice of a new version', () => {
-  it.fails('E5 shows 30 minutes after the new version is detected, in a status that was already there', async () => {
+  it('E5 shows 30 minutes after the new version is detected, in a status that was already there', async () => {
     const app = visit({ path: '/v/0', served: { 'X-App-Version': NEW } })
     await app.settled()
     const statuses = screen.queryAllByRole('status')
@@ -103,7 +103,7 @@ describe('the notice of a new version', () => {
     expect(within(status as HTMLElement).queryByRole('button', { name: /cerrar/i })).toBeNull()
   })
 
-  it.fails('E5 «Recargar» reloads the page where it is', async () => {
+  it('E5 «Recargar» reloads the page where it is', async () => {
     const app = visit({ path: '/v/0', served: { 'X-App-Version': NEW } })
     await app.settled()
     await app.pass(NOTICE_AFTER)
@@ -114,7 +114,7 @@ describe('the notice of a new version', () => {
     expect(app.assigned).toEqual([])
   })
 
-  it.fails('E5 shows on a screen, never on the root 404 or 500', async () => {
+  it('E5 shows on a screen, never on the root 404 or 500', async () => {
     const screenApp = visit({ path: '/v/0', served: { 'X-App-Version': NEW } })
     await screenApp.settled()
     await screenApp.pass(NOTICE_AFTER)
@@ -135,7 +135,7 @@ describe('the notice of a new version', () => {
 })
 
 describe('the minimum-version dialog', () => {
-  it.fails('E6 a minimum later than my build shows the dialog with one button, without the notice', async () => {
+  it('E6 a minimum later than my build shows the dialog with one button, without the notice', async () => {
     const app = visit({
       path: '/v/0',
       served: { 'X-App-Version': NEW, 'X-Min-Client-Version': LATER },
@@ -155,7 +155,7 @@ describe('the minimum-version dialog', () => {
     expect(screen.queryByText(NOTICE)).toBeNull()
   })
 
-  it.fails('E6 R7 it reloads only when its button is pressed, which then stays busy', async () => {
+  it('E6 R7 it reloads only when its button is pressed, which then stays busy', async () => {
     const app = visit({ path: '/v/0', served: { 'X-Min-Client-Version': LATER } })
     await app.settled()
     const dialog = await screen.findByRole('alertdialog', DIALOG)
@@ -170,7 +170,7 @@ describe('the minimum-version dialog', () => {
     expect(screen.getByRole('alertdialog', DIALOG)).toBe(dialog)
   })
 
-  it.fails('R7 an invalid, equal or earlier minimum shows no dialog', async () => {
+  it('R7 an invalid, equal or earlier minimum shows no dialog', async () => {
     for (const minimum of [
       '2026-13-40T00:00:00Z',
       'tomorrow',
@@ -189,7 +189,7 @@ describe('the minimum-version dialog', () => {
     expect(await screen.findByRole('alertdialog', DIALOG)).toBeTruthy()
   })
 
-  it.fails('E6 the root 404 and 500 hide the dialog', async () => {
+  it('E6 the root 404 and 500 hide the dialog', async () => {
     const app = visit({ path: '/v/0', served: { 'X-Min-Client-Version': LATER } })
     await app.settled()
     await screen.findByRole('alertdialog', DIALOG)

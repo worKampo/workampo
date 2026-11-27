@@ -4,11 +4,7 @@ import { afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { initI18n } from '../i18n/i18n'
 import { rootRoute } from '../router/root-route'
 import { memoryStorage, problem, recordingLocation, renderApp } from '../testing/render-app'
-
-// A specifier Vite does not resolve ahead, so the file loads before the web task creates the
-// module; turn it into a static import when the it.fails marks go.
-const MODULE = './chunk-reload'
-const load = () => import(/* @vite-ignore */ MODULE)
+import { reloadOnceAfterChunkError } from './chunk-reload'
 
 configure({ asyncUtilTimeout: 5000 })
 
@@ -48,8 +44,7 @@ rootRoute.addChildren([
 const signedOut = () => problem({ status: 401, code: 'access.unauthenticated' })
 
 describe('reloadOnceAfterChunkError', () => {
-  it.fails('E4 R4 the first failed code load reloads and marks only my version', async () => {
-    const { reloadOnceAfterChunkError } = await load()
+  it('E4 R4 the first failed code load reloads and marks only my version', async () => {
     const storage = memoryStorage()
     const { location, reloads } = recordingLocation()
 
@@ -65,8 +60,7 @@ describe('reloadOnceAfterChunkError', () => {
     expect(storage.getItem(MARK)).toBe(OWN)
   })
 
-  it.fails('E4 R4 a second failure with the same version does not reload again', async () => {
-    const { reloadOnceAfterChunkError } = await load()
+  it('E4 R4 a second failure with the same version does not reload again', async () => {
     const storage = memoryStorage()
     const { location, reloads } = recordingLocation()
     const attempt = () =>
@@ -79,8 +73,7 @@ describe('reloadOnceAfterChunkError', () => {
     expect(reloads.count).toBe(1)
   })
 
-  it.fails('R4 a mark from another version reloads once more, into this one', async () => {
-    const { reloadOnceAfterChunkError } = await load()
+  it('R4 a mark from another version reloads once more, into this one', async () => {
     const storage = memoryStorage()
     storage.setItem(MARK, NEW)
     const { location, reloads } = recordingLocation()
@@ -97,8 +90,7 @@ describe('reloadOnceAfterChunkError', () => {
     expect(storage.getItem(MARK)).toBe(OWN)
   })
 
-  it.fails('R4 a storage that throws never reloads', async () => {
-    const { reloadOnceAfterChunkError } = await load()
+  it('R4 a storage that throws never reloads', async () => {
     const { location, reloads } = recordingLocation()
 
     const isReloading = reloadOnceAfterChunkError({
@@ -112,9 +104,7 @@ describe('reloadOnceAfterChunkError', () => {
     expect(reloads.count).toBe(0)
   })
 
-  it.fails('E4 the wording of Chromium, Firefox, Safari and Vite is a failed code load', async () => {
-    const { reloadOnceAfterChunkError } = await load()
-
+  it('E4 the wording of Chromium, Firefox, Safari and Vite is a failed code load', async () => {
     for (const error of CHUNK_ERRORS) {
       const { location } = recordingLocation()
       const isReloading = reloadOnceAfterChunkError({
@@ -128,8 +118,7 @@ describe('reloadOnceAfterChunkError', () => {
     }
   })
 
-  it.fails('any other error is not a failed code load', async () => {
-    const { reloadOnceAfterChunkError } = await load()
+  it('any other error is not a failed code load', async () => {
     const { location, reloads } = recordingLocation()
     const storage = memoryStorage()
 
@@ -153,7 +142,7 @@ describe('reloadOnceAfterChunkError', () => {
 })
 
 describe('a screen whose code fails to load', () => {
-  it.fails('E4 reloads once without showing anything, and the second time shows the 500 without a reference', async () => {
+  it('E4 reloads once without showing anything, and the second time shows the 500 without a reference', async () => {
     const storage = memoryStorage()
     const first = recordingLocation()
 

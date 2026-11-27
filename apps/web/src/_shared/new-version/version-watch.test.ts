@@ -1,10 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { manualTimers } from '../testing/render-app'
-
-// A specifier Vite does not resolve ahead, so the file loads before the web task creates the
-// module; turn it into a static import when the it.fails marks go.
-const MODULE = './version-watch'
-const load = () => import(/* @vite-ignore */ MODULE)
+import { createVersionWatch } from './version-watch'
 
 // Made-up hashes and dates (ADR-0043).
 const OWN = 'a1b2c3d4e5f6'
@@ -17,7 +13,6 @@ const NOTICE_AFTER = 30 * MINUTE
 const served = (headers: Record<string, string>) => new Headers(headers)
 
 async function watch(ownVersion = OWN) {
-  const { createVersionWatch } = await load()
   const clock = manualTimers()
 
   return {
@@ -27,7 +22,7 @@ async function watch(ownVersion = OWN) {
 }
 
 describe('createVersionWatch', () => {
-  it.fails('E1 a different served version is pending; the same one or no header is not', async () => {
+  it('E1 a different served version is pending; the same one or no header is not', async () => {
     const { watch: versions } = await watch()
 
     versions.observe(served({ 'X-App-Version': OWN }))
@@ -38,7 +33,7 @@ describe('createVersionWatch', () => {
     expect(versions.getSnapshot().pending).toBe(NEW)
   })
 
-  it.fails('R2 a malformed served version and a dev build are never pending', async () => {
+  it('R2 a malformed served version and a dev build are never pending', async () => {
     const { watch: versions } = await watch()
     const { watch: dev } = await watch('dev')
 
@@ -50,7 +45,7 @@ describe('createVersionWatch', () => {
     expect(dev.getSnapshot().pending).toBeUndefined()
   })
 
-  it.fails('E5 the notice is due 30 minutes after the new version is detected, not before', async () => {
+  it('E5 the notice is due 30 minutes after the new version is detected, not before', async () => {
     const { watch: versions, advance } = await watch()
 
     versions.observe(served({ 'X-App-Version': NEW }))
@@ -61,7 +56,7 @@ describe('createVersionWatch', () => {
     expect(versions.getSnapshot().noticeDue).toBe(true)
   })
 
-  it.fails('E5 the timer stops when the version is no longer new, and starts again on a new hash', async () => {
+  it('E5 the timer stops when the version is no longer new, and starts again on a new hash', async () => {
     const { watch: versions, advance } = await watch()
 
     versions.observe(served({ 'X-App-Version': NEW }))
@@ -77,7 +72,7 @@ describe('createVersionWatch', () => {
     expect(versions.getSnapshot()).toMatchObject({ pending: NEWER, noticeDue: true })
   })
 
-  it.fails('E3 a holder holds until it releases, and two holders until both do', async () => {
+  it('E3 a holder holds until it releases, and two holders until both do', async () => {
     const { watch: versions } = await watch()
 
     const releaseBar = versions.hold()
@@ -90,7 +85,7 @@ describe('createVersionWatch', () => {
     expect(versions.getSnapshot().held).toBe(false)
   })
 
-  it.fails('E6 a minimum later than my build makes me outdated, and it sticks', async () => {
+  it('E6 a minimum later than my build makes me outdated, and it sticks', async () => {
     const { watch: versions } = await watch()
 
     versions.observe(served({ 'X-Min-Client-Version': '2100-01-01T00:00:00Z' }))
@@ -101,7 +96,7 @@ describe('createVersionWatch', () => {
     expect(versions.getSnapshot().outdated).toBe(true)
   })
 
-  it.fails('R7 an invalid, equal or earlier minimum does not make me outdated', async () => {
+  it('R7 an invalid, equal or earlier minimum does not make me outdated', async () => {
     const { watch: versions } = await watch()
 
     for (const minimum of [
@@ -118,7 +113,7 @@ describe('createVersionWatch', () => {
     expect(versions.getSnapshot().outdated).toBe(true)
   })
 
-  it.fails('a subscriber hears every change, and stops hearing once it unsubscribes', async () => {
+  it('a subscriber hears every change, and stops hearing once it unsubscribes', async () => {
     const { watch: versions, advance } = await watch()
     const listener = vi.fn()
 

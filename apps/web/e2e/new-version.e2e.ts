@@ -16,11 +16,9 @@ const HASH = /^[0-9a-f]{12}$/
 const NOTICE = 'Hay una versión nueva'
 const DIALOG = { name: 'Recarga para continuar' } as const
 const FAILED = { level: 1, name: 'Algo ha ido mal' } as const
-// The SPA serves the version hash only once the deploy variables reach wrangler dev (build task).
-const NEEDS_BUILD_VERSION = 'the build and wrangler dev carry no version until the build task'
-const NEEDS_CLIENT = 'the web client does not watch the version until the web task'
-// A dev build has no version or date to compare, so these need both tasks.
-const NEEDS_BOTH = `${NEEDS_BUILD_VERSION}, and ${NEEDS_CLIENT}`
+
+// An answer still in flight when a test ends would fail the next test of the worker.
+test.afterEach(({ page }) => page.unrouteAll({ behavior: 'ignoreErrors' }))
 
 // Every API answer with the headers `added` gives at that moment.
 async function rewriteApi(page: Page, added: () => Record<string, string>) {
@@ -68,7 +66,6 @@ const isApi = (response: Response) => new URL(response.url()).pathname.startsWit
 test('E1 R10 with a new version the next navigation reloads at its destination, once', async ({
   page,
 }) => {
-  test.fail(true, NEEDS_BOTH)
   const csp = cspErrors(page)
   await signInWithCode(page, IN_THREE)
   await expect(page).toHaveURL(/\/companies$/)
@@ -81,12 +78,17 @@ test('E1 R10 with a new version the next navigation reloads at its destination, 
   })
   await markDocument(page)
 
-  // An SPA navigation whose answers bring the new version; nothing reloads yet.
+  // An SPA navigation whose answers bring the new version; nothing reloads yet. A click without
+  // hovering: a hover preloads the screen, and that answer would already make this navigation reload.
   await page
     .getByRole('link', { name: /Northwind/ })
     .first()
-    .click()
+    .dispatchEvent('click')
   await expect(page).toHaveURL(/\/c\/northwind\/?$/)
+  // The URL changes before the shell renders; until then the picker's own link is the first one.
+  await expect(
+    page.getByRole('heading', { level: 1, name: /^Bienvenido a Northwind/ }),
+  ).toBeVisible()
   expect(await isSameDocument(page)).toBe(true)
   expect(loads.count).toBe(0)
 
@@ -114,7 +116,6 @@ test('E1 R10 with a new version the next navigation reloads at its destination, 
 test('E2 E7 every call carries my build version, the API serves the same one, and navigating stays in the page', async ({
   page,
 }) => {
-  test.fail(true, NEEDS_BUILD_VERSION)
   const pairs: { sent: string | null; served: string | null }[] = []
   page.on('response', (response) => {
     if (!isApi(response)) return
@@ -146,7 +147,6 @@ test('E2 E7 every call carries my build version, the API serves the same one, an
 test('E4 a screen whose code fails to load reloads once, then shows the 500 without a reference', async ({
   page,
 }) => {
-  test.fail(true, NEEDS_CLIENT)
   await signInWithCode(page, IN_THREE)
   await expect(page).toHaveURL(/\/companies$/)
   const aborted = { count: 0 }
@@ -160,7 +160,8 @@ test('E4 a screen whose code fails to load reloads once, then shows the 500 with
 
   await expect(page.getByRole('heading', FAILED)).toBeVisible()
   expect(loads.count).toBe(2)
-  expect(aborted.count).toBe(2)
+  // Chromium asks for a failed chunk twice per load, so only "at least once per load".
+  expect(aborted.count).toBeGreaterThanOrEqual(2)
   await expect(page.getByText('Referencia')).toHaveCount(0)
   await expect(page.getByRole('button', { name: 'Reintentar' })).toBeVisible()
 })
@@ -168,7 +169,6 @@ test('E4 a screen whose code fails to load reloads once, then shows the 500 with
 test('E5 R10 30 minutes after a new version shows, the notice offers to reload', async ({
   page,
 }) => {
-  test.fail(true, NEEDS_BOTH)
   const csp = cspErrors(page)
   await page.clock.install()
   await rewriteApi(page, () => ({ 'X-App-Version': NEW }))
@@ -194,7 +194,6 @@ test('E5 R10 30 minutes after a new version shows, the notice offers to reload',
 test('E6 R10 a minimum later than my build shows the blocking dialog, which reloads on its button', async ({
   page,
 }) => {
-  test.fail(true, NEEDS_BOTH)
   const csp = cspErrors(page)
   await rewriteApi(page, () => ({ 'X-Min-Client-Version': LATER }))
 
@@ -221,7 +220,6 @@ test.describe('on a phone', () => {
   test.use({ viewport: { width: 375, height: 812 }, isMobile: true, hasTouch: true })
 
   test('E6 the dialog is a bottom sheet with a full-width 44 px button', async ({ page }) => {
-    test.fail(true, NEEDS_BOTH)
     await rewriteApi(page, () => ({ 'X-Min-Client-Version': LATER }))
 
     await page.goto('/login')

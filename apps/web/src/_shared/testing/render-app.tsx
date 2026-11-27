@@ -5,15 +5,18 @@ import { createApiClient } from '@workampo/app-core/api-client'
 import { shouldRetry } from '@workampo/app-core/errors'
 import { watchSessionExpiry } from '@workampo/app-core/session-expiry'
 import { routeTree } from '../../route-tree'
+import type { LocationPort, ReloadStorage } from '../new-version/reload-on-navigation'
+import { createVersionWatch, type Timers } from '../new-version/version-watch'
+import { watchedFetch } from '../new-version/watched-fetch'
 import { AppProviders } from '../providers/app-providers'
 import { createAppRouter } from '../router/create-app-router'
 
-// Where a reload goes, recorded: jsdom cannot spy or redefine window.location.
-export type LocationPort = { origin: string; assign: (url: string) => void; reload: () => void }
-
-export type Timers = {
-  setTimeout: (run: () => void, ms: number) => number
-  clearTimeout: (handle: number) => void
+// jsdom has no modal <dialog> (the AlertDialog of packages/ui): these only toggle `open`.
+HTMLDialogElement.prototype.showModal ??= function (this: HTMLDialogElement) {
+  this.setAttribute('open', '')
+}
+HTMLDialogElement.prototype.close ??= function (this: HTMLDialogElement) {
+  this.removeAttribute('open')
 }
 
 // The whole app at `path`, with the API answered by `answer` instead of the network. `version`,
@@ -21,25 +24,31 @@ export type Timers = {
 export function renderApp({
   path,
   answer,
+  version = 'test',
+  buildDate,
+  storage = memoryStorage(),
+  location = recordingLocation().location,
+  timers = manualTimers().timers,
 }: {
   path: string
   answer: (request: Request) => Response | Promise<Response>
   version?: string
   buildDate?: string
-  storage?: Pick<Storage, 'getItem' | 'setItem'>
+  storage?: ReloadStorage
   location?: LocationPort
   timers?: Timers
 }) {
+  const versionWatch = createVersionWatch({ ownVersion: version, ownBuildDate: buildDate, timers })
   const apiClient = createApiClient({
     baseUrl: 'https://app.test',
-    clientVersion: 'test',
-    fetch: async (input, init) => answer(new Request(input, init)),
+    clientVersion: version,
+    fetch: watchedFetch(async (input, init) => answer(new Request(input, init)), versionWatch),
   })
   // As main.tsx: a 4xx is final, so an expired session shows at once.
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: shouldRetry } } })
   const router = createAppRouter({
     routeTree,
-    context: { queryClient, apiClient },
+    context: { queryClient, apiClient, versionWatch, browser: { location, storage } },
     history: createMemoryHistory({ initialEntries: [path] }),
   })
   watchSessionExpiry(queryClient, () => router.invalidate())

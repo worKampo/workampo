@@ -1,11 +1,7 @@
 import { cleanup, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { problem, renderApp } from '../testing/render-app'
-
-// A specifier Vite does not resolve ahead, so the file loads before the web task creates the
-// module; turn it into a static import when the it.fails marks go.
-const MODULE = './watched-fetch'
-const load = () => import(/* @vite-ignore */ MODULE)
+import { watchedFetch } from './watched-fetch'
 
 // Made-up hashes (ADR-0043).
 const OWN = 'a1b2c3d4e5f6'
@@ -14,8 +10,7 @@ const NEW = '9f8e7d6c5b4a'
 afterEach(cleanup)
 
 describe('watchedFetch', () => {
-  it.fails('E1 E6 every answer is observed, a 4xx and a 5xx too, and returned as it came', async () => {
-    const { watchedFetch } = await load()
+  it('E1 E6 every answer is observed, a 4xx and a 5xx too, and returned as it came', async () => {
     const watch = { observe: vi.fn() }
 
     for (const status of [200, 401, 404, 500]) {
@@ -30,8 +25,7 @@ describe('watchedFetch', () => {
     expect(watch.observe).toHaveBeenCalledTimes(4)
   })
 
-  it.fails('passes the request on as it was made', async () => {
-    const { watchedFetch } = await load()
+  it('passes the request on as it was made', async () => {
     const inner = vi.fn(async () => new Response('{}'))
     const init = { method: 'POST', body: '{}' }
 
@@ -40,8 +34,7 @@ describe('watchedFetch', () => {
     expect(inner).toHaveBeenCalledWith('https://app.test/api/companies', init)
   })
 
-  it.fails('a fetch that fails rethrows the same error and observes nothing', async () => {
-    const { watchedFetch } = await load()
+  it('a fetch that fails rethrows the same error and observes nothing', async () => {
     const watch = { observe: vi.fn() }
     const offline = new TypeError('Failed to fetch')
 
@@ -53,7 +46,7 @@ describe('watchedFetch', () => {
 })
 
 describe('the API client of the app', () => {
-  it.fails('E7 every call carries the version of my build in X-Client-Version', async () => {
+  it('E7 every call carries the version of my build in X-Client-Version', async () => {
     const sent: (string | null)[] = []
 
     renderApp({
