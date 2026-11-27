@@ -52,7 +52,7 @@ Without `SENTRY_AUTH_TOKEN` the deploy still works and logs that the source maps
    2. `wrangler deploy --dry-run --outdir dist --upload-source-maps` builds the bundle and writes the `.map` files.
    3. With `SENTRY_AUTH_TOKEN`: `sentry-cli sourcemaps inject` and `sourcemaps upload --release <sha>` to `https://de.sentry.io` (EU region). The release is the full SHA.
    4. Deletes every `.map` from `dist`.
-   5. `wrangler deploy dist/index.js --no-bundle --env <env> --tag <sha> --var GIT_SHA:<sha> --message "<message>"`: it deploys the bundle Sentry knows, not a rebuild.
+   5. `wrangler deploy dist/index.js --no-bundle --env <env> --tag <sha> --var GIT_SHA:<sha> --var APP_VERSION:<hash> --var APP_BUILD_DATE:<date> --message "<message>"`: it deploys the bundle Sentry knows, not a rebuild. The SPA hash and date are computed once before the builds and also reach the web build; an invalid one, or a `MIN_CLIENT_VERSION` later than the date, stops the deploy before any migration.
 
 The SHA in `/health` comes from the deploy tag (`CF_VERSION_METADATA.tag`); if the tag is empty, `/health` and the Sentry release use the `GIT_SHA` var that every deploy also sets, so the contract holds either way.
 
@@ -69,6 +69,16 @@ npx wrangler deployments status --name app
 ```
 
 `sha` is the commit; `version` is the Worker version id that `wrangler rollback` takes.
+
+## Raise the minimum client version
+
+`MIN_CLIENT_VERSION` blocks every open web client built before that date with the dialog "Reload to continue" ([ADR-0059](../adr/0059-web-client-version.md)). Only for a security flaw or a change that cannot be purely additive.
+
+1. Edit `MIN_CLIENT_VERSION` in `env.stg.vars` and `env.prod.vars` of `apps/api/wrangler.jsonc`, in a PR. The value is the UTC ISO date of the oldest build still allowed (`2026-11-27T10:15:00Z`), never later than the date of the build being deployed: the deploy refuses it, and the API would not send it.
+2. The commit and the PR only say that they raise the minimum client version. Details of an unpatched security flaw go to the private advisory, never to the commit, the PR or the issue ([AGENTS.md](../../AGENTS.md#8-no-entra-public-repo)).
+3. The merge deploys it like any change; prod waits for the person's approval.
+
+Without `MIN_CLIENT_VERSION` the deploy goes on and the API sends no `X-Min-Client-Version`.
 
 ## Tokens and permissions
 
