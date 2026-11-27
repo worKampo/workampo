@@ -5,8 +5,6 @@ import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { after, test } from 'node:test'
 
-// The build task creates the module; until then every test is a todo that may fail.
-const TODO = { todo: 'scripts/build/spa-version.mjs does not exist yet' }
 const MODULE = './spa-version.mjs'
 const load = () => import(MODULE)
 
@@ -80,7 +78,7 @@ function workspace() {
   return { git, commit, run, root: dir, version }
 }
 
-test('the same tree gives the same hash and date', TODO, async () => {
+test('the same tree gives the same hash and date', async () => {
   const repo = workspace()
 
   const first = await repo.version()
@@ -91,7 +89,7 @@ test('the same tree gives the same hash and date', TODO, async () => {
   assert.deepEqual(second, first)
 })
 
-test('a revert gives back the same hash, dated by the revert', TODO, async () => {
+test('a revert gives back the same hash, dated by the revert', async () => {
   const repo = workspace()
   const before = await repo.version()
 
@@ -105,7 +103,7 @@ test('a revert gives back the same hash, dated by the revert', TODO, async () =>
   assert.equal(reverted.buildDate, '2026-01-03T10:00:00Z')
 })
 
-test('E2 a commit outside the SPA inputs changes neither the hash nor the date', TODO, async () => {
+test('E2 a commit outside the SPA inputs changes neither the hash nor the date', async () => {
   const repo = workspace()
   const before = await repo.version()
 
@@ -116,7 +114,7 @@ test('E2 a commit outside the SPA inputs changes neither the hash nor the date',
   assert.deepEqual(await repo.version(), before)
 })
 
-test('a package the web reaches through dependencies is an input, transitively', TODO, async () => {
+test('a package the web reaches through dependencies is an input, transitively', async () => {
   const repo = workspace()
   const before = await repo.version()
 
@@ -127,22 +125,18 @@ test('a package the web reaches through dependencies is an input, transitively',
   assert.equal(after.buildDate, '2026-01-02T10:00:00Z')
 })
 
-test(
-  'the date is the last commit touching the inputs, in UTC without milliseconds',
-  TODO,
-  async () => {
-    const repo = workspace()
+test('the date is the last commit touching the inputs, in UTC without milliseconds', async () => {
+  const repo = workspace()
 
-    repo.commit({ 'apps/web/src/main.ts': 'two' }, '2026-01-02T11:30:00+01:00')
-    repo.commit({ 'apps/api/src/index.ts': 'later, api only' }, '2026-01-05T10:00:00Z')
-    const { buildDate } = await repo.version()
+  repo.commit({ 'apps/web/src/main.ts': 'two' }, '2026-01-02T11:30:00+01:00')
+  repo.commit({ 'apps/api/src/index.ts': 'later, api only' }, '2026-01-05T10:00:00Z')
+  const { buildDate } = await repo.version()
 
-    assert.equal(buildDate, '2026-01-02T10:30:00Z')
-    assert.match(buildDate, ISO_UTC)
-  },
-)
+  assert.equal(buildDate, '2026-01-02T10:30:00Z')
+  assert.match(buildDate, ISO_UTC)
+})
 
-test('R8 values given in the environment are used as they are, without git', TODO, async () => {
+test('R8 values given in the environment are used as they are, without git', async () => {
   const { buildVersion } = await load()
   const env = { VITE_APP_VERSION: '9f8e7d6c5b4a', VITE_APP_BUILD_DATE: '2026-01-01T00:00:00Z' }
   const run = () => assert.fail('git must not run')
@@ -153,7 +147,7 @@ test('R8 values given in the environment are used as they are, without git', TOD
   })
 })
 
-test('R8 an invalid version or date in the environment throws', TODO, async () => {
+test('R8 an invalid version or date in the environment throws', async () => {
   const { buildVersion } = await load()
   const run = () => assert.fail('git must not run')
   const valid = { VITE_APP_VERSION: '9f8e7d6c5b4a', VITE_APP_BUILD_DATE: '2026-01-01T00:00:00Z' }
@@ -169,7 +163,7 @@ test('R8 an invalid version or date in the environment throws', TODO, async () =
     assert.throws(() => buildVersion({ env, run }), undefined, JSON.stringify(env))
 })
 
-test('R8 a failing or silent git throws instead of building as dev', TODO, async () => {
+test('R8 a failing or silent git throws instead of building as dev', async () => {
   const repo = workspace()
   const { buildVersion } = await load()
   const failing = () => {

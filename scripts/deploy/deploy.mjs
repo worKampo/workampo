@@ -9,6 +9,7 @@ import { join } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { parse } from 'yaml'
 import { assertNoFakeProvider } from '../build/no-fake-provider.mjs'
+import { buildVersion, isBuildDate } from '../build/spa-version.mjs'
 import { parsePrNumber } from '../smoke/verification-comment.mjs'
 
 export const ENVIRONMENTS = ['stg', 'prod']
@@ -49,6 +50,18 @@ export function d1Databases(wranglerJsonc, env) {
   const block = JSON.parse(stripJsonComments(wranglerJsonc)).env?.[env]
   if (!block) throw new Error(`wrangler.jsonc has no env.${env} block`)
   return (block.d1_databases ?? []).map((db) => db.database_name)
+}
+
+// A minimum later than the build would block every client of this very deploy.
+export function assertMinClientVersion(wranglerJsonc, env, buildDate) {
+  const minimum = JSON.parse(stripJsonComments(wranglerJsonc)).env?.[env]?.vars?.MIN_CLIENT_VERSION
+  if (minimum === undefined) return
+  if (typeof minimum !== 'string' || !isBuildDate(minimum))
+    throw new Error(`MIN_CLIENT_VERSION of env.${env} is not a YYYY-MM-DDTHH:MM:SSZ date`)
+  if (Date.parse(minimum) > Date.parse(buildDate))
+    throw new Error(
+      `MIN_CLIENT_VERSION of env.${env} is later than the SPA build date ${buildDate}`,
+    )
 }
 
 async function selectWorkers(env, sha, io) {
@@ -122,15 +135,19 @@ function isKnownCommit(sha, io) {
   }
 }
 
-function deployWorker(worker, env, sha, message, io) {
+function deployWorker({ worker, env, sha, message, spa }, io) {
   const cwd = join(ROOT, worker.dir)
   const wrangler = (args) => io.run('wrangler', args, { cwd })
+  const config = io.readFile(join(cwd, 'wrangler.jsonc'))
+  assertMinClientVersion(config, env, spa.buildDate)
 
   // The Worker serves other packages' builds (apps/web as Static Assets); build them before
   // migrating, so a failed build leaves the databases untouched.
-  io.run('turbo', ['run', 'build', '--filter', `${worker.package}^...`])
+  io.run('turbo', ['run', 'build', '--filter', `${worker.package}^...`], {
+    env: { ...io.env, VITE_APP_VERSION: spa.version, VITE_APP_BUILD_DATE: spa.buildDate },
+  })
 
-  for (const db of d1Databases(io.readFile(join(cwd, 'wrangler.jsonc')), env))
+  for (const db of d1Databases(config, env))
     wrangler(['d1', 'migrations', 'apply', db, '--env', env, '--remote'])
 
   // --upload-source-maps only makes the dry run write the .map files; nothing is uploaded.
@@ -154,6 +171,10 @@ function deployWorker(worker, env, sha, message, io) {
     message,
     '--var',
     `GIT_SHA:${sha}`,
+    '--var',
+    `APP_VERSION:${spa.version}`,
+    '--var',
+    `APP_BUILD_DATE:${spa.buildDate}`,
     // Passed on every deploy: a `wrangler secret put` would create an untagged version and lose the SHA.
     // The DSN only lets a client send events, so Sentry documents it as safe to expose.
     ...(io.env.SENTRY_DSN ? ['--var', `SENTRY_DSN:${io.env.SENTRY_DSN}`] : []),
@@ -186,10 +207,12 @@ export async function deploy({ env, all, allowStale = false }, io) {
     // `current`: the staleness check ran and passed, so nothing newer is left to deploy either.
     return { workers, from, current: !allowStale }
   }
+  // Computed once, so the web build and every Worker carry the same version (R8: invalid throws).
+  const spa = buildVersion({ env: io.env, run: io.run })
   const message = deployMessage(sha, io.run('git', ['log', '-1', '--format=%s']).trim())
   for (const worker of workers) {
-    io.log(`Deploying ${worker.package} to ${env} (${message}).`)
-    deployWorker(worker, env, sha, message, io)
+    io.log(`Deploying ${worker.package} to ${env} (${message}, SPA ${spa.version}).`)
+    deployWorker({ worker, env, sha, message, spa }, io)
   }
   return { workers, from }
 }

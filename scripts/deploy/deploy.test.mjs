@@ -358,9 +358,7 @@ test('E4: a stale run outputs nothing new, even with no Worker affected', async 
   }
 })
 
-// Ticket 95: the SPA version reaches the build and the Worker (ADR-0059). The build task adds it;
-// until then these tests are todos that may fail.
-const TODO = { todo: 'deploy.mjs does not pass the SPA version yet' }
+// The SPA version reaches the build and the Worker (ADR-0059).
 const HASH = /^[0-9a-f]{12}$/
 const varsOf = (args) =>
   Object.fromEntries(
@@ -369,7 +367,7 @@ const varsOf = (args) =>
 const turboBuildOf = (calls) =>
   calls.find((c) => c.command === 'turbo' && c.args[0] === 'run' && c.args[1] === 'build')
 
-test('E7 the same SPA version goes to the web build and to the Worker', TODO, async () => {
+test('E7 the same SPA version goes to the web build and to the Worker', async () => {
   const { io, calls } = fakeIo()
 
   await deploy({ env: 'prod', all: false }, io)
@@ -385,7 +383,7 @@ test('E7 the same SPA version goes to the web build and to the Worker', TODO, as
   assert.equal(buildEnv.PATH, io.env.PATH)
 })
 
-test('R8 a version given in the environment is the one deployed', TODO, async () => {
+test('R8 a version given in the environment is the one deployed', async () => {
   const env = { VITE_APP_VERSION: '9f8e7d6c5b4a', VITE_APP_BUILD_DATE: '2026-01-01T00:00:00Z' }
   const { io, calls } = fakeIo({ env })
 
@@ -398,46 +396,38 @@ test('R8 a version given in the environment is the one deployed', TODO, async ()
   })
 })
 
-test(
-  'R8 a missing or invalid version or date stops the deploy before the build and any wrangler call',
-  TODO,
-  async () => {
-    for (const options of [
-      { env: { VITE_APP_VERSION: 'dev', VITE_APP_BUILD_DATE: '2026-01-01T00:00:00Z' } },
-      { env: { VITE_APP_VERSION: '9f8e7d6c5b4a', VITE_APP_BUILD_DATE: 'tomorrow' } },
-      { lsTree: '' },
-      { lastSpaCommit: '' },
-    ]) {
-      const { io, calls } = fakeIo(options)
+test('R8 a missing or invalid version or date stops the deploy before the build and any wrangler call', async () => {
+  for (const options of [
+    { env: { VITE_APP_VERSION: 'dev', VITE_APP_BUILD_DATE: '2026-01-01T00:00:00Z' } },
+    { env: { VITE_APP_VERSION: '9f8e7d6c5b4a', VITE_APP_BUILD_DATE: 'tomorrow' } },
+    { lsTree: '' },
+    { lastSpaCommit: '' },
+  ]) {
+    const { io, calls } = fakeIo(options)
 
-      await assert.rejects(
-        deploy({ env: 'prod', all: false }, io),
-        undefined,
-        JSON.stringify(options),
-      )
+    await assert.rejects(
+      deploy({ env: 'prod', all: false }, io),
+      undefined,
+      JSON.stringify(options),
+    )
 
-      assert.equal(turboBuildOf(calls), undefined)
-      assert.ok(!calls.some((c) => c.command === 'wrangler'))
-    }
-  },
-)
+    assert.equal(turboBuildOf(calls), undefined)
+    assert.ok(!calls.some((c) => c.command === 'wrangler'))
+  }
+})
 
-test(
-  'R6 a MIN_CLIENT_VERSION later than the build date or invalid stops the deploy before wrangler',
-  TODO,
-  async () => {
-    for (const minimum of ['2026-01-01T09:00:01Z', '2100-01-01T00:00:00Z', 'tomorrow', '']) {
-      const config = SAMPLE_CONFIG.replaceAll('2026-01-01T00:00:00Z', minimum)
-      const { io, calls } = fakeIo({ config })
+test('R6 a MIN_CLIENT_VERSION later than the build date or invalid stops the deploy before wrangler', async () => {
+  for (const minimum of ['2026-01-01T09:00:01Z', '2100-01-01T00:00:00Z', 'tomorrow', '']) {
+    const config = SAMPLE_CONFIG.replaceAll('2026-01-01T00:00:00Z', minimum)
+    const { io, calls } = fakeIo({ config })
 
-      await assert.rejects(deploy({ env: 'prod', all: false }, io), /MIN_CLIENT_VERSION/, minimum)
+    await assert.rejects(deploy({ env: 'prod', all: false }, io), /MIN_CLIENT_VERSION/, minimum)
 
-      assert.ok(!calls.some((c) => c.command === 'wrangler'))
-    }
-  },
-)
+    assert.ok(!calls.some((c) => c.command === 'wrangler'))
+  }
+})
 
-test('R6 a minimum equal to the build date deploys, and none at all too', TODO, async () => {
+test('R6 a minimum equal to the build date deploys, and none at all too', async () => {
   const equal = SAMPLE_CONFIG.replaceAll('2026-01-01T00:00:00Z', '2026-01-01T09:00:00Z')
   const none = SAMPLE_CONFIG.replaceAll('"MIN_CLIENT_VERSION": "2026-01-01T00:00:00Z"', '"X": ""')
 

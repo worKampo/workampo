@@ -2,7 +2,7 @@
   "$schema": "https://unpkg.com/knip@6/schema.json",
   "workspaces": {
     ".": {
-      "entry": ["scripts/**/*.mjs", ".claude/hooks/*.mjs"]
+      "entry": ["scripts/**/*.mjs", "scripts/**/*.d.mts", ".claude/hooks/*.mjs"]
     },
     "packages/i18n": {
       "ignoreDependencies": ["i18next"]
