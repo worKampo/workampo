@@ -1,7 +1,15 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { expect, it, vi } from 'vitest'
+import { expect, it, onTestFinished, vi } from 'vitest'
 
-import { Menu, MenuContent, MenuHeader, MenuItem, MenuSeparator, MenuTrigger } from './menu'
+import {
+  Menu,
+  MenuContent,
+  MenuHeader,
+  MenuItem,
+  MenuScope,
+  MenuSeparator,
+  MenuTrigger,
+} from './menu'
 
 async function renderAccountMenu({ onSignOut = () => {}, busy = false } = {}) {
   render(
@@ -84,4 +92,45 @@ it('@id:companies-92-5 the menu does not lock the page behind, and a press outsi
   fireEvent.pointerDown(document.body)
 
   await waitFor(() => expect(screen.queryByRole('menu')).toBeNull())
+})
+
+// showModal makes everything outside the side menu's <dialog> inert, a menu portalled to body included.
+it('@id:companies-196-2 inside the side menu of the shell the content is portalled into its dialog', async () => {
+  const dialog = document.body.appendChild(document.createElement('dialog'))
+  dialog.open = true
+  onTestFinished(() => dialog.remove())
+  render(
+    <MenuScope container={dialog}>
+      <Menu>
+        <MenuTrigger>Ana</MenuTrigger>
+        <MenuContent>
+          <MenuItem>Cerrar sesión</MenuItem>
+        </MenuContent>
+      </Menu>
+    </MenuScope>,
+  )
+
+  fireEvent.keyDown(screen.getByRole('button', { name: 'Ana' }), { key: 'Enter' })
+
+  expect(dialog.contains(await screen.findByRole('menu'))).toBe(true)
+})
+
+it('@id:companies-196-1 the shell learns when a menu inside it opens and closes', async () => {
+  const onOpenChange = vi.fn()
+  render(
+    <MenuScope onOpenChange={onOpenChange}>
+      <Menu>
+        <MenuTrigger>Ana</MenuTrigger>
+        <MenuContent>
+          <MenuItem>Cerrar sesión</MenuItem>
+        </MenuContent>
+      </Menu>
+    </MenuScope>,
+  )
+
+  fireEvent.keyDown(screen.getByRole('button', { name: 'Ana' }), { key: 'Enter' })
+  fireEvent.keyDown(await screen.findByRole('menu'), { key: 'Escape' })
+  await waitFor(() => expect(screen.queryByRole('menu')).toBeNull())
+
+  expect(onOpenChange.mock.calls).toEqual([[true], [false]])
 })

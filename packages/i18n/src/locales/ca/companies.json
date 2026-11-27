@@ -55,8 +55,9 @@
     "main_nav": "Principal",
     "home": "Inici",
     "account_menu": "Menú del teu compte",
-    "collapse": "Plega el menú",
-    "expand": "Desplega el menú",
+    "collapse": "Plega el menú lateral",
+    "expand": "Desplega el menú lateral",
+    "pin": "Fixa el menú lateral",
     "open_nav": "Obre el menú",
     "close_nav": "Tanca el menú",
     "nav_dialog": "Menú"

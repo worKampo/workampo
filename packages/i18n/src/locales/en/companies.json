@@ -55,8 +55,9 @@
     "main_nav": "Main",
     "home": "Home",
     "account_menu": "Your account menu",
-    "collapse": "Collapse menu",
-    "expand": "Expand menu",
+    "collapse": "Collapse side menu",
+    "expand": "Expand side menu",
+    "pin": "Pin side menu",
     "open_nav": "Open menu",
     "close_nav": "Close menu",
     "nav_dialog": "Menu"

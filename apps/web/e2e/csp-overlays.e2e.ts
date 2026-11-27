@@ -107,16 +107,25 @@ for (const { name, viewport } of [
       expect(await cspErrors()).toEqual([])
     })
 
-    test('the account menu opens and closes with no CSP error', async ({ page }) => {
+    test('the account menu opens from the side menu, usable and with no CSP error', async ({
+      page,
+    }) => {
       const cspErrors = await watchCsp(page)
       await openOwnCompany(page)
-      const account = page.getByRole('button', { name: /E2E/ })
+      await expect(page.getByRole('banner').getByRole('button', { name: /E2E/ })).toHaveCount(0)
+      await page.getByRole('button', { name: 'Abrir menú' }).click()
+      const menu = page.getByRole('dialog', { name: 'Menú' })
+      const account = menu.getByRole('button', { name: /E2E/ })
 
       await account.click()
-      await expect(page.getByRole('menuitem', { name: 'Cerrar sesión' })).toBeVisible()
+      const signOut = page.getByRole('menuitem', { name: 'Cerrar sesión' })
+      await expect(signOut).toBeVisible()
+      // Outside the modal dialog the item would be inert: the trial click fails its hit test.
+      await signOut.click({ trial: true })
       await page.keyboard.press('Escape')
 
       await expect(page.getByRole('menu')).toHaveCount(0)
+      await expect(menu).toBeVisible()
       await expect(account).toBeFocused()
       expect(await cspErrors()).toEqual([])
     })

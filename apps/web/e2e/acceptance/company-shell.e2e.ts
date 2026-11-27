@@ -122,27 +122,26 @@ test('@id:companies-92-6 on a phone the side menu opens over the page and Esc cl
   await expect(open).toBeFocused()
 })
 
-test('@id:companies-92-7 on a desktop the folded menu is a bar of icons, each with its tooltip', async ({
+test('@id:companies-92-7 on a desktop the folded menu is a bar of icons, each keeping its name', async ({
   page,
 }) => {
+  await page.clock.install()
   await openOwnCompany(page)
 
-  await page.getByRole('button', { name: 'Plegar menú' }).click()
+  const fold = page.getByRole('button', { name: 'Plegar menú lateral' })
+  await expect(fold).toBeVisible()
+  await fold.click()
+  await page.mouse.move(1000, 400)
 
-  await expect(page.getByRole('button', { name: 'Desplegar menú' })).toBeVisible()
   const nav = page.getByRole('navigation')
-  expect((await nav.boundingBox())?.width).toBeLessThanOrEqual(RAIL_WIDTH)
+  await expect.poll(async () => (await nav.boundingBox())?.width).toBeLessThanOrEqual(RAIL_WIDTH)
   const items = nav.getByRole('link')
   expect(await items.count()).toBeGreaterThan(0)
-  for (const item of await items.all()) {
-    const name = (await item.getAttribute('aria-label')) ?? (await item.textContent()) ?? ''
-    await item.hover()
-    await expect(page.getByRole('tooltip')).toContainText(name.trim())
-  }
-  await page.getByRole('link', { name: /Northwind Logistics/ }).hover()
-  await expect(page.getByRole('tooltip')).toContainText('Northwind Logistics')
-  await page.getByRole('button', { name: /E2E/ }).first().hover()
-  await expect(page.getByRole('tooltip')).toContainText('E2E')
+  for (const item of await items.all()) await expect(item).toHaveAccessibleName(/\S/)
+  await nav.getByRole('link', { name: 'Inicio' }).hover()
+  // Past the rail's and the tooltip's delays, so a tooltip would be showing by now.
+  await page.clock.runFor(1000)
+  await expect(page.getByRole('tooltip')).toHaveCount(0)
 })
 
 test('@id:companies-92-8 an account without a name shows its email on the user button', async ({
@@ -219,4 +218,83 @@ test('@id:companies-92-11 a slow load shows the app loader, still with reduced m
   await expect(
     page.getByRole('heading', { name: 'Bienvenido a Northwind Logistics' }),
   ).toBeVisible()
+})
+
+test('@id:companies-196-1 hovering the folded rail unfolds it over the page, and pinning it pushes the page', async ({
+  page,
+}) => {
+  await openOwnCompany(page)
+  const fold = page.getByRole('button', { name: 'Plegar menú lateral' })
+  await expect(fold).toBeVisible()
+  await fold.click()
+  await page.mouse.move(1000, 400)
+  const main = page.getByRole('main')
+  await expect.poll(async () => (await main.boundingBox())?.x).toBeLessThan(256)
+  const folded = (await main.boundingBox())?.x
+
+  await page.getByRole('navigation').hover()
+
+  const pin = page.getByRole('button', { name: 'Fijar menú lateral' })
+  await expect(pin).toBeVisible()
+  expect((await main.boundingBox())?.x).toBe(folded)
+  await pin.click()
+
+  await expect.poll(async () => (await main.boundingBox())?.x).toBeGreaterThanOrEqual(256)
+  const collapse = page.getByRole('button', { name: 'Plegar menú lateral' })
+  await expect(collapse).toBeVisible()
+  const company = await page.getByRole('link', { name: /Northwind Logistics/ }).boundingBox()
+  const button = await collapse.boundingBox()
+  if (!company || !button) throw new Error('the company row is not laid out')
+  // In the company's row: the button's middle lies within the company's height.
+  expect(button.y + button.height / 2).toBeGreaterThan(company.y)
+  expect(button.y + button.height / 2).toBeLessThan(company.y + company.height)
+})
+
+test('@id:companies-196-2 on a phone the side menu holds the company, the navigation and my user at the bottom', async ({
+  page,
+}) => {
+  await page.setViewportSize(MOBILE)
+  await openOwnCompany(page)
+
+  const topbar = page.getByRole('banner')
+  await expect(topbar.getByRole('button', { name: 'Abrir menú' })).toBeVisible()
+  await expect(topbar.getByText('Northwind Logistics')).toBeVisible()
+  await expect(topbar.getByRole('button', { name: /E2E/ })).toHaveCount(0)
+  await topbar.getByRole('button', { name: 'Abrir menú' }).click()
+
+  const menu = page.getByRole('dialog')
+  await expect(menu.getByRole('link', { name: /Northwind Logistics/ })).toBeVisible()
+  await expect(menu.getByRole('link', { name: 'Inicio' })).toBeVisible()
+  const account = menu.getByRole('button', { name: /E2E/ })
+  await expect(account).toBeVisible()
+  const nav = await menu.getByRole('navigation').boundingBox()
+  const user = await account.boundingBox()
+  if (!nav || !user) throw new Error('the side menu is not laid out')
+  expect(user.y).toBeGreaterThanOrEqual(nav.y + nav.height)
+})
+
+test('@id:companies-196-3 on a desktop Tab goes through the company, folding, the navigation and the user', async ({
+  page,
+}) => {
+  await openOwnCompany(page)
+  await page.keyboard.press('Tab')
+  await expect(page.getByRole('link', { name: 'Saltar al contenido' })).toBeFocused()
+
+  for (const stop of [
+    page.getByRole('link', { name: /Northwind Logistics/ }),
+    page.getByRole('button', { name: 'Plegar menú lateral' }),
+    page.getByRole('navigation').getByRole('link', { name: 'Inicio' }),
+    page.getByRole('button', { name: /E2E/ }),
+  ]) {
+    await page.keyboard.press('Tab')
+    await expect(stop).toBeFocused()
+  }
+  // Past the user, Tab leaves the sidebar for the page; the company home has nothing focusable yet.
+  await page.keyboard.press('Tab')
+
+  expect(
+    await page
+      .getByRole('complementary')
+      .evaluate((sidebar) => sidebar.contains(document.activeElement)),
+  ).toBe(false)
 })

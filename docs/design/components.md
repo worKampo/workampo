@@ -84,7 +84,7 @@ shadcn `Card`.
 | Badge | `Badge` | Pill, padding 2 8, 12/16 weight 500, a 6 px dot in the text colour + text. Variants: `pos` (Active), `info` (Invited), `neg` (Failed), neutral `--muted` (Suspended), `plain` without dot (roles: Owner, Admin) |
 | Edited pill | custom | 18 high pill, `--muted`, 11 px weight 600, 6 px `--warn-dot` dot. Only next to a saved view that has unsaved changes |
 | Kbd | `Kbd` | 11/16, min width 16, 1 px `--border-hard` with 2 px bottom, radius 4, `--text-2` |
-| Count | custom | 20 high pill, `#C4221A` with white text, 11 px weight 600. Notifications only. Not a token in ds.css yet: promote it when implemented. The accessible name carries the number ("Notifications, 3 unread") |
+| Count | custom | 20 high pill, `--neg` with `--on-neg` text, 11 px weight 600; a dot in the rail and the topbar bell. Notifications only: red here means "unread", never "error" ([patterns](patterns.md#navigation)). The accessible name carries the number ("Notifications, 3 unread") |
 | Staff tag | custom | "STAFF", 11 px weight 600, radius 4, 1 px `--border-hard`. Backoffice workspace button |
 
 ### Avatars
@@ -206,7 +206,7 @@ shadcn `Popover`, `DropdownMenu`. `--surface`, 1 px `--border`, radius 12, `--sh
 
 ### Command palette
 
-shadcn `Command` inside a `Dialog`. Opened with Ctrl K (Cmd K on macOS), the sidebar Search item or the topbar search button. Panel max width 600, radius 12, `--shadow-modal`, 96 px from the top (12 px on phone). Input 52 high, 15 px, search icon at the left, placeholder "Search pages, members, actions…". Groups with overline headings: Pages, Actions (actions can show their shortcut as kbd). Footer hint: "↑↓ to move · Enter to open · Esc to close". First result highlighted. `role="dialog"`, `aria-label="Command palette"`.
+shadcn `Command` inside a `Dialog`. Opened with Ctrl K (Cmd K on macOS), or the Search item of the sidebar or the side menu. Panel max width 600, radius 12, `--shadow-modal`, 96 px from the top (12 px on phone). Input 52 high, 15 px, search icon at the left, placeholder "Search pages, members, actions…". Groups with overline headings: Pages, Actions (actions can show their shortcut as kbd). Footer hint: "↑↓ to move · Enter to open · Esc to close". First result highlighted. `role="dialog"`, `aria-label="Command palette"`.
 
 ### Inverted surfaces: toast, tooltip, save bar
 
@@ -215,21 +215,23 @@ Ink background (`--text`) with `--bg` text, so they read as system feedback in b
 | Component | shadcn | Spec |
 |---|---|---|
 | Toast | `Sonner` | Bottom centre, 24 from the bottom, max width 440, padding 12 16, radius 12, `--shadow-float`. One line + optional action ("Undo", underlined, weight 600). `role="status"`. Not for errors that need action: use a banner or inline error |
-| Tooltip | `Tooltip` | 12/16, padding 6 8, radius 8, below the trigger with 6 px gap (`side="right"` in the rail). Shown on hover and keyboard focus, after 300 ms. Mandatory on icon-only buttons; text equals the `aria-label`. For a cut name, it shows the full text only when the text is cut (the shell's company name) |
+| Tooltip | `Tooltip` | 12/16, padding 6 8, radius 8, below the trigger with 6 px gap. None in the shell's rail, which unfolds with the names. Shown on hover and keyboard focus, after 300 ms. Mandatory on icon-only buttons; text equals the `aria-label`. For a cut name, it shows the full text only when the text is cut (the shell's company name) |
 | Save bar | custom | Sticky 16 above the bottom of the page, centred, padding 12 12 12 16, radius 12, `--shadow-float`. "2 unsaved changes" + Discard (outlined in `--bg`) + Save (filled `--bg`, text `--text`). `role="region"`, `aria-label="Unsaved changes"` |
 
 ## Layout
 
 ### App shell
 
-Custom (`AppShell` in `packages/ui/src/layout/app-shell/`); the side menu is a native `<dialog>` with `showModal()`, like `AlertDialog`, because Radix's scroll lock breaks the CSP. Layout and behaviour: [patterns](patterns.md#app-shell). It takes slots (`company`, `nav`, `user`, `topbar`) and renders them in the sidebar, the rail and the side menu; its pieces read where they are:
+Custom (`AppShell` in `packages/ui/src/layout/app-shell/`); the side menu is a native `<dialog>` with `showModal()`, like `AlertDialog`, because Radix's scroll lock breaks the CSP. Layout and behaviour: [patterns](patterns.md#app-shell). It takes slots (`company`, `nav`, `user`, `topbar`, and optional `search` and `notifications`) and renders them in the sidebar, the rail and the side menu; its pieces read where they are. No piece has a tooltip in the rail: hover unfolds it with the names.
 
 - `CompanyLink`: avatar, name (13/16 weight 600) and role in meta; a 44 px link. The name is cut with an ellipsis and gets a tooltip only when cut.
-- `NavItem`: 36 / 44 high, radius 8, 16 px icon and label; current: `--nav-active`, 1 px `--border` ring, weight 600. In the rail, a 40 px square with the label visually hidden and a tooltip at its right. Routers wrap it (`createLink(NavItem)`).
-- `UserButton`: avatar, name and email; with no name the email takes its place, without a second line. A 44 px square with the avatar in the rail and the topbar; `aria-busy` while signing out.
+- `NavItem`: 36 / 44 high, radius 8, 16 px icon and label; current: `--nav-active` tint, label weight 600 `--text` and `aria-current="page"`, with no ring or shadow. In the rail, a 40 px square with the label visually hidden. Routers wrap it (`createLink(NavItem)`).
+- `UserButton`: avatar, name and email; with no name the email takes its place, without a second line. A 44 px square with the avatar in the rail; `aria-busy` while signing out. Last in the sidebar and the side menu; its menu opens upwards there and in the rail, which unfolds while it is open.
 - `TopbarCompany`: avatar and name in the topbar, not a focus stop.
-- Collapse button: a quiet icon button in the sidebar foot, with a tooltip.
-- Side menu: 280 px, `--chrome`, end border `--border`, `--shadow-drawer-start` (`--shadow-drawer` in RTL), over the `--scrim`; named by `aria-label`, with no visible title. Esc, the scrim, its close button and choosing an item close it. While a modal `<dialog>` is open the page behind does not scroll (`html:has(dialog:modal)` in `styles.css`).
+- Collapse button: a quiet icon button in the company row, one button that changes with the state: «Plegar menú lateral» on the pinned sidebar, «Fijar menú lateral» on the floating rail. With `hover: none`, «Desplegar menú lateral» under the company avatar in the rail.
+- Rail: 64 px; floats to 256 px over the page with `--shadow-drawer-start` on hover or focus, held open while a menu inside it is open ([patterns](patterns.md#app-shell)).
+- Topbar (< 1024): 56 px, menu button, `TopbarCompany` and the notifications slot; no user.
+- Side menu: 280 px, `--chrome`, end border `--border`, `--shadow-drawer-start` (`--shadow-drawer` in RTL), over the `--scrim`; named by `aria-label`, with no visible title. The expanded sidebar's content with «Cerrar menú» in the company row and the user at the bottom. Esc, the scrim, its close button and choosing an item close it. While a modal `<dialog>` is open the page behind does not scroll (`html:has(dialog:modal)` in `styles.css`).
 - `<main id="content" tabindex="-1">`: max 880 px.
 
 ### Skip link
