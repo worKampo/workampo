@@ -724,7 +724,7 @@ const LATER = '2100-01-01T00:00:00Z'
 const withVars = (vars: Record<string, string>) => ({ ...env, ...vars }) as typeof env
 
 describe('the version headers', () => {
-  it.fails('E1 E6 every answer carries X-App-Version, and X-Min-Client-Version when the minimum is not later than the build', async () => {
+  it('E1 E6 every answer carries X-App-Version, and X-Min-Client-Version when the minimum is not later than the build', async () => {
     for (const minimum of ['2025-12-31T23:59:59Z', BUILD_DATE]) {
       const bindings = withVars({
         APP_VERSION: OWN_VERSION,
@@ -741,7 +741,7 @@ describe('the version headers', () => {
     }
   })
 
-  it.fails('R6 a minimum later than the served build sends no X-Min-Client-Version and logs it without the value', async () => {
+  it('R6 a minimum later than the served build sends no X-Min-Client-Version and logs it without the value', async () => {
     const error = vi.spyOn(console, 'error').mockImplementation(() => {})
     const bindings = withVars({
       APP_VERSION: OWN_VERSION,
@@ -761,7 +761,7 @@ describe('the version headers', () => {
     expect(JSON.stringify(error.mock.calls)).not.toContain('2100')
   })
 
-  it.fails('R6 without the build date or the minimum there is no X-Min-Client-Version', async () => {
+  it('R6 without the build date or the minimum there is no X-Min-Client-Version', async () => {
     const complete = await app.request(
       `${ORIGIN}/health`,
       {},
@@ -783,7 +783,7 @@ describe('the version headers', () => {
     expect(noMinimum.headers.has('X-Min-Client-Version')).toBe(false)
   })
 
-  it.fails('R6 R11 parseEnv keeps valid version variables and refuses invalid ones', () => {
+  it('R6 R11 parseEnv keeps valid version variables and refuses invalid ones', () => {
     expect(
       parseEnv(
         withVars({
@@ -816,7 +816,7 @@ describe('the client version in Sentry', () => {
     Reflect.deleteProperty(globalThis, '__SENTRY_CLOUDFLARE_CLIENT__')
   })
 
-  it.fails('R1 an event carries the clientVersion tag when the header is a build hash or version', async () => {
+  it('R1 an event carries the clientVersion tag when the header is a build hash or version', async () => {
     vi.spyOn(console, 'error').mockImplementation(() => {})
     vi.spyOn(console, 'log').mockImplementation(() => {})
     const envelopes = spySentry()
@@ -829,7 +829,7 @@ describe('the client version in Sentry', () => {
     expect(sentryEvents(envelopes)[0]?.tags?.clientVersion).toBe(version)
   })
 
-  it.fails('R1 free text, quotes and 65 characters never reach Sentry as a tag', async () => {
+  it('R1 free text, quotes and 65 characters never reach Sentry as a tag', async () => {
     vi.spyOn(console, 'error').mockImplementation(() => {})
     vi.spyOn(console, 'log').mockImplementation(() => {})
     const envelopes = spySentry()

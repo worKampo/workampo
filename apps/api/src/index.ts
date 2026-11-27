@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
 import { csrf } from 'hono/csrf'
-import { appVersionHeader } from './_shared/client-version/app-version-header'
+import { versionHeaders } from './_shared/client-version/app-version-header'
 import { clientVersionLog } from './_shared/client-version/client-version-log'
 import { deployedSha, versionId } from './_shared/client-version/cloudflare-version'
 import { parsedEnv } from './_shared/env'
@@ -21,7 +21,7 @@ export const app = new Hono<AppEnv>()
 
 app.use(errorTracking(app))
 app.use(clientVersionLog)
-app.use(appVersionHeader)
+app.use(versionHeaders)
 // A foreign page can only send a simple POST without a preflight: csrf() checks its Origin on form
 // content types. DELETE, PUT and JSON bodies need a preflight our API never grants.
 // First, so the answers of csrf() and parsedEnv carry the headers too.
