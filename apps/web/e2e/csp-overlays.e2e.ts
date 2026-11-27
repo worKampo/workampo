@@ -6,13 +6,27 @@ import { newEmail, signInWithCode } from '../../../e2e/support/acceptance-suppor
 
 test.use({ locale: 'es-ES' })
 
-function cspErrors(page: Page) {
-  const errors: string[] = []
+// Console messages and the securitypolicyviolation events of the current document: Chromium does not
+// always log a blocked eval to the console, but it always fires the event.
+async function watchCsp(page: Page) {
+  const logged: string[] = []
   page.on('console', (message) => {
-    if (/Content Security Policy/i.test(message.text())) errors.push(message.text())
+    if (/Content Security Policy/i.test(message.text())) logged.push(message.text())
+  })
+  await page.addInitScript(() => {
+    const seen: string[] = []
+    Object.assign(window, { cspViolations: seen })
+    document.addEventListener('securitypolicyviolation', (event) => {
+      seen.push(`${event.violatedDirective} ${event.blockedURI}`)
+    })
   })
 
-  return errors
+  return async () => [
+    ...logged,
+    ...(await page.evaluate(
+      () => (window as unknown as { cspViolations?: string[] }).cspViolations ?? [],
+    )),
+  ]
 }
 
 // A new account that owns one company and is inside it, on its home.
@@ -39,6 +53,18 @@ const makePageTall = (page: Page) =>
     document.getElementById('content')?.appendChild(tall)
   })
 
+// zod probes for eval the first time it validates; under script-src 'self' that probe is a violation.
+test('validating a form raises no CSP violation', async ({ page }) => {
+  const cspErrors = await watchCsp(page)
+  await page.goto('/login')
+
+  await page.getByRole('textbox').fill('not-an-email')
+  await page.getByRole('button', { name: 'Continuar', exact: true }).click()
+  await expect(page.getByRole('textbox')).toHaveAttribute('aria-invalid', 'true')
+
+  expect(await cspErrors()).toEqual([])
+})
+
 for (const { name, viewport } of [
   { name: 'a narrow desktop window', viewport: { width: 900, height: 700 } },
   { name: 'a phone', viewport: { width: 375, height: 812 } },
@@ -49,7 +75,7 @@ for (const { name, viewport } of [
     test('the side menu opens with no CSP error, keeps the focus in and the page behind still', async ({
       page,
     }) => {
-      const csp = cspErrors(page)
+      const cspErrors = await watchCsp(page)
       await openOwnCompany(page)
       await makePageTall(page)
       const open = page.getByRole('button', { name: 'Abrir menú' })
@@ -78,11 +104,11 @@ for (const { name, viewport } of [
       await expect(open).toBeFocused()
       await page.mouse.wheel(0, 600)
       await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(0)
-      expect(csp).toEqual([])
+      expect(await cspErrors()).toEqual([])
     })
 
     test('the account menu opens and closes with no CSP error', async ({ page }) => {
-      const csp = cspErrors(page)
+      const cspErrors = await watchCsp(page)
       await openOwnCompany(page)
       const account = page.getByRole('button', { name: /E2E/ })
 
@@ -92,7 +118,7 @@ for (const { name, viewport } of [
 
       await expect(page.getByRole('menu')).toHaveCount(0)
       await expect(account).toBeFocused()
-      expect(csp).toEqual([])
+      expect(await cspErrors()).toEqual([])
     })
   })
 }

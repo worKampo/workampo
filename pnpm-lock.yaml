@@ -141,6 +141,9 @@ importers:
       react-i18next:
         specifier: 18.0.3
         version: 18.0.3(@types/react@19.3.0)(i18next@27.2.2(typescript@6.0.3))(react@19.1.10)(typescript@6.0.3)
+      zod:
+        specifier: 4.6.7
+        version: 4.6.7
     devDependencies:
       '@biomejs/biome':
         specifier: 2.6.7
