@@ -240,7 +240,7 @@ Rule: Desde el menú cambio de empresa y cierro sesión
     When abro mi menú de usuario y pulso "Cerrar sesión"
     Then mi sesión queda revocada y llego a /login
 
-@wip(#196)
+@issue(#196)
 Rule: El menú se adapta al dispositivo y se maneja con teclado
 
   @id:companies-92-6
