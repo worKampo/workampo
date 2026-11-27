@@ -334,7 +334,7 @@ describe('the company shell', () => {
     expect(within(menu).getAllByText('ana@example.com')).toHaveLength(1)
   })
 
-  it.fails('@id:companies-92-7 the rail starts unfolded and is kept for the next visit', async () => {
+  it('@id:companies-92-7 the rail starts unfolded and is kept for the next visit', async () => {
     await openHome()
 
     await userEvent.click(screen.getByRole('button', { name: 'Plegar menú lateral' }))
@@ -346,7 +346,7 @@ describe('the company shell', () => {
     expect(screen.getByRole('button', { name: 'Desplegar menú lateral' })).toBeTruthy()
   })
 
-  it.fails('@id:companies-92-7 a browser that refuses storage still shows and folds the menu', async () => {
+  it('@id:companies-92-7 a browser that refuses storage still shows and folds the menu', async () => {
     const refuse = () => {
       throw new DOMException('denied', 'SecurityError')
     }

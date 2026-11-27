@@ -55,8 +55,9 @@
     "main_nav": "Principal",
     "home": "Inicio",
     "account_menu": "Menú de tu cuenta",
-    "collapse": "Plegar menú",
-    "expand": "Desplegar menú",
+    "collapse": "Plegar menú lateral",
+    "expand": "Desplegar menú lateral",
+    "pin": "Fijar menú lateral",
     "open_nav": "Abrir menú",
     "close_nav": "Cerrar menú",
     "nav_dialog": "Menú"

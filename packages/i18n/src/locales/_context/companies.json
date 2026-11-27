@@ -49,6 +49,7 @@
     "account_menu": "Accessible name of the account menu (name, email, sign out).",
     "collapse": "Button that narrows the sidebar to icons only.",
     "expand": "Button that widens the narrowed sidebar back.",
+    "pin": "Button shown while the narrowed sidebar is unfolded by hover or focus; keeps it widened.",
     "open_nav": "Top bar button on small screens that opens the side menu.",
     "close_nav": "Button that closes the side menu on small screens.",
     "nav_dialog": "Accessible name of the side menu dialog on small screens."
