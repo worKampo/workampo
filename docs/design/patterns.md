@@ -4,28 +4,43 @@ How components combine into screens. Component details are in [components.md](co
 
 ## App shell
 
-`AppShell` ([components](components.md#app-shell)) is the layout of `/c/$slug`: every company page renders inside it, "Page not found" too, with no item current.
+`AppShell` ([components](components.md#app-shell)) is the layout of `/c/$slug`: every company page renders inside it, "Page not found" too, with no item current. The shell lays out the same on every device: the page shows only what it needs, and everything else is in the sidebar, with the user at its bottom (ticket 196).
 
-| Device | Layout |
-|---|---|
-| Desktop (≥ 1024) | Sidebar 256 px on `--chrome` + main column on `--bg`. The sidebar collapses to a **rail** of 64 px with the collapse button in its foot. |
-| Tablet and phone (< 1024) | No sidebar. **Topbar** 56 px, sticky, on `--chrome`: menu button, company logo + name, spacer, search and notifications (come with their PRD), avatar, which opens the user menu. The menu button opens the **side menu** (280 px from the start edge, `--shadow-drawer-start`, over the scrim). |
+| | Sidebar (desktop) | Rail (desktop, collapsed) | Tablet and phone (< 1024) |
+|---|---|---|---|
+| Company | Top of the sidebar, with the collapse button in the same row | Avatar at the top of the rail; on hover the rail unfolds with the name and «Fijar menú lateral» | In the topbar |
+| Search | In the sidebar, with `Ctrl K` / `⌘K` | Icon | In the side menu |
+| Notifications | Item under Search, with a red count | Icon with a red dot | Bell in the topbar, with a red dot |
+| User | At the bottom, with the account menu | 44 px avatar at the bottom, the account menu to its right | At the bottom of the side menu, the account menu upwards |
+| Topbar | None | None | Menu button, company and bell; no avatar |
 
-**The shell shows only what exists.** An item whose PRD has not shipped is not rendered, not hidden by CSS. In the MVP: the company button, Home and the user button; search, notifications, Public page, Settings, plan usage, trial, Help and My account wait for their PRDs.
+**The shell shows only what exists.** An item whose PRD has not shipped is not rendered, not hidden by CSS. In the MVP: the company, Home and the user. The shell has places for search and notifications, but they render only when their feature exists; Public page, Settings, plan usage, trial, Help and My account wait for their PRDs too.
 
-Sidebar, top to bottom (company app):
+**Desktop (≥ 1024)**: a sidebar of 256 px or a rail of 64; no topbar, so the page starts 24 px from the top. Top to bottom (company app):
 
-1. **Company button**: company logo (the [Avatar](components.md#avatars) initials palette), name and the user's role under it. A link to `/companies`, the company picker; the shell does not load the company list.
-2. **Search** (kbd Ctrl K) and **Notifications** (count): come with their PRD.
-3. **Main nav** (`<nav aria-label="Main">`): exactly **Home**, **Public page**, **Settings** (Public page and Settings come with their PRD). Active item: `aria-current="page"`, `--nav-active` surface with a 1 px border, weight 600.
-4. **Foot**: plan usage bar ("Members 4 of 5"), trial row with Upgrade link, Help (these three come with their PRD), **user button** (avatar, name, email), collapse button (desktop only).
+1. **Company row**: the company button and the collapse button. The company button has the company logo (the [Avatar](components.md#avatars) initials palette), name and the user's role under it; it links to `/companies`, the company picker, and the shell does not load the company list.
+2. **Search** (kbd `Ctrl K` / `⌘K`) and **Notifications** (count): come with their PRD.
+3. **Main nav** (`<nav aria-label="Main">`): exactly **Home**, **Public page**, **Settings** (Public page and Settings come with their PRD).
+4. **Foot**: plan usage bar ("Members 4 of 5"), trial row with Upgrade link, Help (these three come with their PRD) and the **user button** (avatar, name, email) last.
 
 Backoffice: same shell and style. Company button shows the product with a STAFF tag; nav: Companies, System health, Audit log; no usage or trial rows.
 
-- **Rail**: labels are visually hidden, not removed, so each item keeps its accessible name; each item has a tooltip at its right. The choice is stored per browser in `localStorage` (`workampo:sidebar`) and the sidebar starts expanded. Per user arrives with My account (Post-MVP).
-- **Side menu**: a modal dialog with "Close menu". On open the focus goes to the company link and stays trapped inside; on close it returns to "Open menu". It closes with Esc, the scrim, the close button, choosing an item, or when the window reaches 1024 px.
-- **Long names**: one line with an ellipsis. In the open sidebar the tooltip of the company and user names appears only when the text is cut, on hover and on focus; in the rail it always shows; the accessible name is always the full one. Every name has `dir="auto"`.
-- **Accepted departures from the mockup**: the main column sits on `--bg`, not `--chrome`; the side menu has no user button, the account opens from the topbar avatar; no chevron on the company button and no icon on "Sign out".
+- **Active item**: a soft tint (`--nav-active`, a little stronger than hover), the label in weight 600 `--text` and `aria-current="page"`; no border, ring or shadow, so counts and chevrons at its end stay free. The same in the rail and in inner items. It never relies on colour alone.
+- **Rail**: icons only. Labels are visually hidden, not removed, so each item keeps its accessible name; no tooltips. An icon navigates with one click, without waiting for the rail to unfold. The choice is stored per browser in `localStorage` (`workampo:sidebar`) and the sidebar starts expanded. Per user arrives with My account (Post-MVP).
+- **The rail unfolds on hover**: after about 300 ms with the mouse over it, it unfolds to 256 px floating over the page, with `--shadow-drawer-start`; the page does not move. It folds 300 ms after the mouse leaves. With reduced motion it appears without animation.
+- **Pin and collapse**: one button in the company row that changes with the state. On the floating rail it is «Fijar menú lateral»: the sidebar stays expanded and pushes the page. In its place, the pinned sidebar shows «Plegar menú lateral».
+- **Keyboard on the rail**: the rail unfolds when the focus enters it with Tab, and folds when the focus leaves or with Esc. After Esc it stays folded until the focus leaves the rail. Only keyboard focus holds it open: a click leaves the focus inside, yet the rail folds when the mouse leaves.
+- **Held open by its menus**: while the account menu or the notifications panel is open the rail does not fold; it folds when they close. With the account menu open, the first Esc closes only the menu.
+- **Touch screens on desktop** (`hover: none`, such as a landscape iPad): «Desplegar menú lateral» stays visible under the company avatar, the only case with a button. It opens the floating rail with «Fijar» inside, like hover; a tap outside or Esc folds it.
+- **Tablet and phone (< 1024)**: no sidebar, no rail and no collapsed state. **Topbar** 56 px, sticky, on `--chrome`: menu button, company logo + name, the notifications bell when it exists; no avatar. The menu button opens the **side menu**.
+- **Side menu**: 280 px from the start edge, `--shadow-drawer-start`, over the scrim; a modal dialog with exactly the content of the expanded sidebar, except Notifications, which is the topbar bell. «Cerrar menú» sits in the company row, where the collapse button is on desktop; the user is at the bottom, and its account menu opens upwards. On open the focus goes to the company link and stays trapped inside; on close it returns to "Open menu". It closes with Esc, the scrim, the close button, choosing an item, or when the window reaches 1024 px. Controls are 44 px.
+- **Short windows**: the company row and the user stay fixed and the middle (Search, Notifications, the nav and the future foot rows) scrolls. A hairline `--border` separates the user while the middle scrolls.
+- **Safe areas**: `apps/web/index.html` sets `viewport-fit=cover`, so `env(safe-area-inset-*)` has a value. The topbar adds the top inset and both sides, the page both sides, and the side menu the start side and the bottom one under the user.
+- **Tab order on desktop**: "Skip to content", company, collapse or pin, Search, Notifications, the nav, the user and the page.
+- **Background**: flat `--chrome` in light and dark, the main column too, so the whole page is grey in light and black in dark. Cards, tables, panels and popovers sit on `--surface`.
+- **Areas**: the area tree selector (ticket 73, [ADR-0072](../adr/0072-organization-units-and-scoped-roles.md)) is not in the shell. It goes in the head of each page scoped to a unit; company pages do not show it. The sidebar stays the company's.
+- **Long names**: one line with an ellipsis. In the expanded sidebar the tooltip of the company and user names appears only when the text is cut, on hover and on focus; the accessible name is always the full one. Every name has `dir="auto"`.
+- **Accepted departures from the mockup**: no chevron on the company button and no icon on "Sign out".
 - **User menu (MVP)**: a non-interactive header with the name and email (the email alone when there is no name), a separator and "Sign out", which goes to `/login`. While signing out the menu stays open and the item is busy; a failure shows an inline error in the menu with `role="alert"`, and the user can retry.
 - **App loader**: only while there is no layout. A static copy lives in `#root` of `apps/web/index.html` (React replaces it on mount) and the [AppLoader](components.md#app-loader) is the `pendingComponent` (`pendingMs: 300`) of the root route and of `/c/$slug` only. The static copy's `aria-label` is "worKampo", because static HTML cannot be translated. Inside a page, a skeleton.
 - **Theme before first paint**: `apps/web/public/theme.js`, a classic synchronous script in `<head>`, sets `.dark` from `prefers-color-scheme` and follows its changes. It is a file and not inline because the CSP (`apps/web/public/_headers`) is `script-src 'self'`; for the same reason the static loader's styles live in `styles.css`.
@@ -43,8 +58,10 @@ Shell accessibility (lessons from the previous project's UI audit):
 
 - **Settings** opens its first page. Settings pages have a **subnav**: General, Members & roles, Billing. Desktop: a 200 px column left of the content (gap 32). Touch: a horizontal, scrollable row above the content. The sidebar keeps Settings as current on every settings page.
 - **Breadcrumb** only on second-level pages (`Settings / Members & roles`), above the `h1`. Never on top-level pages (Home, Public page).
-- **My account** (profile, language, theme, sessions) is reached from the **user button** (sidebar foot, topbar avatar) through a menu: My account, Sign out. It is not in the main nav. Until My account ships, the menu is the [MVP one](#app-shell).
-- **Notifications**: the sidebar item (topbar bell on touch) opens a panel; a popover on desktop, a full-height sheet on tablet and phone. Tabs Unread / All, "Mark all as read", each item links to the related page.
+- **My account** (profile, language, theme, sessions) is reached only from the **user button** at the bottom of the sidebar or the side menu, through a menu: My account, Sign out. It is not in the main nav. Until My account ships, the menu is the [MVP one](#app-shell).
+- **Notifications**: on desktop, a nav item under Search with the unread count, named "Notifications, 3 unread"; its panel opens to the right of the sidebar, as a popover. In the rail, an icon with a dot. On tablet and phone, the topbar bell with a dot opens a full-height sheet. Tabs Unread / All, "Mark all as read", each item links to the related page. New notifications are not announced live: only the number changes.
+- **Unread count and dot**: `--neg` with the number in `--on-neg` (AA), since `--ui` is black or white and does not stand out. Red on a badge means only "unread", never "error"; if the two ever clash, a `--badge` token that points to `--neg` today.
+- **Collapsible sections** (when the nav has them): only first-level items have an icon (Home, Search, Notifications and each section), since the rail shows only icons; inner items are text only, indented to the section's text. A section is a button with `aria-expanded` and a chevron at its end; it does not navigate. Several can be open; the one holding the current page opens by itself, and each remembers whether it was open. A collapsed section holding the current page gets the active tint. The rail shows only first-level icons and unfolds with the sections on hover; on touch, tapping a section's icon unfolds the rail with that section open. Whether a section can also have its own page is decided with the first real section.
 - **Command palette** on every app and backoffice screen (see components).
 - Every navigation is a real link (`<a href>`): open in new tab and back/forward must work.
 
@@ -154,7 +171,7 @@ When staff enters a company ("Enter as"):
 | Device | Width | Behaviour |
 |---|---|---|
 | Desktop | ≥ 1024 | Sidebar (or rail), tables, centred dialogs, right drawers, 36 px controls |
-| Tablet | 834 (design width) | **Behaves like phone**: topbar + off-canvas, card lists, Filters sheet, 44 px controls |
+| Tablet | 834 (design width) | **Same as phone**: topbar + side menu, no sidebar or rail, card lists, Filters sheet, 44 px controls |
 | Phone | 420 (design width) | Same as tablet plus: bottom-sheet dialogs, full-width drawers, tighter page padding, hidden secondary header links |
 
 In Tailwind, `lg:` (1024) is the single layout breakpoint; below it the touch layout applies. Content still adapts fluidly inside each range (`grid-cols` auto-fit, wrapping toolbars). Public pages (Astro) follow the same breakpoints.
