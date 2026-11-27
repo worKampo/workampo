@@ -29,3 +29,49 @@ describe('Banner', () => {
     expect(document.activeElement).toBe(banner)
   })
 })
+
+// Loaded untyped, so `variant="info"` and `floating` typecheck before the ui task adds them; turn
+// it into the static import above when the it.fails marks go.
+const BANNER = './banner'
+const loadBanner = () => import(/* @vite-ignore */ BANNER)
+
+describe('Banner info', () => {
+  it.fails('E5 the info banner is a status in the info colours with a decorative icon, and never takes the focus', async () => {
+    const { Banner: Untyped } = await loadBanner()
+    render(<Untyped variant="info">A new version is available</Untyped>)
+
+    const banner = screen.getByRole('status')
+    expect(banner.textContent).toContain('A new version is available')
+    expect(banner.className).toMatch(/bg-info-bg/)
+    expect(banner.className).toMatch(/border-info-border/)
+    expect(banner.querySelector('svg')?.getAttribute('aria-hidden')).toBe('true')
+    expect(banner.hasAttribute('tabindex')).toBe(false)
+  })
+
+  it.fails('E5 the caller can override the role of the info banner', async () => {
+    const { Banner: Untyped } = await loadBanner()
+    render(
+      <Untyped variant="info" role="note">
+        A new version is available
+      </Untyped>,
+    )
+
+    expect(screen.queryByRole('status')).toBeNull()
+    expect(screen.getByRole('note').className).toMatch(/bg-info-bg/)
+  })
+
+  it.fails('E5 floating is fixed, with the float shadow and logical insets only', async () => {
+    const { Banner: Untyped } = await loadBanner()
+    render(
+      <Untyped variant="info" floating>
+        A new version is available
+      </Untyped>,
+    )
+
+    const banner = screen.getByRole('status')
+    for (const name of ['fixed', 'shadow-float'])
+      expect(banner.className.split(' '), name).toContain(name)
+    // Physical sides would not mirror in RTL.
+    expect(banner.className).not.toMatch(/(^|\s)(left|right|ml|mr|pl|pr)-/)
+  })
+})

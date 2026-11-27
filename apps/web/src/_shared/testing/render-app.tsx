@@ -8,13 +8,27 @@ import { routeTree } from '../../route-tree'
 import { AppProviders } from '../providers/app-providers'
 import { createAppRouter } from '../router/create-app-router'
 
-// The whole app at `path`, with the API answered by `answer` instead of the network.
+// Where a reload goes, recorded: jsdom cannot spy or redefine window.location.
+export type LocationPort = { origin: string; assign: (url: string) => void; reload: () => void }
+
+export type Timers = {
+  setTimeout: (run: () => void, ms: number) => number
+  clearTimeout: (handle: number) => void
+}
+
+// The whole app at `path`, with the API answered by `answer` instead of the network. `version`,
+// `buildDate`, `storage` (sessionStorage), `location` and `timers` play the new-version checks.
 export function renderApp({
   path,
   answer,
 }: {
   path: string
   answer: (request: Request) => Response | Promise<Response>
+  version?: string
+  buildDate?: string
+  storage?: Pick<Storage, 'getItem' | 'setItem'>
+  location?: LocationPort
+  timers?: Timers
 }) {
   const apiClient = createApiClient({
     baseUrl: 'https://app.test',
@@ -58,4 +72,72 @@ export function sessionEndsAfterFirstMe(
     new URL(request.url).pathname === '/api/me' && meCalls++ > 0
       ? problem({ status: 401, code: 'access.unauthenticated' })
       : answer(request)
+}
+
+// A location that only records: reloads are counted, never run.
+export function recordingLocation(origin = window.location.origin) {
+  const assigned: string[] = []
+  const reloads = { count: 0 }
+  const location: LocationPort = {
+    origin,
+    assign: (url) => assigned.push(url),
+    reload: () => {
+      reloads.count++
+    },
+  }
+
+  return { location, assigned, reloads }
+}
+
+// A sessionStorage of its own per test; `failing` throws on every call, as a blocked storage does.
+export function memoryStorage({ failing = false } = {}) {
+  const values = new Map<string, string>()
+  const fail = () => {
+    throw new DOMException('The operation is insecure.', 'SecurityError')
+  }
+
+  return {
+    getItem: (key: string) => (failing ? fail() : (values.get(key) ?? null)),
+    setItem: (key: string, value: string) => (failing ? fail() : void values.set(key, value)),
+  }
+}
+
+// Timers that move only when the test says, so 30 minutes pass without fake timers over the app.
+export function manualTimers() {
+  let now = 0
+  let lastHandle = 0
+  const pending = new Map<number, { at: number; run: () => void }>()
+  const timers: Timers = {
+    setTimeout: (run, ms) => {
+      pending.set(++lastHandle, { at: now + ms, run })
+      return lastHandle
+    },
+    clearTimeout: (handle) => {
+      pending.delete(handle)
+    },
+  }
+  const advance = (ms: number) => {
+    now += ms
+    for (const [handle, timer] of [...pending].sort(([, a], [, b]) => a.at - b.at)) {
+      if (timer.at > now) continue
+      pending.delete(handle)
+      timer.run()
+    }
+  }
+
+  return { timers, advance }
+}
+
+// Every answer of `answer` with the version headers a deploy would add.
+export function servedVersion(
+  answer: (request: Request) => Response | Promise<Response>,
+  headers: () => Record<string, string>,
+) {
+  return async (request: Request) => {
+    const response = await answer(request)
+    const withHeaders = new Response(response.body, response)
+    for (const [name, value] of Object.entries(headers())) withHeaders.headers.set(name, value)
+
+    return withHeaders
+  }
 }

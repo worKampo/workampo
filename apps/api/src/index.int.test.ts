@@ -5,7 +5,8 @@ import { ACCESS_ERROR_CODES } from '@workampo/domain/access/errors'
 import { ERROR_CODES } from '@workampo/domain/errors'
 import { Hono } from 'hono'
 import { afterAll, afterEach, describe, expect, it, vi } from 'vitest'
-import { parsedEnv } from './_shared/env'
+import { clientVersionLog } from './_shared/client-version/client-version-log'
+import { parsedEnv, parseEnv } from './_shared/env'
 import { errorTracking } from './_shared/error-tracking/sentry-error-tracking'
 import { apiOnError, apiResponseHeaders } from './_shared/http/api-behaviour'
 import type { AppEnv } from './_shared/http/app-env'
@@ -520,6 +521,7 @@ const MADE_UP_CF_RAY = '8f2a1b3c4d5e6f70-MAD'
 function failingApp() {
   const failing = new Hono<AppEnv>()
   failing.use(errorTracking(failing))
+  failing.use(clientVersionLog)
   failing.use('/api/*', apiResponseHeaders)
   failing.use('/api/*', parsedEnv)
   failing.use('/api/t/:slug/*', requireSession, requireMember)
@@ -709,5 +711,137 @@ describe('the error reference', () => {
     const params = app.routes.flatMap((route) => route.path.match(/:[A-Za-z]+/g) ?? [])
 
     expect(params.filter((param) => /ref|error/i.test(param))).toEqual([])
+  })
+})
+
+// Ticket 95: the version headers and the client version in Sentry (ADR-0059). Made-up hashes and
+// dates (ADR-0043).
+const OWN_VERSION = 'a1b2c3d4e5f6'
+const BUILD_DATE = '2026-01-01T00:00:00Z'
+const LATER = '2100-01-01T00:00:00Z'
+
+// Variables the generated Env does not declare yet; spread, so the extra keys typecheck.
+const withVars = (vars: Record<string, string>) => ({ ...env, ...vars }) as typeof env
+
+describe('the version headers', () => {
+  it.fails('E1 E6 every answer carries X-App-Version, and X-Min-Client-Version when the minimum is not later than the build', async () => {
+    for (const minimum of ['2025-12-31T23:59:59Z', BUILD_DATE]) {
+      const bindings = withVars({
+        APP_VERSION: OWN_VERSION,
+        APP_BUILD_DATE: BUILD_DATE,
+        MIN_CLIENT_VERSION: minimum,
+      })
+
+      for (const path of ['/health', '/api/me']) {
+        const response = await app.request(`${ORIGIN}${path}`, {}, bindings)
+
+        expect(response.headers.get('X-App-Version'), path).toBe(OWN_VERSION)
+        expect(response.headers.get('X-Min-Client-Version'), path).toBe(minimum)
+      }
+    }
+  })
+
+  it.fails('R6 a minimum later than the served build sends no X-Min-Client-Version and logs it without the value', async () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const bindings = withVars({
+      APP_VERSION: OWN_VERSION,
+      APP_BUILD_DATE: BUILD_DATE,
+      MIN_CLIENT_VERSION: LATER,
+    })
+
+    const response = await app.request(`${ORIGIN}/health`, {}, bindings)
+
+    expect(response.status).toBe(200)
+    expect(response.headers.get('X-App-Version')).toBe(OWN_VERSION)
+    expect(response.headers.has('X-Min-Client-Version')).toBe(false)
+    const logs = error.mock.calls.map(([line]) =>
+      typeof line === 'string' ? parseLine(line) : null,
+    )
+    expect(logs).toContainEqual({ event: 'min_client_version_after_build' })
+    expect(JSON.stringify(error.mock.calls)).not.toContain('2100')
+  })
+
+  it.fails('R6 without the build date or the minimum there is no X-Min-Client-Version', async () => {
+    const complete = await app.request(
+      `${ORIGIN}/health`,
+      {},
+      withVars({ APP_BUILD_DATE: BUILD_DATE, MIN_CLIENT_VERSION: BUILD_DATE }),
+    )
+    const noBuildDate = await app.request(
+      `${ORIGIN}/health`,
+      {},
+      withVars({ MIN_CLIENT_VERSION: BUILD_DATE }),
+    )
+    const noMinimum = await app.request(
+      `${ORIGIN}/health`,
+      {},
+      withVars({ APP_BUILD_DATE: BUILD_DATE }),
+    )
+
+    expect(complete.headers.get('X-Min-Client-Version')).toBe(BUILD_DATE)
+    expect(noBuildDate.headers.has('X-Min-Client-Version')).toBe(false)
+    expect(noMinimum.headers.has('X-Min-Client-Version')).toBe(false)
+  })
+
+  it.fails('R6 R11 parseEnv keeps valid version variables and refuses invalid ones', () => {
+    expect(
+      parseEnv(
+        withVars({
+          APP_VERSION: OWN_VERSION,
+          APP_BUILD_DATE: BUILD_DATE,
+          MIN_CLIENT_VERSION: LATER,
+        }),
+      ),
+    ).toMatchObject({
+      APP_VERSION: OWN_VERSION,
+      APP_BUILD_DATE: BUILD_DATE,
+      MIN_CLIENT_VERSION: LATER,
+    })
+
+    for (const vars of [
+      { APP_VERSION: 'a b' },
+      { APP_VERSION: 'x'.repeat(65) },
+      { APP_BUILD_DATE: 'tomorrow' },
+      { APP_BUILD_DATE: '2026-13-40T00:00:00Z' },
+      { MIN_CLIENT_VERSION: '2026-01-01T00:00:00+01:00' },
+      { MIN_CLIENT_VERSION: '2026-01-01T00:00:00.000Z' },
+      { MIN_CLIENT_VERSION: '<b>' },
+    ])
+      expect(() => parseEnv(withVars(vars)), JSON.stringify(vars)).toThrow()
+  })
+})
+
+describe('the client version in Sentry', () => {
+  afterAll(() => {
+    Reflect.deleteProperty(globalThis, '__SENTRY_CLOUDFLARE_CLIENT__')
+  })
+
+  it.fails('R1 an event carries the clientVersion tag when the header is a build hash or version', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    vi.spyOn(console, 'log').mockImplementation(() => {})
+    const envelopes = spySentry()
+    const version = 'a'.repeat(64)
+
+    const response = await failWith('/api/x', { headers: { 'X-Client-Version': version } })
+
+    expect(response.status).toBe(500)
+    await vi.waitFor(() => expect(sentryEvents(envelopes)).toHaveLength(1))
+    expect(sentryEvents(envelopes)[0]?.tags?.clientVersion).toBe(version)
+  })
+
+  it.fails('R1 free text, quotes and 65 characters never reach Sentry as a tag', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    vi.spyOn(console, 'log').mockImplementation(() => {})
+    const envelopes = spySentry()
+    const refused = ['a b', 'v1"}', 'x'.repeat(65)]
+
+    for (const version of refused)
+      await failWith('/api/x', { headers: { 'X-Client-Version': version } })
+    await failWith('/api/x', { headers: { 'X-Client-Version': OWN_VERSION } })
+
+    await vi.waitFor(() => expect(sentryEvents(envelopes)).toHaveLength(refused.length + 1))
+    const tags = sentryEvents(envelopes).map((event) => event.tags?.clientVersion)
+    expect(tags).toEqual([undefined, undefined, undefined, OWN_VERSION])
+    expect(envelopes.join('\n')).not.toContain('x'.repeat(65))
   })
 })
