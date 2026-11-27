@@ -169,6 +169,17 @@ it('@id:companies-92-1 the current item is marked with no ring and no shadow', a
   expect(current.className).not.toMatch(/(^|\s)(ring|shadow)(-|\s|$)/)
 })
 
+it('@id:companies-92-1 the current item takes the text colour, not the muted one', async () => {
+  await renderShell()
+
+  const classes = within(screen.getByRole('navigation'))
+    .getByRole('link', { name: 'Inicio' })
+    .className.split(/\s+/)
+
+  expect(classes).toContain('text-text')
+  expect(classes).not.toContain('text-text-1')
+})
+
 it('@id:companies-92-7 folding asks for the rail', async () => {
   const onCollapsedChange = vi.fn()
   await renderShell({ onCollapsedChange })
@@ -368,6 +379,24 @@ it('@id:companies-196-1 on a touch screen «Desplegar» sits under the company a
   expect(floating()).toBe(true)
   expect(onCollapsedChange).not.toHaveBeenCalled()
 })
+
+for (const [pointerType, folds] of [
+  ['touch', true],
+  ['mouse', false],
+] as const) {
+  it(`@id:companies-196-1 choosing an item with ${pointerType} in the rail «Desplegar» opened ${folds ? 'folds' : 'keeps'} it`, async () => {
+    await renderShell({ collapsed: true })
+    const tap = (element: HTMLElement) => {
+      fireEvent.pointerDown(element, { pointerType })
+      fireEvent.click(element)
+    }
+
+    tap(within(rail()).getByRole('button', { name: LABELS.expand }))
+    tap(within(rail()).getByRole('link', { name: 'Otra' }))
+
+    expect(floating()).toBe(!folds)
+  })
+}
 
 it('@id:companies-196-2 the side menu holds the search and ends with the user, with no notifications', async () => {
   await renderShell({

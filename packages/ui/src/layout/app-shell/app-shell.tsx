@@ -166,7 +166,7 @@ function Sidebar({
   const mouseInside = useRef(false)
   const panel = useRef<HTMLDivElement>(null)
   const toggle = useRef<HTMLButtonElement>(null)
-  const keyboard = useKeyboardInput()
+  const input = useLastInput()
 
   const floating = collapsed && (hovered || menus > 0 || (keyboardFocus && !escaped))
   const rail = collapsed && !floating
@@ -222,7 +222,7 @@ function Sidebar({
         hoverLater(false)
       }}
       // React bubbles focus from portals too, so a menu's focus counts as inside.
-      onFocus={() => setKeyboardFocus(keyboard.current)}
+      onFocus={() => setKeyboardFocus(input.current === 'keyboard')}
       onBlur={(event) => {
         if (event.currentTarget.contains(event.relatedTarget)) return
         setKeyboardFocus(false)
@@ -243,8 +243,14 @@ function Sidebar({
         collapsed ? 'w-16' : 'w-64',
       )}
     >
-      <PlaceContext value={{ rail }}>
-        <MenuScope onOpenChange={onMenuOpenChange} side={rail ? 'right' : 'top'}>
+      <PlaceContext
+        value={{
+          rail,
+          // On touch, choosing an item folds what «Desplegar» opened, as the side menu closes.
+          onNavigate: () => input.current === 'touch' && setHovered(false),
+        }}
+      >
+        <MenuScope onOpenChange={onMenuOpenChange} side="top">
           <div
             ref={panel}
             className={cx(
@@ -295,16 +301,16 @@ function Sidebar({
   )
 }
 
-// Whether the last input was a key rather than a pointer: only keyboard focus holds the rail open.
-function useKeyboardInput() {
-  const keyboard = useRef(true)
+// The last input: 'keyboard' or the pointer's type. Only keyboard focus holds the rail open.
+function useLastInput() {
+  const input = useRef('keyboard')
 
   useEffect(() => {
     const onKey = () => {
-      keyboard.current = true
+      input.current = 'keyboard'
     }
-    const onPointer = () => {
-      keyboard.current = false
+    const onPointer = (event: PointerEvent) => {
+      input.current = event.pointerType
     }
     document.addEventListener('keydown', onKey, true)
     document.addEventListener('pointerdown', onPointer, true)
@@ -314,7 +320,7 @@ function useKeyboardInput() {
     }
   }, [])
 
-  return keyboard
+  return input
 }
 
 // A native modal <dialog>: showModal makes the page inert and traps the focus with no injected styles,
@@ -385,9 +391,9 @@ export function NavItem({
         onNavigate?.()
       }}
       className={cx(
-        'flex h-9 items-center gap-3 rounded-lg text-body text-text-1 hover:bg-nav-hover hover:text-text max-lg:h-11',
+        'flex h-9 items-center gap-3 rounded-lg text-body hover:bg-nav-hover hover:text-text max-lg:h-11',
         'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui',
-        current && 'bg-nav-active font-semibold text-text',
+        current ? 'bg-nav-active font-semibold text-text' : 'text-text-1',
         rail ? 'w-10 justify-center' : 'w-full px-2.5',
         className,
       )}

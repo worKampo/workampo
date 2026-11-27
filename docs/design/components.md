@@ -226,7 +226,7 @@ Custom (`AppShell` in `packages/ui/src/layout/app-shell/`); the side menu is a n
 
 - `CompanyLink`: avatar, name (13/16 weight 600) and role in meta; a 44 px link. The name is cut with an ellipsis and gets a tooltip only when cut.
 - `NavItem`: 36 / 44 high, radius 8, 16 px icon and label; current: `--nav-active` tint, label weight 600 `--text` and `aria-current="page"`, with no ring or shadow. In the rail, a 40 px square with the label visually hidden. Routers wrap it (`createLink(NavItem)`).
-- `UserButton`: avatar, name and email; with no name the email takes its place, without a second line. A 44 px square with the avatar in the rail; `aria-busy` while signing out. Last in the sidebar and the side menu; its menu opens upwards there and to the right in the rail.
+- `UserButton`: avatar, name and email; with no name the email takes its place, without a second line. A 44 px square with the avatar in the rail; `aria-busy` while signing out. Last in the sidebar and the side menu; its menu opens upwards there and in the rail, which unfolds while it is open.
 - `TopbarCompany`: avatar and name in the topbar, not a focus stop.
 - Collapse button: a quiet icon button in the company row, one button that changes with the state: «Plegar menú lateral» on the pinned sidebar, «Fijar menú lateral» on the floating rail. With `hover: none`, «Desplegar menú lateral» under the company avatar in the rail.
 - Rail: 64 px; floats to 256 px over the page with `--shadow-drawer-start` on hover or focus, held open while a menu inside it is open ([patterns](patterns.md#app-shell)).

@@ -75,7 +75,7 @@ for (const colorScheme of ['light', 'dark'] as const) {
   })
 }
 
-test('the current item is marked by its tint, weight and aria-current, with no shadow', async ({
+test('the current item is marked by its tint, weight, text colour and aria-current, with no shadow', async ({
   page,
 }) => {
   await openOwnCompany(page)
@@ -85,6 +85,14 @@ test('the current item is marked by its tint, weight and aria-current, with no s
   await expect(home).toHaveAttribute('aria-current', 'page')
   await expect(home).toHaveCSS('font-weight', '600')
   await expect(home).toHaveCSS('box-shadow', 'none')
+  const text = await page.evaluate(() => {
+    const probe = document.body.appendChild(document.createElement('span'))
+    probe.style.color = 'var(--text)'
+    const color = getComputedStyle(probe).color
+    probe.remove()
+    return color
+  })
+  await expect(home).toHaveCSS('color', text)
 })
 
 test('with reduced motion the rail floats with no transition', async ({ page }) => {
@@ -111,7 +119,9 @@ test('with reduced motion the rail floats with no transition', async ({ page }) 
 test.describe('on a desktop-wide touch screen', () => {
   test.use({ viewport: { width: 1194, height: 834 }, hasTouch: true, isMobile: true })
 
-  test('«Desplegar menú lateral» sits under the company and floats the rail', async ({ page }) => {
+  test('«Desplegar menú lateral» sits under the company, floats the rail and a chosen item folds it', async ({
+    page,
+  }) => {
     await openOwnCompany(page, { folded: true })
     expect(await page.evaluate(() => matchMedia('(hover: none)').matches)).toBe(true)
 
@@ -122,6 +132,9 @@ test.describe('on a desktop-wide touch screen', () => {
     expect(company && button && button.y >= company.y + company.height).toBe(true)
     await expand.tap()
 
-    await expect(page.getByRole('button', { name: 'Fijar menú lateral' })).toBeVisible()
+    const pin = page.getByRole('button', { name: 'Fijar menú lateral' })
+    await expect(pin).toBeVisible()
+    await page.getByRole('navigation').getByRole('link', { name: 'Inicio' }).tap()
+    await expect(pin).toBeHidden()
   })
 })
