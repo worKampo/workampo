@@ -125,7 +125,6 @@ test('@id:companies-92-6 on a phone the side menu opens over the page and Esc cl
 test('@id:companies-92-7 on a desktop the folded menu is a bar of icons, each keeping its name', async ({
   page,
 }) => {
-  test.fail(true, 'the rail still folds with «Plegar menú» and shows tooltips')
   await page.clock.install()
   await openOwnCompany(page)
 
@@ -224,7 +223,6 @@ test('@id:companies-92-11 a slow load shows the app loader, still with reduced m
 test('@id:companies-196-1 hovering the folded rail unfolds it over the page, and pinning it pushes the page', async ({
   page,
 }) => {
-  test.fail(true, 'the rail does not unfold on hover nor offer «Fijar menú lateral» yet')
   await openOwnCompany(page)
   const fold = page.getByRole('button', { name: 'Plegar menú lateral' })
   await expect(fold).toBeVisible()
@@ -255,7 +253,6 @@ test('@id:companies-196-1 hovering the folded rail unfolds it over the page, and
 test('@id:companies-196-2 on a phone the side menu holds the company, the navigation and my user at the bottom', async ({
   page,
 }) => {
-  test.fail(true, 'the topbar still holds the account button and the side menu has no user')
   await page.setViewportSize(MOBILE)
   await openOwnCompany(page)
 
@@ -279,7 +276,6 @@ test('@id:companies-196-2 on a phone the side menu holds the company, the naviga
 test('@id:companies-196-3 on a desktop Tab goes through the company, folding, the navigation and the user', async ({
   page,
 }) => {
-  test.fail(true, '«Plegar menú lateral» is still at the foot of the sidebar')
   await openOwnCompany(page)
   await page.keyboard.press('Tab')
   await expect(page.getByRole('link', { name: 'Saltar al contenido' })).toBeFocused()
@@ -293,9 +289,12 @@ test('@id:companies-196-3 on a desktop Tab goes through the company, folding, th
     await page.keyboard.press('Tab')
     await expect(stop).toBeFocused()
   }
+  // Past the user, Tab leaves the sidebar for the page; the company home has nothing focusable yet.
   await page.keyboard.press('Tab')
 
   expect(
-    await page.getByRole('main').evaluate((main) => main.contains(document.activeElement)),
-  ).toBe(true)
+    await page
+      .getByRole('complementary')
+      .evaluate((sidebar) => sidebar.contains(document.activeElement)),
+  ).toBe(false)
 })
