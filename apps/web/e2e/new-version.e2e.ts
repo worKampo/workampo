@@ -206,6 +206,15 @@ test('E6 R10 a minimum later than my build shows the blocking dialog, which relo
   ).toBeVisible()
   await expect(dialog.getByRole('button')).toHaveCount(1)
   await expect(dialog.getByRole('button', { name: 'Recargar' })).toBeFocused()
+  // The page behind is inert: Tab never lands on one of its elements.
+  for (const key of ['Tab', 'Shift+Tab']) {
+    await page.keyboard.press(key)
+    const insideOrNone = await page.evaluate(() => {
+      const active = document.activeElement
+      return !active || active === document.body || active.closest('dialog') !== null
+    })
+    expect(insideOrNone, key).toBe(true)
+  }
   await page.keyboard.press('Escape')
   await page.mouse.click(5, 5)
   await expect(dialog).toBeVisible()

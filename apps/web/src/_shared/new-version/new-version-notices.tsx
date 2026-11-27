@@ -9,11 +9,17 @@ type Labels = { text: string; reload: string }
 // Inside the status that NewVersionPrompts always renders, so it takes no role of its own (E5).
 export function NewVersionNotice({ labels, reload }: { labels: Labels; reload: () => void }) {
   return (
-    <Banner variant="info" floating role="none">
-      {labels.text}{' '}
-      <Button size="small" variant="secondary" onClick={reload}>
-        {labels.reload}
-      </Button>
+    <Banner
+      variant="info"
+      floating
+      role="none"
+      action={
+        <Button variant="ghost" onClick={reload}>
+          {labels.reload}
+        </Button>
+      }
+    >
+      {labels.text}
     </Banner>
   )
 }

@@ -80,6 +80,8 @@ npx wrangler deployments status --name app
 
 Without `MIN_CLIENT_VERSION` the deploy goes on and the API sends no `X-Min-Client-Version`.
 
+Never set `APP_VERSION`, `APP_BUILD_DATE` or `MIN_CLIENT_VERSION` by hand (`wrangler deploy --var` or the dashboard): an invalid value makes every `/api` request answer 500. Only `deploy.mjs` sets them, and it validates them first.
+
 ## Tokens and permissions
 
 Tokens never enter the repo ([AGENTS.md](../../AGENTS.md#8-no-entra-public-repo)).
