@@ -147,17 +147,16 @@ it('@id:companies-92-6 the menu button opens a modal side menu with the focus on
   await waitFor(() => expect(document.activeElement).toBe(company))
 })
 
-it('@id:companies-92-6 the focus stays trapped inside the side menu', async () => {
+// The page behind is inert through showModal, which jsdom lacks: csp-overlays.e2e.ts proves the trap.
+it('@id:companies-92-6 the side menu is a modal dialog, which keeps the focus inside', async () => {
+  const showModal = vi.spyOn(HTMLDialogElement.prototype, 'showModal')
   await renderShell()
+
   fireEvent.click(screen.getByRole('button', { name: 'Abrir menú' }))
+
   const dialog = await screen.findByRole('dialog', { name: 'Menú' })
-  const stops = dialog.querySelectorAll<HTMLElement>('a[href], button')
-  const last = stops[stops.length - 1]
-  last?.focus()
-
-  fireEvent.keyDown(last ?? dialog, { key: 'Tab' })
-
-  expect(document.activeElement).toBe(stops[0])
+  expect(showModal).toHaveBeenCalledOnce()
+  expect(showModal.mock.contexts[0]).toBe(dialog)
 })
 
 it('@id:companies-92-6 Esc closes the side menu and the focus goes back to the menu button', async () => {
@@ -166,10 +165,24 @@ it('@id:companies-92-6 Esc closes the side menu and the focus goes back to the m
   fireEvent.click(open)
   const dialog = await screen.findByRole('dialog', { name: 'Menú' })
 
-  fireEvent.keyDown(dialog, { key: 'Escape' })
+  // The browser turns Esc into the dialog's cancel event; jsdom does not.
+  fireEvent(dialog, new Event('cancel', { cancelable: true }))
 
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
   expect(document.activeElement).toBe(open)
+})
+
+it('@id:companies-92-6 a click on the scrim closes the side menu, a click on the panel does not', async () => {
+  await renderShell()
+  fireEvent.click(screen.getByRole('button', { name: 'Abrir menú' }))
+  const dialog = await screen.findByRole('dialog', { name: 'Menú' })
+
+  fireEvent.click(within(dialog).getByRole('navigation'))
+  expect(screen.getByRole('dialog')).toBe(dialog)
+  // A click on the backdrop reaches the dialog element itself.
+  fireEvent.click(dialog)
+
+  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
 })
 
 it('@id:companies-92-6 the close button and choosing an item close the side menu', async () => {

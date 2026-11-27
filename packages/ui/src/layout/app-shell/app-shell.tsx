@@ -1,11 +1,12 @@
-import * as Dialog from '@radix-ui/react-dialog'
 import {
   type ComponentProps,
   createContext,
   type ReactNode,
+  type RefObject,
   useCallback,
   useContext,
   useEffect,
+  useRef,
   useState,
 } from 'react'
 import { cx } from '../../_shared/cx'
@@ -53,6 +54,7 @@ export function AppShell({
   children: ReactNode
 }) {
   const [navOpen, setNavOpen] = useState(false)
+  const openNav = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
     if (!navOpen || !window.matchMedia) return
@@ -95,41 +97,40 @@ export function AppShell({
       </PlaceContext>
 
       <div className="flex min-w-0 grow flex-col">
-        <Dialog.Root open={navOpen} onOpenChange={setNavOpen}>
-          <header className="sticky top-0 z-40 flex h-14 items-center gap-2 bg-chrome ps-1.5 pe-3 lg:hidden">
-            <Dialog.Trigger aria-label={labels.openNav} className={iconButton}>
-              <MenuIcon />
-            </Dialog.Trigger>
-            <PlaceContext value={{ rail: true }}>{topbar}</PlaceContext>
-          </header>
-          <Dialog.Portal>
-            <Dialog.Overlay className="fixed inset-0 z-50 bg-scrim" />
-            <Dialog.Content
-              aria-describedby={undefined}
-              onOpenAutoFocus={(event) => {
-                // Radix skips links when it picks the first stop; the company link goes first.
-                const first = event.currentTarget
-                if (!(first instanceof HTMLElement)) return
-                event.preventDefault()
-                first.querySelector<HTMLElement>('a[href], button')?.focus()
-              }}
-              className="fixed inset-y-0 start-0 z-50 flex w-70 max-w-full flex-col gap-4 border-e border-border bg-chrome p-3 shadow-(--shadow-drawer-start) rtl:shadow-(--shadow-drawer)"
-            >
-              <Dialog.Title className="sr-only">{labels.navDialog}</Dialog.Title>
-              <PlaceContext value={{ rail: false, onNavigate: () => setNavOpen(false) }}>
-                <div className="flex items-center gap-1">
-                  <div className="min-w-0 grow">{company}</div>
-                  <Dialog.Close aria-label={labels.closeNav} className={iconButton}>
-                    <CloseIcon />
-                  </Dialog.Close>
-                </div>
-                <nav aria-label={labels.navigation} className="flex flex-col gap-1">
-                  {nav}
-                </nav>
-              </PlaceContext>
-            </Dialog.Content>
-          </Dialog.Portal>
-        </Dialog.Root>
+        <header className="sticky top-0 z-40 flex h-14 items-center gap-2 bg-chrome ps-1.5 pe-3 lg:hidden">
+          <button
+            ref={openNav}
+            type="button"
+            aria-label={labels.openNav}
+            aria-haspopup="dialog"
+            aria-expanded={navOpen}
+            onClick={() => setNavOpen(true)}
+            className={iconButton}
+          >
+            <MenuIcon />
+          </button>
+          <PlaceContext value={{ rail: true }}>{topbar}</PlaceContext>
+        </header>
+        {navOpen && (
+          <SideMenu label={labels.navDialog} onClose={() => setNavOpen(false)} opener={openNav}>
+            <PlaceContext value={{ rail: false, onNavigate: () => setNavOpen(false) }}>
+              <div className="flex items-center gap-1">
+                <div className="min-w-0 grow">{company}</div>
+                <button
+                  type="button"
+                  aria-label={labels.closeNav}
+                  onClick={() => setNavOpen(false)}
+                  className={iconButton}
+                >
+                  <CloseIcon />
+                </button>
+              </div>
+              <nav aria-label={labels.navigation} className="flex flex-col gap-1">
+                {nav}
+              </nav>
+            </PlaceContext>
+          </SideMenu>
+        )}
 
         <main
           id="content"
@@ -140,6 +141,47 @@ export function AppShell({
         </main>
       </div>
     </div>
+  )
+}
+
+// A native modal <dialog>: showModal makes the page inert and traps the focus with no injected styles,
+// which the CSP would block. Esc, the scrim and the caller close it by unmounting it.
+function SideMenu({
+  label,
+  onClose,
+  opener,
+  children,
+}: {
+  label: string
+  onClose: () => void
+  opener: RefObject<HTMLElement | null>
+  children: ReactNode
+}) {
+  const dialog = useRef<HTMLDialogElement>(null)
+
+  // The company link goes first; unmounting removes the dialog without close(), so the focus is given back.
+  useEffect(() => {
+    dialog.current?.showModal()
+    dialog.current?.querySelector<HTMLElement>('a[href], button')?.focus()
+    return () => opener.current?.focus()
+  }, [opener])
+
+  return (
+    // biome-ignore lint/a11y/useKeyWithClickEvents: the scrim click has Esc as its keyboard way (onCancel).
+    <dialog
+      ref={dialog}
+      aria-label={label}
+      aria-modal="true"
+      onCancel={(event) => {
+        event.preventDefault()
+        onClose()
+      }}
+      // The panel fills the dialog, so only the scrim around it reaches the dialog itself.
+      onClick={(event) => event.target === event.currentTarget && onClose()}
+      className="fixed inset-y-0 start-0 end-auto h-auto max-h-none w-70 max-w-full border-e border-border bg-chrome text-text shadow-(--shadow-drawer-start) backdrop:bg-scrim rtl:shadow-(--shadow-drawer)"
+    >
+      <div className="flex min-h-full flex-col gap-4 p-3">{children}</div>
+    </dialog>
   )
 }
 

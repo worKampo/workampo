@@ -21,7 +21,8 @@ export function Menu({ children }: { children: ReactNode }) {
 
   return (
     <MenuContext value={{ focusLast, open: () => setOpen(true) }}>
-      <DropdownMenu.Root open={open} onOpenChange={setOpen}>
+      {/* Non-modal: the modal one's scroll lock injects a <style> that the CSP blocks. */}
+      <DropdownMenu.Root modal={false} open={open} onOpenChange={setOpen}>
         {children}
       </DropdownMenu.Root>
     </MenuContext>
